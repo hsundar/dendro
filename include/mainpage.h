@@ -6,7 +6,7 @@
 * @authors <A href="http://www.cc.gatech.edu/~rahulss">Rahul S. Sampath</A>
 * @authors <A href="http://www.seas.upenn.edu/~hsundar">Hari Sundar</A>
 * @authors <A href="http://www.seas.upenn.edu/~adavani">Santi S. Adavani</A>
-* @authors <A href="http://www.seas.upenn.edu/~ilashuk">Ilya Lashuk</A>
+* @authors <A href="http://www.cc.gatech.edu/~ilashuk">Ilya Lashuk</A>
 * @authors <A href="http://www.cc.gatech.edu/~gbiros">George Biros</A>
 *
 * \image html hangingNodes.bmp
@@ -35,15 +35,17 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         
 GNU General Public License for more details.                                                             
 
-The GNU General Public License can be found <A href="http://www.seas.upenn.edu/~csela/dendro/License.gpl"> here </A>.          
+The GNU General Public License can be found <A href="http://www.cc.gatech.edu/csela/dendro/License.gpl"> here </A>.          
 
 Other Links
-- <A href="http://www.seas.upenn.edu/~csela/dendro/download-dendro.html"> Download Dendro </A>
-- <A href="http://www.seas.upenn.edu/~csela/dendro/Manual.pdf"> Dendro Manual </A>
-- <A href="http://www.seas.upenn.edu/~csela/dendro/FAQ.html"> FAQ </A> 
+- <A href="http://www.cc.gatech.edu/csela/dendro/download-dendro.html"> Download Dendro </A>
+- <A href="http://www.cc.gatech.edu/csela/dendro/Manual.pdf"> Dendro Manual </A>
+- <A href="http://www.cc.gatech.edu/csela/dendro/FAQ.html"> FAQ </A> 
 
 To contact us please send an email to dendro.maintenance@gmail.com.
 
 */
 
 #endif /*_MAINPAGE_H_*/
+
+
