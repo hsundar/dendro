@@ -1,0 +1,30 @@
+DENDRO v1.0
+-------------------------
+The instructions for installing the library can be found in the
+INSTALL file. 
+
+'DENDRO' is a collection of tools for parallel octree-based
+applications. It is written in C++ using the standard template library
+(STL) and uses the Message Passing standard, MPI. It supports the
+PETSc objects 'Mat' and 'Vec' and provides interfaces to PETSc's
+linear and non-linear solvers. DENDRO is released under the GNU Public
+License, a copy of which can be found in the file LICENCE.GPL
+
+
+The DENDRO library comprises of 4 main modules, which are listed below: 
+1. 'par': A templated library of parallel functions used for sorting, 
+          merging, searching and partitioning data.  
+2. 'oct': Functions used to construct and balance linear 
+          octrees.  
+3. 'oda': Functions used to construct and manage the 
+          Finite element mesh and provides interfaces to create the PETSc objects 
+          'Mat' and 'Vec'.  
+4. 'omg': Functions used to set up and use the multigrid 
+          solver on the octree based finite element discretization.
+
+A quick tutorial can be found in Manual/Manual.pdf
+Detailed Doxygen documentation can be generated using the configure
+file provided under Doc/Doxyfile.  Use Doc/DoxyfileNoSources to strip
+source code from the documentation.
+
+

@@ -1,0 +1,144 @@
+def O (0,0,0) % origo
+def dx 10
+def dy 14
+def dz 10
+
+def axes {
+    % draw the axes
+    def ax (dx,0,0)
+    def ay (0,dy,0)
+    def az (0,0,dz)
+    line[arrows=<->,line width=.4pt](ax)(O)(ay)
+    line[arrows=->, line width=.4pt](O)(az)
+
+    % repeat dotted as an overlay to hint at the hidden lines
+    % line[lay=over,line style=dotted,line width=.4pt](ax)(O)(ay)
+    % line[lay=over,line style=dotted,line width=.4pt](O)(az)
+
+    % annote axes
+    special |\path #1 node[above] {$z$}
+                   #2 node[right] {$x$};|(az)(ax)
+                  % #3 node[right] {$y$};|(az)(ax)(ay)
+}
+
+% octant
+def octR put{translate([-1.0,0,0])}{
+    def n 1   
+  sweep[fill=red!50, fill opacity=0.3, cull=false]
+        {n,translate([0,n,0])}
+    sweep[fill=red!50, fill opacity=0.3, cull=false]
+        {n, translate([n,0,0])}line(1,0,0)(1,0,1)
+}
+
+def octB put{translate([-1.0,0,0])}{
+    def n 1   
+  sweep[fill=blue!50, fill opacity=0.3, cull=false]
+        {n,translate([0,n,0])}
+    sweep[fill=blue!50, fill opacity=0.3, cull=false]
+        {n, translate([n,0,0])}line(1,0,0)(1,0,1)
+}
+
+def octF put{translate([-1.0,0,0])}{
+    def n 1   
+  sweep[fill opacity=0.1, cull=false]
+        {n,translate([0,n,0])}
+    sweep[fill opacity=0.1, cull=false]
+        {n, translate([n,0,0])}line(1,0,0)(1,0,1)
+}
+
+
+def sphere put{rotate(90,[0,1,0])}{
+   def n_faces 12
+   sweep[fill=green, line width= 0.1pt] { n_faces, rotate(360/n_faces, [1,0,0])}
+       sweep {n_faces, rotate(360/n_faces)}(0,1)
+}
+
+def hanging put{rotate(90,[0,1,0])}{
+   def n_faces 4
+   sweep[fill=red, line width= 0.1pt] { n_faces, rotate(360/n_faces, [1,0,0])}
+       sweep {n_faces, rotate(360/n_faces)}(0,1)
+}
+
+def psuedo put{rotate(90,[0,1,0])}{
+   def n_faces 4
+   sweep[fill=gray, line width= 0.1pt] { n_faces, rotate(360/n_faces, [1,0,0])}
+       sweep {n_faces, rotate(360/n_faces)}(0,1)
+}
+
+def octScene {
+
+  % Octants ...
+  %put { scale(8) } {octF}
+
+  put { scale(4) then translate([4,0,0]) } {octR}
+  put { scale(4) then translate([4,4,4]) } {octB}
+  put { scale(4) then translate([4,4,0]) } {octB}
+  put { scale(4) then translate([0,0,0]) } {octR}
+  put { scale(4) then translate([0,4,4]) } {octB}
+  put { scale(4) then translate([0,4,0]) } {octB}
+
+  put { scale(2) then translate([4,2,4]) } {octR}
+  put { scale(2) then translate([0,2,4]) } {octR}
+  put { scale(2) then translate([6,2,4]) } {octR}
+  put { scale(2) then translate([2,2,4]) } {octR}
+  
+  % mark the nodes that will not be found ...
+  %put {scale(0.2) then translate([0,0,4])} {hanging}
+  put {scale(0.2) then translate([4,0,4])} {hanging}
+  put {scale(0.2) then translate([8,0,4])} {hanging}
+  
+  %put {scale(0.2) then translate([0,2,4])} {psuedo}
+  %put {scale(0.2) then translate([2,2,4])} {psuedo}
+  put {scale(0.2) then translate([4,2,4])} {psuedo}
+  put {scale(0.2) then translate([6,2,4])} {psuedo}
+  
+  def b1 (0,2,4)
+  def b2 (0,0,4)
+  def b3 (2,2,4)
+  def d1 (4,2,4)
+  def d2 (4,0,4)
+  def d3 (6,2,4)
+
+  % The mappings ...
+  %special |\draw [->,shorten <=1pt,>=stealth',semithick,blue] #1 to [bend right=45] #2;|[lay=over](b1)(b2)
+  %special |\draw [->,shorten <=1pt,>=stealth',semithick,blue] #1 to #2;|[lay=over](b3)(b2)
+  special |\draw [->,shorten <=1pt,>=stealth',semithick,blue] #1 to [bend right=45] #2;|[lay=over](d1)(d2)
+  special |\draw [->,shorten <=1pt,>=stealth',semithick,blue] #1 to #2;|[lay=over](d3)(d2)
+
+
+  % add some nodes ...
+  %put {scale(0.2) then translate([0,0,0])} {sphere}
+  %put {scale(0.2) then translate([8,0,0])} {sphere}
+  %put {scale(0.2) then translate([0,8,0])} {sphere}
+  %put {scale(0.2) then translate([8,8,0])} {sphere}
+  %put {scale(0.2) then translate([0,0,8])} {sphere}
+  %put {scale(0.2) then translate([8,0,8])} {sphere}
+  %put {scale(0.2) then translate([0,8,8])} {sphere}
+  %put {scale(0.2) then translate([8,8,8])} {sphere}
+  
+  put {scale(0.2) then translate([4,0,0])} {sphere}
+  %put {scale(0.2) then translate([4,0,4])} {hanging}
+  %put {scale(0.2) then translate([8,8,4])} {hanging}
+  %put {scale(0.2) then translate([8,0,4])} {hanging}
+  
+  %put {scale(0.2) then translate([4,4,0])} {hanging}
+  %put {scale(0.2) then translate([4,4,4])} {sphere}
+  %put {scale(0.2) then translate([4,8,4])} {hanging}
+  %put {scale(0.2) then translate([8,4,4])} {hanging}
+  %put {scale(0.2) then translate([4,8,0])} {hanging}
+  %put {scale(0.2) then translate([8,4,0])} {hanging}
+  
+  def a1 (4,0,0)
+
+  special |\path #1 node[below,yshift=-1mm] {$a$}
+                   #2 node[above,xshift=-1mm, yshift=1mm] {$b$}
+                   #3 node[right, xshift=2mm, yshift=0.8mm] {$c$}
+                   #4 node[right, xshift=2mm, yshift=0.8mm] {$d$};
+                   |(a1)(d2)(d1)(d3)
+  {axes}
+}
+
+put { rotate(-90, (0,0,0), [1,0,0] ) then rotate(45, (0,0,0), [0,1,0] ) then view((10,4,2)) } {octScene}
+
+global { language tikz }
+

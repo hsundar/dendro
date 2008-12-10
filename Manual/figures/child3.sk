@@ -1,0 +1,68 @@
+def O (0,0,0) % origin
+def v1 (4,0,0)
+  def v2 (0,4,0)
+  def v3 (4,4,0)
+  def v4 (0,0,4)
+  def v5 (4,0,4)
+  def v6 (0,4,4)
+  def v7 (4,4,4)
+
+def axes {
+    % draw the axes
+    def ax (-2.2,4,0)
+    def ay (4,-3,0)
+    def az (4,4,6)
+    line[arrows=<->,line width=.4pt](ax)(v3)(ay)
+    line[arrows=->, line width=.4pt](v3)(az)
+
+    % annote axes
+    special |\path #1 node[right] {$z$}
+                   #2 node[below] {$x$}
+                   #3 node[below] {$y$};|(az)(ax)(ay)
+}
+
+def octF put{translate([-1.0,0,0])}{
+    def n 1   
+  sweep[fill opacity=0.1, cull=false]
+        {n,translate([0,n,0])}
+    sweep[fill opacity=0.1, cull=false]
+        {n, translate([n,0,0])}line(1,0,0)(1,0,1)
+}
+
+def hanging put{rotate(90,[0,1,0])}{
+   def n_faces 6
+   sweep[fill=gray, line width= 0.1pt] { n_faces, rotate(360/n_faces, [1,0,0])}
+       sweep {n_faces, rotate(360/n_faces)}(0,1)
+}
+
+def octScene {
+
+  % Octants ...
+  put { scale(4) } {octF}
+
+  % add some nodes ...
+  put {scale(0.15) then translate([0,0,0])} {hanging}
+  put {scale(0.15) then translate([4,0,0])} {hanging}
+  put {scale(0.15) then translate([0,4,0])} {hanging}
+  put {scale(0.15) then translate([4,4,0])} {hanging}
+  put {scale(0.15) then translate([0,0,4])} {hanging}
+  put {scale(0.15) then translate([4,0,4])} {hanging}
+  put {scale(0.15) then translate([0,4,4])} {hanging}
+  put {scale(0.15) then translate([4,4,4])} {hanging}
+
+  special |\path #1 node[left,xshift=-0.5mm] {$v_3$}
+			#2 node[right,yshift=-1mm] {$v_2$}                  
+                  #3 node[right, xshift=-1mm, yshift=1mm] {$v_1$}
+			#4 node[right, xshift=0.5mm] {$v_0$}
+			#5 node[above, xshift=-0.5mm] {$v_7$}                  
+                  #6 node[above, xshift=-1mm] {$v_6$}
+                  #7 node[above, xshift=1mm] {$v_5$}
+			#8 node[right, xshift=1mm] {$v_4$};|(O)(v1)(v2)(v3)(v4)(v5)(v6)(v7)
+
+  {axes}
+}
+
+put { rotate(-90, (0,0,0), [1,0,0] ) then rotate(45, (0,0,0), [0,1,0] ) then view((10,4,2)) then scale(0.5) } {octScene}
+
+global { language tikz }
+

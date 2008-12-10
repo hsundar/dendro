@@ -1,0 +1,57 @@
+Installation Instructions
+=========================
+DENDRO v1.0
+--------
+
+DENDRO requires that PETSc be installed on the system. Because of frequent changes
+to the PETSc interface, we require that PETSc version 2.3.3 be installed. It
+should be possible to make DENDRO work with older/newer versions of PETSc with minor
+changes to the code. 
+
+The PETSc developers provide access to all
+versions of PETSc; see:
+http://www-unix.mcs.anl.gov/petsc/petsc-as/download/index.html
+
+Install PETSc (version 2.3.3) with the option '-with-clanguage=cxx'.  This will
+build the PETSc library using a 'C++' compiler. After downloading
+PETSc, use "gunzip -c petsc-2.3.3.tar.gz | tar xf -" and open the
+docs/index.html file to find the PETSc installation instruction for
+petsc-2.3.3. Make sure that the environment variables PETSC_DIR and PETSC_ARCH point to
+the correct PETSc installation. You can do this by typing the following command
+at the command line.
+
+echo $PETSC_DIR; echo $PETSC_ARCH
+
+The first line of the output should be set to the directory in which
+you installed PETSc and the second line must be the value of
+PETSC_ARCH that you set while compiling PETSc.
+
+Set the environment variable DENDRO_DIR to point to the top level
+directory where you want to install DENDRO. Go to the Dendro directory
+and  use
+export DENDRO_DIR=$PWD 
+for a bash shell environment.
+
+Type 'make' to build the library and the example programs. 
+Go to the 'bin' directory and run the examples. For example,
+'omgNewmann_ex1' is Neumann Laplacian problem.
+
+You can provide additional optimization flags to the compiler by
+setting the flag 'CFLAGS' in the makefile.
+
+The functions in the library are profiled using PETSc. To profile the
+major functions in the library, pass the flag '-DPETSC_USE_LOG' to the
+compiler in the variable 'CFLAGS' in the makefile, while building the
+library.  You can then view the log summary by passing the option
+'-log_summary' to your executable.
+
+Please refer to the Manual and 'Doxygen' documentation for more
+information.
+
+
+
+
+
+
+
+

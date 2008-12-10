@@ -1,0 +1,103 @@
+def O (0,0,0) % origo
+def dx 10
+def dy 14
+def dz 10
+
+def axes {
+    % draw the axes
+    def ax (dx,0,0)
+    def ay (0,dy,0)
+    def az (0,0,dz)
+    line[arrows=<->,line width=.4pt](ax)(O)(ay)
+    line[arrows=->,line width=.4pt](O)(az)
+
+    % repeat dotted as an overlay to hint at the hidden lines
+    % line[lay=over,line style=dotted,line width=.4pt](ax)(O)(ay)
+    % line[lay=over,line style=dotted,line width=.4pt](O)(az)
+
+    % annote axes
+    special |\path #1 node[above] {$z$}
+                   #2 node[right] {$x$}
+                   #3 node[right] {$y$};|(az)(ax)(ay)
+}
+
+% octant
+def octR put{translate([-1.0,0,0])}{
+    def n 1   
+  sweep[fill=red!50, fill opacity=0.3, cull=false]
+        {n,translate([0,n,0])}
+    sweep[fill=red!50, fill opacity=0.3, cull=false]
+        {n, translate([n,0,0])}line(1,0,0)(1,0,1)
+}
+
+def octB put{translate([-1.0,0,0])}{
+    def n 1   
+  sweep[fill=blue!50, fill opacity=0.3, cull=false]
+        {n,translate([0,n,0])}
+    sweep[fill=blue!50, fill opacity=0.3, cull=false]
+        {n, translate([n,0,0])}line(1,0,0)(1,0,1)
+}
+
+def sphere put{rotate(90,[0,1,0])}{
+   def n_faces 8
+   sweep[fill=green, line width= 0.1pt] { n_faces, rotate(360/n_faces, [1,0,0])}
+       sweep {n_faces, rotate(360/n_faces)}(0,1)
+}
+
+def hanging put{rotate(90,[0,1,0])}{
+   def n_faces 8
+   sweep[fill=gray, line width= 0.1pt] { n_faces, rotate(360/n_faces, [1,0,0])}
+       sweep {n_faces, rotate(360/n_faces)}(0,1)
+}
+
+def octScene {
+
+  % Octants ...
+  
+  put { scale(8) } {octB}
+  % put { scale(8) then translate ([8,0,0]) } {octB}
+  % smaller 
+  put { scale(4) then translate([0,-4,0]) } {octR}
+  
+  
+  % add some nodes ...
+  put {scale(0.2) then translate([0,0,0])} {sphere}
+  
+  put {scale(0.2) then translate([4,0,0])} {hanging}
+  put {scale(0.2) then translate([8,0,0])} {sphere}
+
+  put {scale(0.2) then translate([4,0,4])} {hanging}
+  put {scale(0.2) then translate([8,0,8])} {sphere}
+  
+  put {scale(0.2) then translate([0,0,4])} {hanging}
+  put {scale(0.2) then translate([0,0,8])} {sphere}
+  
+  def bx (4,0,0)
+  def by (8,0,0)
+  def cx (4,0,4)
+  def cy (8,0,8)
+  def dx (0,0,4)
+  def dy (0,0,8)
+
+  special |\draw [->,shorten <=1pt,>=stealth',semithick,red] #1 to [bend right=45] #2;|[lay=over](bx)(by)
+  special |\draw [->,shorten <=1pt,>=stealth',semithick,red] #1 to #2;|[lay=over](cx)(cy)
+  special |\draw [->,shorten <=1pt,>=stealth',semithick,red] #1 to [bend left=45] #2;|[lay=over](dx)(dy)
+
+  %% Now annotate ...
+  special |\path #1 node[left, xshift=-1mm,yshift=0.5mm] {$a_2, b_0$}
+                   #2 node[right,xshift=1mm, yshift=1mm] {$a_3$}
+                   #3 node[right, xshift=1mm] {$a_7$}
+                   #4 node[right,xshift=1mm,yshift=1mm] {$a_6$};|(O)(bx)(cx)(dx)
+
+  special |\path #1 node[below, yshift=-1mm] {$b_1$}
+                 #2 node[above, xshift=3mm, yshift=3mm] {$b_4$}
+                 #3 node[above, yshift=3mm] {$b_5$};|(by)(dy)(cy)
+
+
+  {axes}
+}
+
+put { rotate(-90, (0,0,0), [1,0,0] ) then rotate(45, (0,0,0), [0,1,0] ) then view((10,4,2)) } {octScene}
+
+global { language tikz }
+

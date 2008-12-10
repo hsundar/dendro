@@ -1,0 +1,21 @@
+#!/bin/sh
+#PBS -l nodes=25:ppn=2
+#PBS -l walltime=30:00
+#PBS -j oe
+#PBS
+
+numprocs=50
+inp=p128M
+maxD=29
+dim=3
+maxNum=1
+
+prefixPath=/opt/openmpi/1.2.4
+
+cd ${HOME}/otk
+
+mpirun -prefix $prefixPath -nooversubscribe -np ${numprocs} ./downSample ${inp} ${maxD} ${dim} ${maxNum} >& downSample.${inp}.${numprocs}.txt
+
+status=$?
+exit ${status}
+

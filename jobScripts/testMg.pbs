@@ -1,0 +1,26 @@
+#!/bin/sh
+#PBS -l nodes=1:ppn=1
+#PBS -l walltime=1:00:00
+#PBS -j oe
+#PBS
+
+numprocs=1
+inp=p1K
+maxD=30
+solveU=1
+writeB=0
+dim=3
+maxNumPts=1
+incCorner=1
+compressLut=0
+mgLoadFac=2.0
+
+prefixPath=/opt/openmpi/1.2.4
+
+cd ${HOME}/Dendro
+
+mpirun -prefix $prefixPath -nooversubscribe -np ${numprocs} ./tstMg ${inp} ${maxD} ${solveU} ${writeB} ${dim} ${maxNumPts} ${incCorner} ${compressLut} ${mgLoadFac} >& tstMg.${numprocs}.txt
+
+status=$?
+exit ${status}
+

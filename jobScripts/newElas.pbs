@@ -1,0 +1,24 @@
+#!/bin/sh
+#PBS -l nodes=8:ppn=2
+#PBS -l walltime=20:00
+#PBS -j oe
+#PBS
+
+numprocs=16
+localNumPts=5000
+dim=3
+maxD=30
+maxNumPts=1
+incCorner=1
+compressLut=0
+mgLoadFac=2.0
+
+prefixPath=/opt/openmpi/1.2.4
+
+cd ${HOME}/Dendro
+
+mpirun -prefix $prefixPath -nooversubscribe -np ${numprocs} ./newElasSolver ${localNumPts} ${dim} ${maxD} ${maxNumPts} ${incCorner} ${compressLut} ${mgLoadFac} >& newElas.${numprocs}.txt
+
+status=$?
+exit ${status}
+

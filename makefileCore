@@ -1,0 +1,224 @@
+INCLUDE = -I./include -I./include/oct -I./include/fem -I./include/oda  -I./include/omg  -I./include/seq  -I./include/par -I./include/point  -I./include/test -I./include/binOps -I./include/pc -I./include/sys -I./examples ${PETSC_INCLUDE}
+
+ARCHIVES = ./lib/libOMG.a ./lib/libODA.a ./lib/libOct.a ./lib/libPar.a ./lib/libPoint.a ./lib/libTest.a ./lib/libBinOps.a ./lib/libSys.a ./lib/libPC.a 
+
+LIBS = -L./lib -lOMG -lODA -lOct -lPar -lPoint -lTest -lBinOps -lSys -lPC ${PETSC_LIB} 
+
+EXEC_BAL = bin/tstRipple  bin/runScal bin/rippleBal \
+     bin/justBal bin/seqRipple bin/seqRipplePtr bin/testConAndBal bin/testConBalAndCoarsen
+
+EXEC_DA = bin/tstMatVec  bin/buildDA bin/octLaplacian 
+
+EXEC_MG = bin/checkError bin/newElasMesh bin/newElasSolver \
+   bin/elasticitySolver bin/tstMgReg bin/tstMg bin/omgNeumann_ex1 \
+   bin/omgNeumann_ex2 \
+   bin/omgNeumann_ex3 bin/omgNeumann_2spheres bin/testElasMatVec bin/pts2Mesh
+
+EXEC_TESTS = bin/createCoarser bin/chkNl bin/chkMl bin/dumpMesh\
+            bin/downSample \
+             bin/checkResults bin/checkSV bin/chkCoarsen bin/justCoarsen bin/testNodeAndVals bin/testPetscInt
+
+EXEC_UTIL = bin/gen2spheres
+
+EXEC = $(EXEC_BAL) $(EXEC_DA) $(EXEC_MG) $(EXEC_TESTS) $(EXEC_UTIL)
+
+
+all : $(ARCHIVES) $(EXEC)
+
+%.o: %.$(CEXT)
+	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+
+./examples/%.o: ./examples/%.$(CEXT)
+	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+
+./src/%.o: ./src/%.$(CEXT)
+	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+
+./src/pc/%.o: ./src/pc/%.$(CEXT)
+	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+
+./src/oct/%.o: ./src/oct/%.$(CEXT)
+	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+
+./src/oda/%.o: ./src/oda/%.$(CEXT)
+	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+
+./src/oda/private/%.o: ./src/oda/private/%.$(CEXT)
+	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+
+./src/omg/%.o: ./src/omg/%.$(CEXT)
+	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+
+./src/binOps/%.o: ./src/binOps/%.$(CEXT)
+	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+
+./src/par/%.o: ./src/par/%.$(CEXT)
+	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+
+./src/point/%.o: ./src/point/%.$(CEXT)
+	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+
+./src/sys/%.o: ./src/sys/%.$(CEXT)
+	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+
+./src/test/%.o: ./src/test/%.$(CEXT)
+	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+
+./lib/libPC.a :  ./src/pc/blockDiag.o 
+	${AR} ${AR_FLAGS} $@ $^
+	${RANLIB} $@
+
+./lib/libSys.a :  ./src/sys/sys.o 
+	${AR} ${AR_FLAGS} $@ $^
+	${RANLIB} $@
+
+./lib/libOMG.a :  ./src/omg/omg.o ./src/omg/RmatType2StencilsAux.o ./src/omg/RmatType1StencilsAux.o ./src/omg/RestrictMatVec.o ./src/omg/ProlongMatVec.o ./src/omg/VtxMaps.o
+	${AR} ${AR_FLAGS} $@ $^
+	${RANLIB} $@
+
+./lib/libODA.a :  ./src/oda/private/odaBuildNlist.o ./src/oda/private/odaFactory.o ./src/oda/odaPartition.o ./src/oda/oda.o ./src/oda/odaUtils.o
+	${AR} ${AR_FLAGS} $@ $^
+	${RANLIB} $@
+
+./lib/libOct.a :  ./src/oct/TreeNode.o ./src/oct/TreeNodePointer.o ./src/oct/OctFunctions.o ./src/oct/Balance.o ./src/oct/BlockPart.o ./src/oct/Coarsen.o ./src/oct/Construct.o ./src/oct/pickBdy.o 
+	${AR} ${AR_FLAGS} $@ $^
+	${RANLIB} $@
+
+./lib/libPar.a :  ./src/par/parUtils.o 
+	${AR} ${AR_FLAGS} $@ $^
+	${RANLIB} $@
+
+./lib/libBinOps.a :  ./src/binOps/binUtils.o 
+	${AR} ${AR_FLAGS} $@ $^
+	${RANLIB} $@
+
+./lib/libPoint.a :  ./src/point/Point.o 
+	${AR} ${AR_FLAGS} $@ $^
+	${RANLIB} $@
+
+./lib/libTest.a :  ./src/test/testUtils.o 
+	${AR} ${AR_FLAGS} $@ $^
+	${RANLIB} $@
+
+bin/octLaplacian : ./examples/octLaplacian.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/chkMl : ./src/test/compareMFiles.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/chkNl : ./src/test/compareNlFiles.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/dumpMesh : ./examples/dumpMesh.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/buildDA : ./examples/buildDA.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/tstRipple : ./examples/tstRipple.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/rippleBal : ./examples/rippleBal.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/seqRipple : ./examples/seqRipple.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/seqRipplePtr : ./examples/seqRipplePtr.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/justBal : ./examples/justBal.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/justCoarsen : ./examples/justCoarsen.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/tstMatVec : ./examples/tstMatVec.o ./examples/odaJac.o  ./examples/handleType2Stencils.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/downSample : ./examples/downSample.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/createCoarser : ./examples/createCoarser.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/newElasMesh : ./examples/newElasMesh.o ./examples/elasticityJac.o ./examples/elasticityRhs.o ./examples/odaJac.o ./examples/omgRhs.o ./examples/vecMass.o ./examples/handleType2Stencils.o  $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/pts2Mesh : ./examples/pts2Mesh.o ./examples/elasticityJac.o ./examples/elasticityRhs.o ./examples/odaJac.o ./examples/omgRhs.o ./examples/vecMass.o ./examples/handleType2Stencils.o  $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/newElasSolver : ./examples/newElasSolver.o ./examples/elasticityJac.o ./examples/elasticityRhs.o ./examples/odaJac.o ./examples/omgRhs.o ./examples/vecMass.o ./examples/handleType2Stencils.o  $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/testElasMatVec : ./examples/testElasMatVec.o ./examples/elasticityJac.o ./examples/elasticityRhs.o ./examples/odaJac.o ./examples/omgRhs.o ./examples/vecMass.o ./examples/handleType2Stencils.o  $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/elasticitySolver : ./examples/elasticitySolver.o ./examples/elasticityJac.o ./examples/elasticityRhs.o ./examples/odaJac.o ./examples/omgRhs.o ./examples/vecMass.o ./examples/handleType2Stencils.o  $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/checkError : ./examples/checkError.o ./examples/omgJac.o ./examples/matProp.o ./examples/odaJac.o ./examples/omgRhs.o ./examples/handleType2Stencils.o ./examples/handleType1Stencils.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
+	
+bin/tstMg : ./examples/tstMg.o ./examples/omgJac.o ./examples/matProp.o ./examples/odaJac.o ./examples/omgRhs.o ./examples/handleType2Stencils.o ./examples/handleType1Stencils.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
+	
+bin/omgNeumann_ex1: ./examples/omgNeumann_ex1.o ./examples/omgNeumann.o ./examples/handleType2Stencils.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
+
+bin/omgNeumann_ex2: ./examples/omgNeumann_ex2.o ./examples/omgNeumann.o ./examples/handleType2Stencils.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
+
+bin/omgNeumann_ex3: ./examples/omgNeumann_ex3.o ./examples/omgNeumann.o ./examples/handleType2Stencils.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
+
+bin/omgNeumann_2spheres: ./examples/omgNeumann_2spheres.o ./examples/omgNeumann.o ./examples/handleType2Stencils.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
+
+bin/tstMgReg : ./examples/tstRegularMg.o ./examples/omgJac.o ./examples/matProp.o ./examples/odaJac.o ./examples/omgRhs.o ./examples/handleType2Stencils.o ./examples/handleType1Stencils.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/testNodeAndVals : ./src/test/testNodeAndVals.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/testPetscInt : ./src/test/testPetscInt.o 
+	$(PCC) $(CFLAGS) $^ -o $@ $(PETSC_LIB)
+
+bin/chkCoarsen : ./src/test/checkCoarsening.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/checkDataPts: ./examples/checkDataPts.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/runScal : ./examples/runScal.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/testConAndBal : ./examples/testConAndBal.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/testConBalAndCoarsen : ./examples/testConBalAndCoarsen.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/checkSV : ./src/test/checkScatterValues.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/checkResults : ./src/test/checkResults.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/gen2spheres : ./scripts/gen2spheres.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+clean :
+	rm -rf ./src/oct/*~ ./src/oct/*.o ./src/omg/*~ ./src/omg/*.o
+	rm -rf ./src/oda/*~ ./src/oda/*.o ./examples/*~ ./examples/*.o
+	rm -rf ./src/par/*~ ./src/par/*.o 
+	rm -rf ./src/pc/*.o ./src/pc/*~ ./src/sys/*~ ./src/sys/*.o
+	rm -rf ./src/point/*~ ./src/point/*.o ./src/test/*~ ./src/test/*.o
+	rm -rf ./src/binOps/*~ ./src/binOps/*.o ./*~ ./*.o 
+	rm -rf ./src/oda/private/*~ ./src/oda/private/*.o
+	rm -rf ./scripts/gen2spheres.o
+	rm -rf $(EXEC)
+
+clobber : clean
+	rm -rf  $(ARCHIVES)
+

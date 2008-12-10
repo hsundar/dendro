@@ -1,0 +1,2 @@
+
+for s in `sort < ./dualCore |uniq`; do echo $s; ssh $s killall -9 orted; done

@@ -1,0 +1,25 @@
+#!/bin/sh
+#PBS -l nodes=1:ppn=1
+#PBS -l walltime=20:00
+#PBS -j oe
+#PBS
+
+numprocs=1
+localNumPts=5000
+dim=3
+maxD=30
+maxNumPts=1
+incCorner=1
+compressLut=0
+mgLoadFac=2.0
+numLoops=100
+
+prefixPath=/opt/openmpi/1.2.4
+
+cd ${HOME}/Dendro
+
+mpirun -prefix $prefixPath -nooversubscribe -np ${numprocs} ./testElasMatVec ${localNumPts} ${dim} ${maxD} ${maxNumPts} ${incCorner} ${compressLut} ${mgLoadFac} ${numLoops}  >& elasMV5K.${numprocs}.txt
+
+status=$?
+exit ${status}
+
