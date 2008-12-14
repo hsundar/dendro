@@ -123,7 +123,7 @@ namespace ot {
 
       int myFirstFC = -1;
       for(int i = 0; i < inSz; i++) {
-        if(tnAndVals[i].node.getChildNumber() == 0) {
+        if(tnAndValsList[i].node.getChildNumber() == 0) {
           myFirstFC = i;
           break;
         }
@@ -132,7 +132,7 @@ namespace ot {
       int myLastFC = -1;
       if( myFirstFC >= 0 ) {
         for(int i = (inSz - 1); i >= 0; i--) {
-          if(tnAndVals[i].node.getChildNumber() == 0) {
+          if(tnAndValsList[i].node.getChildNumber() == 0) {
             myLastFC = i;
             break;
           }
@@ -152,8 +152,8 @@ namespace ot {
           }
         } else if( fcGap > 8 ) {
           //Can coarsen upto (excluding) (1 + idxOfPrevFC) 
-          double minVal = prevOcts[idxOfPrevFC];
-          double maxVal = prevOcts[idxOfPrevFC];
+          double minVal = prevOcts[idxOfPrevFC].values[0];
+          double maxVal = prevOcts[idxOfPrevFC].values[0];
           for(int i = idxOfPrevFC; i < 7; i++){
             double currVal = prevOcts[i].values[0];
             if(currVal < minVal) {
@@ -187,8 +187,8 @@ namespace ot {
           }
         } else {
           //Can coarsen upto (excluding) myFirstFC
-          double minVal = prevOcts[idxOfPrevFC];
-          double maxVal = prevOcts[idxOfPrevFC];
+          double minVal = prevOcts[idxOfPrevFC].values[0];
+          double maxVal = prevOcts[idxOfPrevFC].values[0];
           for(int i = idxOfPrevFC; i < 7; i++){
             double currVal = prevOcts[i].values[0];
             if(currVal < minVal) {
@@ -226,8 +226,8 @@ namespace ot {
           }
         } else if (idxOfPrevFC >= 0) {
           //Can coarsen upto (excluding) (1 + idxOfPrevFC) 
-          double minVal = prevOcts[idxOfPrevFC];
-          double maxVal = prevOcts[idxOfPrevFC];
+          double minVal = prevOcts[idxOfPrevFC].values[0];
+          double maxVal = prevOcts[idxOfPrevFC].values[0];
           for(int i = idxOfPrevFC; i < 7; i++){
             double currVal = prevOcts[i].values[0];
             if(currVal < minVal) {
@@ -271,9 +271,9 @@ namespace ot {
                 tnAndValsList.begin() + idx);
           } else if(fcGap > 8) {
             //Can coarsen upto (excluding) (8 + prevFCidx)
-            double minVal = tnAndValsList[prevFCidx];
-            double maxVal = tnAndValsList[prevFCidx];
-            double sumVal = tnAndValsList[prevFCidx];
+            double minVal = tnAndValsList[prevFCidx].values[0];
+            double maxVal = tnAndValsList[prevFCidx].values[0];
+            double sumVal = tnAndValsList[prevFCidx].values[0];
             for(int j = prevFCidx; j < (8 + prevFCidx); j++) {
               double currVal = tnAndValsList[j].values[0];
               if(currVal < minVal) {
@@ -299,9 +299,9 @@ namespace ot {
             }
           } else {
             //Can coarsen upto (excluding) idx
-            double minVal = tnAndValsList[prevFCidx];
-            double maxVal = tnAndValsList[prevFCidx];
-            double sumVal = tnAndValsList[prevFCidx];
+            double minVal = tnAndValsList[prevFCidx].values[0];
+            double maxVal = tnAndValsList[prevFCidx].values[0];
+            double sumVal = tnAndValsList[prevFCidx].values[0];
             for(int j = prevFCidx; j < idx; j++) {
               double currVal = tnAndValsList[j].values[0];
               if(currVal < minVal) {
@@ -337,9 +337,9 @@ namespace ot {
               tnAndValsList.end());
         } else if (fcGap > 8) {
           //Can coarsen upto (excluding) (myLastFC + 8)
-          double minVal = tnAndValsList[myLastFC];
-          double maxVal = tnAndValsList[myLastFC];
-          double sumVal = tnAndValsList[myLastFC];
+          double minVal = tnAndValsList[myLastFC].values[0];
+          double maxVal = tnAndValsList[myLastFC].values[0];
+          double sumVal = tnAndValsList[myLastFC].values[0];
           if((myLastFC + 8) > inSz) {
             for(int i = myLastFC; i < inSz; i++){
               double currVal = tnAndValsList[i].values[0];
@@ -390,9 +390,9 @@ namespace ot {
           }
         } else {
           //Can coarsen  
-          double minVal = tnAndValsList[myLastFC];
-          double maxVal = tnAndValsList[myLastFC];
-          double sumVal = tnAndValsList[myLastFC];
+          double minVal = tnAndValsList[myLastFC].values[0];
+          double maxVal = tnAndValsList[myLastFC].values[0];
+          double sumVal = tnAndValsList[myLastFC].values[0];
           if((myLastFC + 8) > inSz) {
             for(int i = myLastFC; i < inSz; i++){
               double currVal = tnAndValsList[i].values[0];
@@ -441,9 +441,9 @@ namespace ot {
       } else {
         if(myLastFC >= 0) {
           //Can coarsen upto (excluding) (myLastFC + 8)
-          double minVal = tnAndValsList[myLastFC];
-          double maxVal = tnAndValsList[myLastFC];
-          double sumVal = tnAndValsList[myLastFC];
+          double minVal = tnAndValsList[myLastFC].values[0];
+          double maxVal = tnAndValsList[myLastFC].values[0];
+          double sumVal = tnAndValsList[myLastFC].values[0];
           if((myLastFC + 8) > inSz) {
             for(int i = myLastFC; i < inSz; i++){
               double currVal = tnAndValsList[i].values[0];
