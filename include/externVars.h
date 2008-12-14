@@ -58,6 +58,7 @@ namespace ot {
   int coarsenSeqEvent;
   int simpleCoarsenEvent;
   int balanceEvent;
+  int rg2oEvent;
   int p2oEvent;
   int p2oSeqEvent;
   int p2oLocalEvent;

@@ -44,6 +44,7 @@ namespace ot {
   extern int coarsenEvent;
   extern int coarsenSeqEvent;
   extern int simpleCoarsenEvent;
+  extern int rg2oEvent;
   extern int p2oEvent;
   extern int p2oSeqEvent;
   extern int p2oLocalEvent;
@@ -273,6 +274,13 @@ PetscLogEventBegin(parRippleType1Event,0,0,0,0);
   PetscLogEventEnd(parRippleType1Event,0,0,0,0); \
 PetscFunctionReturn(0);
 
+#define PROF_RG2O_BEGIN	\
+  PetscFunctionBegin; \
+PetscLogEventBegin(rg2oEvent,0,0,0,0);
+#define PROF_RG2O_END \
+  PetscLogEventEnd(rg2oEvent,0,0,0,0); \
+PetscFunctionReturn(0);
+
 #define PROF_P2O_BEGIN 	\
   PetscFunctionBegin; \
 PetscLogEventBegin(p2oEvent,0,0,0,0);
@@ -280,10 +288,10 @@ PetscLogEventBegin(p2oEvent,0,0,0,0);
   PetscLogEventEnd(p2oEvent,0,0,0,0); \
 PetscFunctionReturn(0);
 
-#define PROF_P2O_SEQ_BEGIN 	\
+#define PROF_P2O_SEQ_BEGIN \
   PetscFunctionBegin; \
 PetscLogEventBegin(p2oSeqEvent,0,0,0,0);
-#define PROF_P2O_SEQ_END         \
+#define PROF_P2O_SEQ_END \
   PetscLogEventEnd(p2oSeqEvent,0,0,0,0); \
 PetscFunctionReturn(0);
 
@@ -352,6 +360,7 @@ PetscFunctionReturn(0);
 #define PROF_BAL_BEGIN
 #define PROF_BAL_SUBTREE_BEGIN
 #define PROF_COMPLETE_SUBTREE_BEGIN
+#define PROF_RG2O_BEGIN
 #define PROF_P2O_BEGIN
 #define PROF_P2O_SEQ_BEGIN
 #define PROF_P2O_LOCAL_BEGIN
@@ -392,6 +401,7 @@ PetscFunctionReturn(0);
 #define PROF_BAL_END return 1; 
 #define PROF_BAL_SUBTREE_END return 1; 
 #define PROF_COMPLETE_SUBTREE_END return 1; 
+#define PROF_RG2O_END return 1; 
 #define PROF_P2O_END return 1; 
 #define PROF_P2O_SEQ_END return 1; 
 #define PROF_P2O_LOCAL_END return 1; 
@@ -467,8 +477,20 @@ namespace ot {
 
   void addOctantToTreeNodePointer(ot::TreeNodePointer & ptrOct, const ot::TreeNode & octant);
 
+  /**
+    @author Rahul Sampath
+    @param linOct linear octree
+    @param ptrOct linked list octree
+    @brief Converts an octree from its linear representation to a linked-list representation
+    */
   void convertLinearToPointer(const std::vector<ot::TreeNode> & linOct, ot::TreeNodePointer & ptrOct);
 
+  /**
+    @author Rahul Sampath
+    @param linOct linear octree
+    @param ptrOct linked list octree
+    @brief Converts an octree from its linked-list representation to a linear representation
+    */
   void convertPointerToLinear(std::vector<ot::TreeNode> & linOct, const ot::TreeNodePointer & ptrOct);
 
   void deleteTreeNodePointer(ot::TreeNodePointer & ptrOct);
@@ -546,6 +568,7 @@ namespace ot {
   bool lessThanUsingWts ( TreeNode  const & a,  TreeNode  const & b);
 
   /**
+    @author Rahul Sampath
     @brief The region between min(first,second) and max(first,second) is appended to the output vector.
     Both ends could be inclusive, dependng on the options. The new elements are sorted, unique and linear.
     @param includeMin include min(first,second)
@@ -567,6 +590,7 @@ namespace ot {
   bool bPartComparator(TreeNode a, TreeNode b) ;
 
   /**
+    @author Rahul Sampath
     @return the nearest common ancestor of first and second.
     If one of them is the ancestor of the other it is returned.
 Note: first must be different from second.
@@ -591,6 +615,25 @@ Note: first must be different from second.
       unsigned int dim, unsigned int maxDepth, unsigned int maxNumPtsPerOctant, MPI_Comm comm ) ;
 
   /**
+    @author Rahul Sampath
+    @brief A function to construct a complete, sorted, linear octree from a
+    regular grid by coarsening the regular grid elements based on some threshold.
+    @param elementValues a value at each element ordered in the X,Y,Z order, i.e. X grows first
+    length of elementValues must be equal to (nx*ny*nz)
+    @param nx,ny,nz number of elements in each direction on the calling processor
+    @param N number of elements in each direction in the entire regular grid. N must be a power of 2.
+    The total number of elements in the regular grid will be N^3.
+    @param xs,ys,zs the global index of the first coordinate on this processor 
+    @param maxDepth the maximum depth of the octree must be <= _MAX_LEVEL_
+    @see _MAX_LEVEL_
+    */
+  int regularGrid2Octree(std::vector<double>& elementValues,
+     unsigned int N, unsigned int nx, unsigned int ny, unsigned int nz,
+     unsigned int xs, unsigned int ys, unsigned int zs, std::vector<TreeNode>& linOct,
+      unsigned int dim, unsigned int maxDepth, double threshold, MPI_Comm comm);
+
+  /**
+    @author Rahul Sampath
     @brief Sequential version of points2Octree
     @see points2Octree
     */
@@ -598,6 +641,8 @@ Note: first must be different from second.
       unsigned int dim, unsigned int maxDepth, unsigned int maxNumPts);
 
   /**
+    @author Rahul Sampath
+    @author Hari Sundar
     @brief Sequential top-down loop inside points2Octree
     @see points2Octree
     */
@@ -821,7 +866,8 @@ Note: first must be different from second.
       std::vector<TreeNode> &nodes, std::vector<TreeNode> &allBoundaryLeaves,
       bool incCorners, std::vector<unsigned int> *maxBlockBndVec = NULL);
 
-  int comboRipple(std::vector<TreeNode> & in, bool incCorner, const unsigned int maxNum = _COMBO_RIPPLE_FACTOR_);
+  int comboRipple(std::vector<TreeNode> & in, bool incCorner,
+      const unsigned int maxNum = _COMBO_RIPPLE_FACTOR_);
 
   /**
     @author Rahul Sampath

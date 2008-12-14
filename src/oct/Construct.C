@@ -8,6 +8,9 @@
 
 #include "parUtils.h"
 #include "TreeNode.h"
+#include <cassert>
+#include "nodeAndValues.h"
+#include "binUtils.h"
 #include "dendro.h"
 
 #ifdef __DEBUG__
@@ -17,6 +20,536 @@
 #endif
 
 namespace ot {
+
+  int regularGrid2Octree(std::vector<double>& elementValues,
+      unsigned int N, unsigned int nx, unsigned int ny, unsigned int nz,
+      unsigned int xs, unsigned int ys, unsigned int zs, std::vector<TreeNode>& linOct,
+      unsigned int dim, unsigned int maxDepth, double thresholdFac, MPI_Comm comm) {
+    PROF_RG2O_BEGIN
+
+      int rank;
+    int npes;
+    MPI_Comm_rank(comm, &rank);
+    MPI_Comm_size(comm, &npes);
+
+    assert(binOp::isPowerOfTwo(N));
+    unsigned int rgLevel = binOp::fastLog2(N);
+    unsigned int elemLen = (1u << (maxDepth - rgLevel));
+
+    //1. Convert input to regular octree.
+    std::vector<ot::NodeAndValues<double, 1> > tmpList(nx*ny*nz);
+
+    for(int k = 0; k < nz; k++) {
+      for(int j = 0; j < ny; j++) {
+        for(int i = 0; i < nx; i++) {
+          unsigned int currX = ((i + xs)*elemLen); 
+          unsigned int currY = ((j + ys)*elemLen); 
+          unsigned int currZ = ((k + zs)*elemLen);
+          unsigned int idx = ((nx*(j + (ny*k))) + i);
+          tmpList[idx].node = ot::TreeNode(currX, currY, currZ, rgLevel, dim, maxDepth);
+          tmpList[idx].values[0] = elementValues[idx];
+        }//end for i
+      }//end for j
+    }//end for k
+
+    //2. Convert to Morton Ordering
+    std::vector<ot::NodeAndValues<double, 1> > tnAndValsList;
+    par::sampleSort<ot::NodeAndValues<double, 1> >(tmpList, tnAndValsList, comm);
+    tmpList.clear();
+
+    DendroIntL inSz = tnAndValsList.size();
+    DendroIntL globInSize;
+    par::Mpi_Allreduce<DendroIntL>(&inSz, &globInSize, 1, MPI_SUM, comm);
+
+    assert( globInSize > (10*npes) );
+
+    int npesCurr = npes;
+    MPI_Comm commCurr = comm;
+
+    bool repeatLoop = true;
+    while(repeatLoop) {
+      inSz = tnAndValsList.size();
+
+      MPI_Request requests[4];
+
+      //Send first 7 to previous processor
+      //Send last 7 to next processor
+      ot::NodeAndValues<double, 1> prevOcts[7];
+      if( rank ) {
+        par::Mpi_Irecv<ot::NodeAndValues<double, 1> >(prevOcts, 7, (rank - 1), 
+            1, commCurr, requests);
+      }
+
+      ot::NodeAndValues<double, 1> nextOcts[7];
+      if( rank < (npesCurr - 1) ) {
+        par::Mpi_Irecv<ot::NodeAndValues<double, 1> >(nextOcts, 7, (rank + 1),
+            1, commCurr, (requests + 1));
+      }
+
+      if( rank ) {
+        par::Mpi_Issend<ot::NodeAndValues<double, 1> >((&(*(tnAndValsList.begin()))), 7,
+            (rank - 1), 1, commCurr, (requests + 2));
+      }
+
+      if( rank < (npesCurr - 1) ) {
+        par::Mpi_Issend<ot::NodeAndValues<double, 1> >((&(*(tnAndValsList.end() - 7))), 7,
+            (rank + 1), 1, commCurr, (requests + 3));
+      }
+
+      MPI_Status statuses[4];
+      MPI_Waitall(4, requests, statuses);
+
+      //Check and coarsen
+      int idxOfPrevFC = -1;
+      if( rank ) {
+        for(int i = 0; i < 7; i++) {
+          //There may be more than 1 FC, we only need the last one here
+          if(prevOcts[i].node.getChildNumber() == 0) {
+            idxOfPrevFC = i;
+          }
+        }//end for i
+      }
+
+      int idxOfNextFC = -1;
+      if( rank < (npesCurr - 1) ) {
+        for(int i = 0; i < 7; i++) {
+          //There may be more than 1 FC, we only need the first one here
+          if(nextOcts[i].node.getChildNumber() == 0) {
+            idxOfNextFC = i;
+            break;
+          }
+        }//end for i
+      }
+
+      int myFirstFC = -1;
+      for(int i = 0; i < inSz; i++) {
+        if(tnAndVals[i].node.getChildNumber() == 0) {
+          myFirstFC = i;
+          break;
+        }
+      }//end for i
+
+      int myLastFC = -1;
+      if( myFirstFC >= 0 ) {
+        for(int i = (inSz - 1); i >= 0; i--) {
+          if(tnAndVals[i].node.getChildNumber() == 0) {
+            myLastFC = i;
+            break;
+          }
+        }//end for i
+      }
+
+      //Process upto myFirstFC (exclusive)
+      //Note, we check the threshold on both the processors so that the
+      //partition is not changed unnecessarily. 
+      if( (myFirstFC >= 0) && (idxOfPrevFC >= 0) ) {
+        int fcGap = (myFirstFC + 7 - idxOfPrevFC);
+        if( fcGap < 8 ) {
+          //Can not coarsen
+          if(myFirstFC) {
+            tmpList.insert(tmpList.end(), tnAndValsList.begin(),
+                tnAndValsList.begin() + myFirstFC);
+          }
+        } else if( fcGap > 8 ) {
+          //Can coarsen upto (excluding) (1 + idxOfPrevFC) 
+          double minVal = prevOcts[idxOfPrevFC];
+          double maxVal = prevOcts[idxOfPrevFC];
+          for(int i = idxOfPrevFC; i < 7; i++){
+            double currVal = prevOcts[i].values[0];
+            if(currVal < minVal) {
+              minVal = currVal;
+            }
+            if(currVal > maxVal) {
+              maxVal = currVal;
+            }
+          }//end for i
+          for(int i = 0; i < (1 + idxOfPrevFC); i++){
+            double currVal = tnAndValsList[i].values[0];
+            if(currVal < minVal) {
+              minVal = currVal;
+            }
+            if(currVal > maxVal) {
+              maxVal = currVal;
+            }
+          }//end for i
+          if((maxVal - minVal) >= thresholdFac) {
+            //Can't coarsen
+            if(myFirstFC) {
+              tmpList.insert(tmpList.end(), tnAndValsList.begin(),
+                  tnAndValsList.begin() + myFirstFC);
+            }
+          } else {
+            //Can coarsen. The previous processor will add the parent
+            if((1 + idxOfPrevFC) < myFirstFC) {
+              tmpList.insert(tmpList.end(), tnAndValsList.begin() + (1 + idxOfPrevFC), 
+                  tnAndValsList.begin() + myFirstFC);
+            }
+          }
+        } else {
+          //Can coarsen upto (excluding) myFirstFC
+          double minVal = prevOcts[idxOfPrevFC];
+          double maxVal = prevOcts[idxOfPrevFC];
+          for(int i = idxOfPrevFC; i < 7; i++){
+            double currVal = prevOcts[i].values[0];
+            if(currVal < minVal) {
+              minVal = currVal;
+            }
+            if(currVal > maxVal) {
+              maxVal = currVal;
+            }
+          }//end for i
+          for(int i = 0; i < myFirstFC; i++){
+            double currVal = tnAndValsList[i].values[0];
+            if(currVal < minVal) {
+              minVal = currVal;
+            }
+            if(currVal > maxVal) {
+              maxVal = currVal;
+            }
+          }//end for i 
+          if((maxVal - minVal) >= thresholdFac) {
+            //Can't coarsen
+            if(myFirstFC) {
+              tmpList.insert(tmpList.end(), tnAndValsList.begin(),
+                  tnAndValsList.begin() + myFirstFC);
+            }
+          } else {
+            //Can coarsen. The previous processor will add the parent 
+          }
+        }
+      } else {
+        if(myFirstFC >= 0) {
+          //Can not coarsen
+          if(myFirstFC) {
+            tmpList.insert(tmpList.end(), tnAndValsList.begin(),
+                tnAndValsList.begin() + myFirstFC);
+          }
+        } else if (idxOfPrevFC >= 0) {
+          //Can coarsen upto (excluding) (1 + idxOfPrevFC) 
+          double minVal = prevOcts[idxOfPrevFC];
+          double maxVal = prevOcts[idxOfPrevFC];
+          for(int i = idxOfPrevFC; i < 7; i++){
+            double currVal = prevOcts[i].values[0];
+            if(currVal < minVal) {
+              minVal = currVal;
+            }
+            if(currVal > maxVal) {
+              maxVal = currVal;
+            }
+          }//end for i
+          for(int i = 0; i < myFirstFC; i++){
+            double currVal = tnAndValsList[i].values[0];
+            if(currVal < minVal) {
+              minVal = currVal;
+            }
+            if(currVal > maxVal) {
+              maxVal = currVal;
+            }
+          }//end for i
+          if((maxVal - minVal) >= thresholdFac) {
+            //Can't coarsen.
+            tmpList = tnAndValsList;
+          } else {
+            //Can coarsen. The previous processor will add the parent 
+            tmpList.insert(tmpList.end(), tnAndValsList.begin() + (1 + idxOfPrevFC), 
+                tnAndValsList.end());
+          }
+        } else {
+          //Can not coarsen
+          tmpList = tnAndValsList;
+        }
+      }
+
+      //Process myFirstFC (inclusive) to myLastFC (exclusive)
+      int prevFCidx = myFirstFC;
+      for(int idx = myFirstFC + 1; idx <= myLastFC; idx++) {
+        if(tnAndValsList[idx].node.getChildNumber() == 0) {
+          int fcGap = (idx - prevFCidx);
+          if(fcGap < 8) {
+            //Can't coarsen
+            tmpList.insert(tmpList.end(), tnAndValsList.begin() + prevFCidx,
+                tnAndValsList.begin() + idx);
+          } else if(fcGap > 8) {
+            //Can coarsen upto (excluding) (8 + prevFCidx)
+            double minVal = tnAndValsList[prevFCidx];
+            double maxVal = tnAndValsList[prevFCidx];
+            double sumVal = tnAndValsList[prevFCidx];
+            for(int j = prevFCidx; j < (8 + prevFCidx); j++) {
+              double currVal = tnAndValsList[j].values[0];
+              if(currVal < minVal) {
+                minVal = currVal;
+              }
+              if(currVal > maxVal) {
+                maxVal = currVal;
+              }
+              sumVal += currVal;
+            }//end for j 
+            if((maxVal - minVal) >= thresholdFac) {
+              //Can't coarsen.
+              tmpList.insert(tmpList.end(), tnAndValsList.begin() + prevFCidx,
+                  tnAndValsList.begin() + idx);
+            } else {
+              //Can coarsen. 
+              ot::NodeAndValues<double, 1> tmpObj;
+              tmpObj.node = tnAndValsList[prevFCidx].node.getParent();
+              tmpObj.values[0] = (sumVal/8.0);
+              tmpList.push_back(tmpObj);
+              tmpList.insert(tmpList.end(), tnAndValsList.begin() + prevFCidx + 8,
+                  tnAndValsList.begin() + idx);
+            }
+          } else {
+            //Can coarsen upto (excluding) idx
+            double minVal = tnAndValsList[prevFCidx];
+            double maxVal = tnAndValsList[prevFCidx];
+            double sumVal = tnAndValsList[prevFCidx];
+            for(int j = prevFCidx; j < idx; j++) {
+              double currVal = tnAndValsList[j].values[0];
+              if(currVal < minVal) {
+                minVal = currVal;
+              }
+              if(currVal > maxVal) {
+                maxVal = currVal;
+              }
+              sumVal += currVal;
+            }//end for j 
+            if((maxVal - minVal) >= thresholdFac) {
+              //Can't coarsen.
+              tmpList.insert(tmpList.end(), tnAndValsList.begin() + prevFCidx,
+                  tnAndValsList.begin() + idx);
+            } else {
+              //Can coarsen. 
+              ot::NodeAndValues<double, 1> tmpObj;
+              tmpObj.node = tnAndValsList[prevFCidx].node.getParent();
+              tmpObj.values[0] = (sumVal/8.0);
+              tmpList.push_back(tmpObj);
+            }
+          }
+          prevFCidx = idx;
+        }//end if found FC
+      }//end for idx
+
+      //Process myLastFC (inclusive) to end
+      if( (myLastFC >= 0) && (idxOfNextFC >= 0) ) {
+        int fcGap = inSz + idxOfNextFC - myLastFC;
+        if(fcGap < 8) {
+          //Can't coarsen
+          tmpList.insert(tmpList.end(), tnAndValsList.begin() + myLastFC,
+              tnAndValsList.end());
+        } else if (fcGap > 8) {
+          //Can coarsen upto (excluding) (myLastFC + 8)
+          double minVal = tnAndValsList[myLastFC];
+          double maxVal = tnAndValsList[myLastFC];
+          double sumVal = tnAndValsList[myLastFC];
+          if((myLastFC + 8) > inSz) {
+            for(int i = myLastFC; i < inSz; i++){
+              double currVal = tnAndValsList[i].values[0];
+              if(currVal < minVal) {
+                minVal = currVal;
+              }
+              if(currVal > maxVal) {
+                maxVal = currVal;
+              }
+              sumVal += currVal;
+            }//end for i
+            for(int i = 0; i < (myLastFC + 8 - inSz); i++){
+              double currVal = nextOcts[i].values[0];
+              if(currVal < minVal) {
+                minVal = currVal;
+              }
+              if(currVal > maxVal) {
+                maxVal = currVal;
+              }
+              sumVal += currVal;
+            }//end for i         
+          } else {
+            for(int i = myLastFC; i < (myLastFC + 8); i++){
+              double currVal = tnAndValsList[i].values[0];
+              if(currVal < minVal) {
+                minVal = currVal;
+              }
+              if(currVal > maxVal) {
+                maxVal = currVal;
+              }
+              sumVal += currVal;
+            }//end for i
+          }
+          if((maxVal - minVal) >= thresholdFac) {
+            //Can't coarsen
+            tmpList.insert(tmpList.end(), tnAndValsList.begin() + myLastFC,
+                tnAndValsList.end());
+          } else {
+            //Can coarsen
+            ot::NodeAndValues<double, 1> tmpObj;
+            tmpObj.node = tnAndValsList[myLastFC].node.getParent();
+            tmpObj.values[0] = (sumVal/8.0);
+            tmpList.push_back(tmpObj);
+            if((myLastFC + 8) < inSz) {
+              tmpList.insert(tmpList.end(), tnAndValsList.begin() + myLastFC + 8,
+                  tnAndValsList.end());
+            }
+          }
+        } else {
+          //Can coarsen  
+          double minVal = tnAndValsList[myLastFC];
+          double maxVal = tnAndValsList[myLastFC];
+          double sumVal = tnAndValsList[myLastFC];
+          if((myLastFC + 8) > inSz) {
+            for(int i = myLastFC; i < inSz; i++){
+              double currVal = tnAndValsList[i].values[0];
+              if(currVal < minVal) {
+                minVal = currVal;
+              }
+              if(currVal > maxVal) {
+                maxVal = currVal;
+              }
+              sumVal += currVal;
+            }//end for i
+            for(int i = 0; i < (myLastFC + 8 - inSz); i++){
+              double currVal = nextOcts[i].values[0];
+              if(currVal < minVal) {
+                minVal = currVal;
+              }
+              if(currVal > maxVal) {
+                maxVal = currVal;
+              }
+              sumVal += currVal;
+            }//end for i         
+          } else {
+            for(int i = myLastFC; i < (myLastFC + 8); i++){
+              double currVal = tnAndValsList[i].values[0];
+              if(currVal < minVal) {
+                minVal = currVal;
+              }
+              if(currVal > maxVal) {
+                maxVal = currVal;
+              }
+              sumVal += currVal;
+            }//end for i
+          }
+          if((maxVal - minVal) >= thresholdFac) {
+            //Can't coarsen
+            tmpList.insert(tmpList.end(), tnAndValsList.begin() + myLastFC,
+                tnAndValsList.end());
+          } else {
+            //Can coarsen
+            ot::NodeAndValues<double, 1> tmpObj;
+            tmpObj.node = tnAndValsList[myLastFC].node.getParent();
+            tmpObj.values[0] = (sumVal/8.0);
+            tmpList.push_back(tmpObj);
+          }
+        }
+      } else {
+        if(myLastFC >= 0) {
+          //Can coarsen upto (excluding) (myLastFC + 8)
+          double minVal = tnAndValsList[myLastFC];
+          double maxVal = tnAndValsList[myLastFC];
+          double sumVal = tnAndValsList[myLastFC];
+          if((myLastFC + 8) > inSz) {
+            for(int i = myLastFC; i < inSz; i++){
+              double currVal = tnAndValsList[i].values[0];
+              if(currVal < minVal) {
+                minVal = currVal;
+              }
+              if(currVal > maxVal) {
+                maxVal = currVal;
+              }
+              sumVal += currVal;
+            }//end for i
+            if(rank < (npesCurr - 1)) {
+              for(int i = 0; i < (myLastFC + 8 - inSz); i++){
+                double currVal = nextOcts[i].values[0];
+                if(currVal < minVal) {
+                  minVal = currVal;
+                }
+                if(currVal > maxVal) {
+                  maxVal = currVal;
+                }
+                sumVal += currVal;
+              }//end for i         
+            }
+          } else {
+            for(int i = myLastFC; i < (myLastFC + 8); i++){
+              double currVal = tnAndValsList[i].values[0];
+              if(currVal < minVal) {
+                minVal = currVal;
+              }
+              if(currVal > maxVal) {
+                maxVal = currVal;
+              }
+              sumVal += currVal;
+            }//end for i
+          } 
+          if((maxVal - minVal) >= thresholdFac) {
+            //Can't coarsen
+            tmpList.insert(tmpList.end(), tnAndValsList.begin() + myLastFC,
+                tnAndValsList.end());
+          } else {
+            //Can coarsen
+            ot::NodeAndValues<double, 1> tmpObj;
+            tmpObj.node = tnAndValsList[myLastFC].node.getParent();
+            tmpObj.values[0] = (sumVal/8.0);
+            tmpList.push_back(tmpObj);
+            if((myLastFC + 8) < inSz) {
+              tmpList.insert(tmpList.end(), tnAndValsList.begin() + myLastFC + 8,
+                  tnAndValsList.end());
+            }
+          }
+        } else {
+          //Can't coarsen.
+          //This case is the same as myFirstFC < 0 and it has been taken care
+          //of earlier. 
+        }
+      }
+
+      DendroIntL outSz = tmpList.size();
+      DendroIntL globOutSize;
+      par::Mpi_Allreduce<DendroIntL>(&outSz, &globOutSize, 1, MPI_SUM, commCurr);
+
+      if(globOutSize == globInSize) {
+        repeatLoop = false;
+      }
+
+      //prepare for next iteration...
+      globInSize = globOutSize;
+      tnAndValsList = tmpList;
+      tmpList.clear();
+
+      if(globInSize < (10*npesCurr)) {
+        int splittingSize = (globInSize/10); 
+        if(splittingSize == 0) {
+          splittingSize = 1; 
+        }
+
+        unsigned int avgLoad = (globInSize/splittingSize);
+        int leftOvers = (globInSize - (splittingSize*avgLoad));
+
+        if(rank >= splittingSize) {
+          par::scatterValues<ot::NodeAndValues<double, 1> >(tnAndValsList, tmpList, 0, commCurr);
+        }else if(rank < leftOvers) {
+          par::scatterValues<ot::NodeAndValues<double, 1> >(tnAndValsList, tmpList, (avgLoad + 1), commCurr);
+        }else {
+          par::scatterValues<ot::NodeAndValues<double, 1> >(tnAndValsList, tmpList, avgLoad, commCurr);
+        }
+        tnAndValsList = tmpList;
+        tmpList.clear();
+
+        MPI_Comm newComm;
+        par::splitCommUsingSplittingRank(splittingSize, &newComm, commCurr);
+        commCurr = newComm;
+        npesCurr = splittingSize;
+
+        if(rank >= splittingSize) {
+          repeatLoop = false;
+        }
+      }
+    }//end while
+
+    for(int i = 0; i < tnAndValsList.size(); i++) {
+      linOct.push_back(tnAndValsList[i].node);
+    }//end for i
+
+    PROF_RG2O_END
+  }//end function
 
   //New Implementation. Written on April 20, 2008
   int completeOctree(const std::vector<TreeNode > & inp,

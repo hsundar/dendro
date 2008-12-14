@@ -51,6 +51,7 @@ namespace ot {
     PetscLogEventRegister("bal-comm1",PETSC_VIEWER_COOKIE,&prepBalComm1MssgEvent);
     PetscLogEventRegister("bal-comm2",PETSC_VIEWER_COOKIE,&prepBalComm2MssgEvent);
     PetscLogEventRegister("bal-wList",PETSC_VIEWER_COOKIE,&prepBalWlistEvent);
+    PetscLogEventRegister("rg2o",PETSC_VIEWER_COOKIE,&rg2oEvent);
     PetscLogEventRegister("p2o",PETSC_VIEWER_COOKIE,&p2oEvent);
     PetscLogEventRegister("p2oSeq",PETSC_VIEWER_COOKIE,&p2oSeqEvent);
     PetscLogEventRegister("p2oLoc",PETSC_VIEWER_COOKIE,&p2oLocalEvent);
