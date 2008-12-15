@@ -21,7 +21,7 @@
 
 namespace ot {
 
-  int regularGrid2Octree(std::vector<double>& elementValues,
+  int regularGrid2Octree(const std::vector<double>& elementValues,
       unsigned int N, unsigned int nx, unsigned int ny, unsigned int nz,
       unsigned int xs, unsigned int ys, unsigned int zs, std::vector<TreeNode>& linOct,
       unsigned int dim, unsigned int maxDepth, double thresholdFac, MPI_Comm comm) {
@@ -544,6 +544,7 @@ namespace ot {
       }
     }//end while
 
+    linOct.clear();
     for(int i = 0; i < tnAndValsList.size(); i++) {
       linOct.push_back(tnAndValsList[i].node);
     }//end for i

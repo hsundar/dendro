@@ -26,11 +26,107 @@ Nearest Common Ancestor, adding positive boundaries, marking hanging nodes
 
 namespace ot {
 
+  //inOct1 and inOct2 must be globally sorted and complete
   int mergeOctrees(std::vector<TreeNode>& inOct1, std::vector<TreeNode>& inOct2,
-      std::vector<TreeNode>& outOct, unsigned int dim,
-      unsigned int maxDepth, MPI_Comm comm) {
+      std::vector<TreeNode>& outOct, MPI_Comm comm) {
     PROF_MERGE_OCTREES_BEGIN
-      PROF_MERGE_OCTREES_END
+
+      int rank;
+    int npes;
+    MPI_Comm_rank(comm, &rank);
+    MPI_Comm_size(comm, &npes);
+
+    assert(!(inOct1.empty()));
+
+    //Get the mins of inOct1
+    ot::TreeNode* mins = new ot::TreeNode[npes];
+    par::Mpi_Allgather<ot::TreeNode>(&(*(inOct1.begin())), mins, 1, comm);
+
+    //Distribute inOct2 to align with inOct1
+    int* sendCnts = new int[npes];
+    for(int i = 0; i < npes; i++) {
+      sendCnts[i] = 0;
+    }//end for i 
+
+    if(!(inOct2.empty())) {
+      //Since inOct1 is complete and sorted, mins[0] is a deepest first
+      //decendant of root.
+      //Since inOct2 is also complete and sorted, on the first non-empty processor
+      //inOct2[0] will also be a deepest first decendant of root.
+      //Now mins[0] can be an ancestor, decendant or equal to inOct2[0] (global
+      //first element, so only happens on the first processor). So i=0
+      //is handled separately. 
+      int minsCnt = 0;
+      if(inOct2[0] < mins[0]) {
+        sendCnts[0]++;
+      } else {
+        while( (minsCnt < npes) && (mins[minsCnt] <= inOct2[0]) ) {
+          minsCnt++;
+        }
+        sendCnts[minsCnt - 1]++;
+      }
+      for(int i = 1; i < inOct2.size(); i++) {
+        while( (minsCnt < npes) && (mins[minsCnt] <= inOct2[i]) ) {
+          minsCnt++;
+        }
+        sendCnts[minsCnt - 1]++;
+      }//end for i
+    }
+
+    int * recvCnts = new int[npes];
+    par::Mpi_Alltoall<int>(sendCnts, recvCnts, 1, comm);
+
+    int * sendDisps = new int[npes];
+    int * recvDisps = new int[npes];
+    sendDisps[0] = 0;
+    recvDisps[0] = 0;
+    for(int i = 1; i < npes; i++) {
+      sendDisps[i] = sendDisps[i - 1] + sendCnts[i - 1];
+      recvDisps[i] = recvDisps[i - 1] + recvCnts[i - 1];
+    }//end for i
+
+    outOct.resize(recvDisps[npes - 1] + recvCnts[npes - 1]);
+
+    par::Mpi_Alltoallv_sparse<ot::TreeNode>(&(*(inOct2.begin())), sendCnts, sendDisps,
+        &(*(outOct.begin())), recvCnts, recvDisps, comm);
+
+    delete [] mins;
+    delete [] sendCnts;
+    delete [] sendDisps;
+    delete [] recvCnts;
+    delete [] recvDisps;
+
+    //Merge outOct and inOct1 locally
+    std::vector<ot::TreeNode> tmpOct;
+    int cnt1 = 0;
+    int cnt2 = 0;
+    while( (cnt1 < inOct1.size()) && (cnt2 < outOct.size()) ) {
+      if(inOct1[cnt1] < outOct[cnt2]) {
+        tmpOct.push_back(inOct1[cnt1]);
+        cnt1++;
+      } else {
+        tmpOct.push_back(outOct[cnt2]);
+        cnt2++;
+      }
+    }
+
+    while(cnt1 < inOct1.size()) {
+      tmpOct.push_back(inOct1[cnt1]);
+      cnt1++;
+    }
+
+    while(cnt2 < outOct.size()) {
+      tmpOct.push_back(outOct[cnt2]);
+      cnt2++;
+    }
+
+    outOct = tmpOct;
+    tmpOct.clear();
+
+    //Linearize outOct. This will remove duplicates and ancestors
+    lineariseList(outOct, comm);
+
+    PROF_MERGE_OCTREES_END
   }//end function
 
   int refineOctree(const std::vector<ot::TreeNode> & inp,
@@ -79,7 +175,7 @@ namespace ot {
 #ifdef __DEBUG_OCT__
         assert(areComparable(list[i], list[i+1]));
 #endif
-        if(!(list[i].isAncestor(list[i+1]))) {
+        if( (!(list[i].isAncestor(list[i+1]))) && (list[i] != list[i+1]) ) {
           tmp.push_back(list[i]);
         }
       }
@@ -100,7 +196,7 @@ namespace ot {
     MPI_Comm_size(comm,&size);
 
     if(size == 1) {
-      lineariseList(list,false);
+      lineariseList(list, false);
       return 1;
     }
 
@@ -141,9 +237,9 @@ namespace ot {
       }
 
       if(new_rank == (new_size-1)) {
-        lineariseList(list,false);
+        lineariseList(list, false);
       }else {
-        lineariseList(list,true);
+        lineariseList(list, true);
       }
 
       if(new_rank < (new_size-1)) {

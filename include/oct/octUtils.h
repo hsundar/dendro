@@ -557,19 +557,19 @@ namespace ot {
       unsigned int dim, unsigned int maxDepth);
 
   /**
-    @brief Makes the input linear.
-    @param list the input vector
+    @brief Makes the input linear. Removes duplicates and ancestors
+    @param list the input vector (must be sorted)
     @param skipLast Pass 'true' if you do not wish to include the last element in the output and 'false' otherwise
     @author Rahul Sampath
     */
-  int lineariseList(std::vector<ot::TreeNode> & list,bool skipLast = false);
+  int lineariseList(std::vector<ot::TreeNode> & list, bool skipLast = false);
 
   /**
-    @brief Makes the input linear.
-    @param list the input vector   
+    @brief Makes the input linear. Removes duplicates and ancestors
+    @param list the input vector (must be sorted)  
     @author Rahul Sampath
     */
-  int lineariseList(std::vector<ot::TreeNode> & list,MPI_Comm comm);
+  int lineariseList(std::vector<ot::TreeNode> & list, MPI_Comm comm);
 
   /**
     @brief A comparator that uses the weights of the octants instead of the Morton ordering.	
@@ -637,7 +637,7 @@ Note: first must be different from second.
     @param maxDepth the maximum depth of the octree must be <= _MAX_LEVEL_
     @see _MAX_LEVEL_
     */
-  int regularGrid2Octree(std::vector<double>& elementValues,
+  int regularGrid2Octree(const std::vector<double>& elementValues,
       unsigned int N, unsigned int nx, unsigned int ny, unsigned int nz,
       unsigned int xs, unsigned int ys, unsigned int zs, std::vector<TreeNode>& linOct,
       unsigned int dim, unsigned int maxDepth, double threshold, MPI_Comm comm);
@@ -649,8 +649,7 @@ Note: first must be different from second.
     @param outOct output octree
     */
   int mergeOctrees(std::vector<TreeNode>& inOct1, std::vector<TreeNode>& inOct2,
-      std::vector<TreeNode>& outOct, unsigned int dim,
-      unsigned int maxDepth, MPI_Comm comm);
+      std::vector<TreeNode>& outOct, MPI_Comm comm);
 
   /**
     @author Rahul Sampath
