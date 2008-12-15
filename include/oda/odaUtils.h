@@ -2,7 +2,7 @@
 /**
  * @file odaUtils.h
  * @author		Rahul S. Sampath, rahul.sampath@gmail.com 
- * @brief A list of non-member functions for the ot::DA and ot::DAQ classes.
+ * @brief A list of non-member functions for the ot::DA class.
 **/ 
 
 #ifndef __ODAUTILS_H__
@@ -190,6 +190,25 @@ namespace ot {
     @return 'true' if the octree is a regular grid
     */
   bool isRegularGrid(ot::DA* da);
+
+  /**
+    @author Rahul Sampath
+    @brief Interpolates the function and (optionally) its gradient at the specified points
+    @param da The octree mesh
+    @param in input values 
+    @param out output values
+    @param gradOut Pass NULL if gradient is not required, otherwise
+    pass the address of the desired Vec object. gradOut will be stored
+    such that all the components of a node are contiguous. gradOut will be multidimensional
+    with dof_of_gradOut = dof_of_in*3. The first 3 components of gradOut correspond to
+    the gradient of the first component of in, the next 3 correspond to
+    the gradient of the next component of in and so on.
+    @param dof Degrees of freedom per node
+    @param pts Points to evaluate the field 
+    */
+  void interpolateData(ot::DA* da, const std::vector<double>& in,
+      std::vector<double>& out, std::vector<double>* gradOut,
+      unsigned int dof, std::vector<double>& pts);
 
   /**
     @author Rahul Sampath

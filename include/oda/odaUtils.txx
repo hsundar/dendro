@@ -2,7 +2,7 @@
 /**
  * @file odaUtils.txx
  * @author		Rahul S. Sampath, rahul.sampath@gmail.com 
- * @brief A list of non-member templated functions for the ot::DA and ot::DAQ classes.
+ * @brief A list of non-member templated functions for the ot::DA class.
 **/ 
 
 #include <cassert>

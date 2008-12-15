@@ -25,6 +25,161 @@
 
 namespace ot {
 
+  extern double**** ShapeFnCoeffs; 
+
+  void interpolateData(ot::DA* da, const std::vector<double> & in,
+      std::vector<double> & out, std::vector<double> * gradOut,
+      unsigned int dof, std::vector<double> & pts) {
+
+    int rank = da->getRankAll();
+    int npes = da->getNpesAll();
+    MPI_Comm comm = da->getComm();
+
+    std::vector<ot::TreeNode> minBlocks;
+    unsigned int maxDepth;
+
+    int npesActive;
+    if(!rank) {
+      minBlocks = da->getMinAllBlocks();
+      maxDepth = da->getMaxDepth();
+      npesActive = da->getNpesActive();
+    }
+
+    par::Mpi_Bcast<unsigned int>(&maxDepth, 1, 0, comm);
+    par::Mpi_Bcast<int>(&npesActive, 1, 0, comm);
+
+    unsigned int balOctMaxD = (maxDepth - 1);
+
+    if(rank) {
+      minBlocks.resize(npesActive);
+    }
+
+    par::Mpi_Bcast<ot::TreeNode>(&(*(minBlocks.begin())), npesActive, 0, comm);
+
+    std::vector<ot::NodeAndValues<double, 3> > ptsWrapper;
+
+    int numPts = (pts.size())/3;
+    double xyzFac = static_cast<double>(1u << balOctMaxD);
+    for(int i = 0; i < numPts; i++) {
+      ot::NodeAndValues<double, 3> tmpObj;
+      unsigned int xint = static_cast<unsigned int>(pts[(3*i)]*xyzFac);
+      unsigned int yint = static_cast<unsigned int>(pts[(3*i) + 1]*xyzFac);
+      unsigned int zint = static_cast<unsigned int>(pts[(3*i) + 2]*xyzFac);
+      tmpObj.node = ot::TreeNode(xint, yint, zint, maxDepth, 3, maxDepth);
+      tmpObj.values[0] = pts[(3*i)];
+      tmpObj.values[1] = pts[(3*i) + 1];
+      tmpObj.values[2] = pts[(3*i) + 2];
+      ptsWrapper.push_back(tmpObj);
+    }//end for i
+
+    //Re-distribute ptsWrapper to align with minBlocks
+    int* sendCnts = new int[npes];
+    int* tmpSendCnts = new int[npes];
+    for(int i = 0; i < npes; i++) {
+      sendCnts[i] = 0;
+      tmpSendCnts[i] = 0;
+    }//end for i
+
+    unsigned int *part = new unsigned int[numPts];
+    for(int i = 0; i < numPts; i++) {
+      bool found = seq::maxLowerBound<ot::TreeNode>(minBlocks,
+          ptsWrapper[i].node, part[i], NULL, NULL);
+      assert(found);
+      sendCnts[part[i]]++;
+    }//end for i
+
+    int* sendDisps = new int[npes];
+    sendDisps[0] = 0;
+    for(int i = 1; i < npes; i++) {
+      sendDisps[i] = sendDisps[i-1] + sendCnts[i-1];
+    }//end for i
+
+    std::vector<ot::NodeAndValues<double, 3> > sendList(numPts);
+    unsigned int *commMap = new unsigned int[numPts];
+    for(int i = 0; i < numPts; i++) {
+      unsigned int pId = part[i];
+      unsigned int sId = (sendDisps[pId] + tmpSendCnts[pId]);
+      sendList[sId] = ptsWrapper[i];
+      commMap[sId] = i;
+      tmpSendCnts[pId]++;
+    }//end for i
+    delete [] part;
+    delete [] tmpSendCnts;
+
+    int* recvCnts = new int[npes];
+    par::Mpi_Alltoall<int>(sendCnts, recvCnts, 1, comm);
+
+    int* recvDisps = new int[npes];
+    recvDisps[0] = 0;
+    for(int i = 1; i < npes; i++) {
+      recvDisps[i] = recvDisps[i-1] + recvCnts[i-1];
+    }//end for i
+
+    std::vector<ot::NodeAndValues<double, 3> > recvList(recvDisps[npes - 1] + recvCnts[npes - 1]);
+    par::Mpi_Alltoallv_sparse<ot::NodeAndValues<double, 3> >(&(*(sendList.begin())), 
+        sendCnts, sendDisps, &(*(recvList.begin())), recvCnts, recvDisps, comm);
+
+    //Sort recvList but also store the mapping to the original order
+    std::vector<seq::IndexHolder<ot::NodeAndValues<double, 3> > > localList(recvList.size());
+    for(unsigned int i = 0; i < recvList.size(); i++) {
+      localList[i].index = i;
+      localList[i].value = &(*(recvList.begin() + i));
+    }//end for i
+
+    sort(localList.begin(), localList.end());
+
+    bool computeGradient = (gradOut != NULL);
+
+    if(da->iAmActive()) {
+      //interpolate at the received points
+      unsigned int ptsCtr = 0;
+      double hxFac = (1.0/static_cast<double>(1u << balOctMaxD));
+      for(da->init<ot::DA_FLAGS::WRITABLE>();
+          (da->curr() < da->end<ot::DA_FLAGS::WRITABLE>()) && 
+          (ptsCtr < localList.size()); da->next<ot::DA_FLAGS::WRITABLE>()) {
+
+        Point pt = da->getCurrentOffset();
+        unsigned int currLev = da->getLevel(da->curr()) - 1;
+
+        ot::TreeNode currOct(pt.xint(), pt.yint(), pt.zint(), currLev + 1, 3, maxDepth);
+
+        double hxOct = (static_cast<double>(1u << (balOctMaxD - currLev)))*hxFac;
+        unsigned int indices[8];
+        da->getNodeIndices(indices);
+        unsigned char chNum = da->getChildNumber();
+        unsigned char hnMask = da->getHangingNodeIndex(da->curr());
+        unsigned char elemType = 0;
+        GET_ETYPE_BLOCK(elemType, hnMask, chNum)
+
+          //All the recieved points lie within some octant or the other.
+          //So the ptsCtr will be incremented properly inside this loop.
+          //Evaluate at all points within this octant
+          while( (ptsCtr < localList.size()) &&
+              ( (currOct == ((localList[ptsCtr].value)->node)) ||
+                (currOct.isAncestor(((localList[ptsCtr].value)->node))) ) ) {
+            ptsCtr++;
+          }
+
+      }//end writable loop
+    } else {
+      assert(localList.empty());
+    }//end if active
+
+    //Return the results. This communication is the exact reverse of the earlier
+    //communication.
+
+    //Use commMap and re-order the results in the same order as the original
+    //points
+
+    //Clean up
+    delete [] commMap;
+    delete [] sendCnts;
+    delete [] sendDisps;
+    delete [] recvCnts;
+    delete [] recvDisps;
+
+  }//end function
+
   void writePartitionVTK(ot::DA* da, const char* outFileName) {
     int rank = da->getRankAll();
     //Only processor writes
