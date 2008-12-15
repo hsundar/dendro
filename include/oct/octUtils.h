@@ -44,6 +44,7 @@ namespace ot {
   extern int coarsenEvent;
   extern int coarsenSeqEvent;
   extern int simpleCoarsenEvent;
+  extern int mergeOctreesEvent;
   extern int rg2oEvent;
   extern int p2oEvent;
   extern int p2oSeqEvent;
@@ -246,32 +247,39 @@ PetscLogEventBegin(completeSubtreeEvent,0,0,0,0);
   PetscLogEventEnd(completeSubtreeEvent,0,0,0,0); \
 PetscFunctionReturn(0);
 
-#define PROF_BAL_BEGIN 	\
+#define PROF_BAL_BEGIN \
   PetscFunctionBegin; \
 PetscLogEventBegin(balanceEvent,0,0,0,0);
-#define PROF_BAL_END         \
+#define PROF_BAL_END \
   PetscLogEventEnd(balanceEvent,0,0,0,0); \
 PetscFunctionReturn(0);
 
-#define PROF_PAR_RIPPLE_TYPE3_BEGIN 	\
+#define PROF_PAR_RIPPLE_TYPE3_BEGIN \
   PetscFunctionBegin; \
 PetscLogEventBegin(parRippleType3Event,0,0,0,0);
-#define PROF_PAR_RIPPLE_TYPE3_END         \
+#define PROF_PAR_RIPPLE_TYPE3_END \
   PetscLogEventEnd(parRippleType3Event,0,0,0,0); \
 PetscFunctionReturn(0);
 
-#define PROF_PAR_RIPPLE_TYPE2_BEGIN 	\
+#define PROF_PAR_RIPPLE_TYPE2_BEGIN \
   PetscFunctionBegin; \
 PetscLogEventBegin(parRippleType2Event,0,0,0,0);
-#define PROF_PAR_RIPPLE_TYPE2_END         \
+#define PROF_PAR_RIPPLE_TYPE2_END \
   PetscLogEventEnd(parRippleType2Event,0,0,0,0); \
 PetscFunctionReturn(0);
 
-#define PROF_PAR_RIPPLE_TYPE1_BEGIN 	\
+#define PROF_PAR_RIPPLE_TYPE1_BEGIN \
   PetscFunctionBegin; \
 PetscLogEventBegin(parRippleType1Event,0,0,0,0);
-#define PROF_PAR_RIPPLE_TYPE1_END         \
+#define PROF_PAR_RIPPLE_TYPE1_END \
   PetscLogEventEnd(parRippleType1Event,0,0,0,0); \
+PetscFunctionReturn(0);
+
+#define PROF_MERGE_OCTREES_BEGIN \
+  PetscFunctionBegin; \
+PetscLogEventBegin(mergeOctreesEvent,0,0,0,0);
+#define PROF_MERGE_OCTREES_END \
+  PetscLogEventEnd(mergeOctreesEvent,0,0,0,0); \
 PetscFunctionReturn(0);
 
 #define PROF_RG2O_BEGIN	\
@@ -360,6 +368,7 @@ PetscFunctionReturn(0);
 #define PROF_BAL_BEGIN
 #define PROF_BAL_SUBTREE_BEGIN
 #define PROF_COMPLETE_SUBTREE_BEGIN
+#define PROF_MERGE_OCTREES_BEGIN
 #define PROF_RG2O_BEGIN
 #define PROF_P2O_BEGIN
 #define PROF_P2O_SEQ_BEGIN
@@ -401,6 +410,7 @@ PetscFunctionReturn(0);
 #define PROF_BAL_END return 1; 
 #define PROF_BAL_SUBTREE_END return 1; 
 #define PROF_COMPLETE_SUBTREE_END return 1; 
+#define PROF_MERGE_OCTREES_END return 1;
 #define PROF_RG2O_END return 1; 
 #define PROF_P2O_END return 1; 
 #define PROF_P2O_SEQ_END return 1; 
@@ -628,9 +638,19 @@ Note: first must be different from second.
     @see _MAX_LEVEL_
     */
   int regularGrid2Octree(std::vector<double>& elementValues,
-     unsigned int N, unsigned int nx, unsigned int ny, unsigned int nz,
-     unsigned int xs, unsigned int ys, unsigned int zs, std::vector<TreeNode>& linOct,
+      unsigned int N, unsigned int nx, unsigned int ny, unsigned int nz,
+      unsigned int xs, unsigned int ys, unsigned int zs, std::vector<TreeNode>& linOct,
       unsigned int dim, unsigned int maxDepth, double threshold, MPI_Comm comm);
+
+  /**
+    @author Rahul Sampath
+    @brief Merges the 2 input octrees and linearizes the result
+    @param inOct1, inOct2 input octrees
+    @param outOct output octree
+    */
+  int mergeOctrees(std::vector<TreeNode>& inOct1, std::vector<TreeNode>& inOct2,
+      std::vector<TreeNode>& outOct, unsigned int dim,
+      unsigned int maxDepth, MPI_Comm comm);
 
   /**
     @author Rahul Sampath

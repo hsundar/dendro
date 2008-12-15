@@ -26,7 +26,15 @@ Nearest Common Ancestor, adding positive boundaries, marking hanging nodes
 
 namespace ot {
 
-  int refineOctree(const std::vector<ot::TreeNode> & inp, std::vector<ot::TreeNode> &out) {
+  int mergeOctrees(std::vector<TreeNode>& inOct1, std::vector<TreeNode>& inOct2,
+      std::vector<TreeNode>& outOct, unsigned int dim,
+      unsigned int maxDepth, MPI_Comm comm) {
+    PROF_MERGE_OCTREES_BEGIN
+      PROF_MERGE_OCTREES_END
+  }//end function
+
+  int refineOctree(const std::vector<ot::TreeNode> & inp,
+      std::vector<ot::TreeNode> &out) {
     out.clear();
     for(unsigned int i = 0; i < inp.size(); i++) {
       if(inp[i].getLevel() < inp[i].getMaxDepth()) {
@@ -38,7 +46,8 @@ namespace ot {
     return 1;
   }//end function 
 
-  int refineAndPartitionOctree(const std::vector<ot::TreeNode> & inp, std::vector<ot::TreeNode> &out, MPI_Comm comm) {
+  int refineAndPartitionOctree(const std::vector<ot::TreeNode> & inp,
+      std::vector<ot::TreeNode> &out, MPI_Comm comm) {
     refineOctree(inp,out);
     par::partitionW<ot::TreeNode>(out, NULL,comm);
     return 1;
@@ -63,7 +72,7 @@ namespace ot {
   }
 
   //list must be sorted.
-  int lineariseList(std::vector<ot::TreeNode> & list,bool skipLast) {
+  int lineariseList(std::vector<ot::TreeNode> & list, bool skipLast) {
     std::vector<ot::TreeNode> tmp;
     if(!(list.empty())) {
       for(unsigned int i = 0; i < (list.size()-1); i++) {
@@ -85,7 +94,7 @@ namespace ot {
   }//end fn.
 
   //list must be sorted.
-  int lineariseList(std::vector<ot::TreeNode> & list,MPI_Comm comm) {
+  int lineariseList(std::vector<ot::TreeNode> & list, MPI_Comm comm) {
     int rank,size;
     MPI_Comm_rank(comm,&rank);
     MPI_Comm_size(comm,&size);
@@ -224,7 +233,8 @@ namespace ot {
     return 1;
   }//end function
 
-  int readDataPtsFromFile(char* filename, std::vector<double>& pts, std::vector<double>& ptVals) {
+  int readDataPtsFromFile(char* filename, std::vector<double>& pts,
+      std::vector<double>& ptVals) {
     // file format:
     // 4 bytes (unsigned int?)  number of points N
     // 3*N*8 bytes coordinates of point (double);  X1 Y1 Z1 X2 Y2 Z2 ....
@@ -267,7 +277,8 @@ namespace ot {
     return 1;
   }//end function
 
-  int writeDataPtsToFile(char* filename, std::vector<double>& pts, std::vector<double>& data) {
+  int writeDataPtsToFile(char* filename, std::vector<double>& pts,
+      std::vector<double>& data) {
     FILE* outfile = fopen(filename,"wb");
     unsigned int ptsLen = pts.size();
     unsigned int numPts=ptsLen/3;
@@ -281,8 +292,6 @@ namespace ot {
     fclose(outfile);
     return 1;
   }//end function
-
-
 
   int readNodesFromFile (char* filename, std::vector<TreeNode > & nodes) {
     FILE* infile = fopen(filename,"r");
@@ -1953,10 +1962,7 @@ namespace ot {
     PROF_MARK_HANGING_END
   }//end function
 
-
 }//end namespace
-
-
 
 
 
