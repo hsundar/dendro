@@ -105,6 +105,7 @@ namespace ot {
     }//end for i
     delete [] part;
     delete [] tmpSendCnts;
+    ptsWrapper.clear();
 
     int* recvCnts = new int[npes];
     par::Mpi_Alltoall<int>(sendCnts, recvCnts, 1, comm);
@@ -118,6 +119,7 @@ namespace ot {
     std::vector<ot::NodeAndValues<double, 3> > recvList(recvDisps[npes - 1] + recvCnts[npes - 1]);
     par::Mpi_Alltoallv_sparse<ot::NodeAndValues<double, 3> >(&(*(sendList.begin())), 
         sendCnts, sendDisps, &(*(recvList.begin())), recvCnts, recvDisps, comm);
+    sendList.clear();
 
     //Sort recvList but also store the mapping to the original order
     std::vector<seq::IndexHolder<ot::NodeAndValues<double, 3> > > localList(recvList.size());
@@ -129,6 +131,15 @@ namespace ot {
     sort(localList.begin(), localList.end());
 
     bool computeGradient = (gradOut != NULL);
+
+    std::vector<double> tmpOut(dof*localList.size());
+    std::vector<double> tmpGradOut;
+    if(computeGradient) {
+      tmpGradOut.resize(3*dof*localList.size());
+    }
+
+    double* inArr;
+    da->vecGetBuffer<double>(in, inArr, false, false, true, dof);
 
     if(da->iAmActive()) {
       //interpolate at the received points
@@ -165,18 +176,57 @@ namespace ot {
       assert(localList.empty());
     }//end if active
 
+    da->vecRestoreBuffer<double>(in, inArr, false, false, true, dof);
+
+    recvList.clear();
+    localList.clear();
+
     //Return the results. This communication is the exact reverse of the earlier
     //communication.
 
-    //Use commMap and re-order the results in the same order as the original
-    //points
+    std::vector<double> results(dof*numPts);
+    par::Mpi_Alltoallv_sparse<ot::NodeAndValues<double, 3> >(&(*(tmpOut.begin())), 
+        recvCnts, recvDisps, &(*(results.begin())), sendCnts, sendDisps, comm);
+    tmpOut.clear();
 
-    //Clean up
-    delete [] commMap;
+    std::vector<double> gradResults;
+    if(computeGradient) {
+      for(int i = 0; i < npes; i++) {
+        sendCnts[i] = 3*sendCnts[i];
+        sendDisps[i] = 3*sendDisps[i];
+        recvCnts[i] = 3*recvCnts[i];
+        recvDisps[i] = 3*recvDisps[i];
+      }//end for i
+      gradResults.resize(3*dof*numPts);
+      par::Mpi_Alltoallv_sparse<ot::NodeAndValues<double, 3> >(&(*(tmpGradOut.begin())), 
+          recvCnts, recvDisps, &(*(gradResults.begin())), sendCnts, sendDisps, comm);
+      tmpGradOut.clear();
+    }
+
     delete [] sendCnts;
     delete [] sendDisps;
     delete [] recvCnts;
     delete [] recvDisps;
+
+    //Use commMap and re-order the results in the same order as the original
+    //points
+    out.resize(dof*numPts);
+    for(int i = 0; i < numPts; i++) {
+      for(int j = 0; j < dof; j++) {
+        out[(dof*commMap[i]) + j] = results[(dof*i) + j];
+      }//end for j
+    }//end for i
+
+    if(computeGradient) {
+      gradOut->resize(3*dof*numPts);
+      for(int i = 0; i < numPts; i++) {
+        for(int j = 0; j < 3*dof; j++) {
+          (*gradOut)[(3*dof*commMap[i]) + j] = gradResults[(3*dof*i) + j];
+        }//end for j
+      }//end for i
+    }
+
+    delete [] commMap;
 
   }//end function
 
