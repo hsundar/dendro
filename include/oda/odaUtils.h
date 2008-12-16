@@ -26,10 +26,32 @@ namespace ot {
   extern int addBdySiblingsEvent;
   extern int DAaprioriCommEvent;
 
+  extern int daInitEvent;
+  extern int daFinalEvent;
   extern int DAbPart1Event;
   extern int DAbPart2Event;
   extern int DAbPart3Event;
 }
+
+#define PROF_DA_INIT_BEGIN PetscLogEventBegin(daInitEvent,0,0,0,0);
+#define PROF_DA_INIT_END PetscLogEventEnd(daInitEvent,0,0,0,0); \
+  return ;
+
+#define PROF_DA_FINAL_BEGIN PetscLogEventBegin(daFinalEvent,0,0,0,0);
+#define PROF_DA_FINAL_END PetscLogEventEnd(daFinalEvent,0,0,0,0); \
+  return ;
+
+#define PROF_PICK_GHOSTS_BEGIN PetscLogEventBegin(pickGhostsEvent,0,0,0,0);
+#define PROF_PICK_GHOSTS_END PetscLogEventEnd(pickGhostsEvent,0,0,0,0); \
+  return ;
+
+#define PROF_ADD_BDY_SIBLINGS_BEGIN PetscLogEventBegin(addBdySiblingsEvent,0,0,0,0);
+#define PROF_ADD_BDY_SIBLINGS_END PetscLogEventEnd(addBdySiblingsEvent,0,0,0,0); \
+  return ;
+
+#define PROF_DA_APRIORI_COMM_BEGIN PetscLogEventBegin(DAaprioriCommEvent,0,0,0,0);
+#define PROF_DA_APRIORI_COMM_END PetscLogEventEnd(DAaprioriCommEvent,0,0,0,0); \
+  return ;
 
 #define PROF_DA_BPART1_BEGIN PetscLogEventBegin(DAbPart1Event,0,0,0,0);
 #define PROF_DA_BPART1_END PetscLogEventEnd(DAbPart1Event,0,0,0,0); 
@@ -40,31 +62,13 @@ namespace ot {
 #define PROF_DA_BPART3_BEGIN PetscLogEventBegin(DAbPart3Event,0,0,0,0);
 #define PROF_DA_BPART3_END PetscLogEventEnd(DAbPart3Event,0,0,0,0); 
 
-#define PROF_PICK_GHOSTS_BEGIN PetscLogEventBegin(pickGhostsEvent,0,0,0,0);
-#define PROF_PICK_GHOSTS_END \
-  PetscLogEventEnd(pickGhostsEvent,0,0,0,0); \
-return ;
-
-#define PROF_ADD_BDY_SIBLINGS_BEGIN PetscLogEventBegin(addBdySiblingsEvent,0,0,0,0);
-#define PROF_ADD_BDY_SIBLINGS_END \
-  PetscLogEventEnd(addBdySiblingsEvent,0,0,0,0); \
-return ;
-
-#define PROF_DA_APRIORI_COMM_BEGIN PetscLogEventBegin(DAaprioriCommEvent,0,0,0,0);
-#define PROF_DA_APRIORI_COMM_END \
-  PetscLogEventEnd(DAaprioriCommEvent,0,0,0,0); \
-return ;
-
 #else
 
-#define PROF_DA_BPART1_BEGIN 
-#define PROF_DA_BPART1_END  
+#define PROF_DA_INIT_BEGIN 
+#define PROF_DA_INIT_END return ;
 
-#define PROF_DA_BPART2_BEGIN 
-#define PROF_DA_BPART2_END  
-
-#define PROF_DA_BPART3_BEGIN 
-#define PROF_DA_BPART3_END  
+#define PROF_DA_FINAL_BEGIN 
+#define PROF_DA_FINAL_END return ;
 
 #define PROF_ADD_BDY_SIBLINGS_BEGIN 
 #define PROF_ADD_BDY_SIBLINGS_END return ;
@@ -74,6 +78,15 @@ return ;
 
 #define PROF_DA_APRIORI_COMM_BEGIN
 #define PROF_DA_APRIORI_COMM_END return;
+
+#define PROF_DA_BPART1_BEGIN 
+#define PROF_DA_BPART1_END  
+
+#define PROF_DA_BPART2_BEGIN 
+#define PROF_DA_BPART2_END  
+
+#define PROF_DA_BPART3_BEGIN 
+#define PROF_DA_BPART3_END  
 
 #endif
 
@@ -260,6 +273,16 @@ namespace ot {
   int DA_blockPartStage3(std::vector<TreeNode> &nodes,
       std::vector<TreeNode>& globalCoarse, std::vector<ot::TreeNode>& minsAllBlocks,
       unsigned int dim, unsigned int maxDepth, MPI_Comm commActive);
+
+  /**@brief Initializes the stencils used in the oda module */
+  void DA_Initialize(MPI_Comm comm);
+
+  /**@brief Destroys the stencils used in R and P */
+  void DA_Finalize();
+
+  int createShapeFnCoeffs_Type1(MPI_Comm comm);
+  int createShapeFnCoeffs_Type2(MPI_Comm comm);
+  int createShapeFnCoeffs_Type3(MPI_Comm comm);
 
 }//end namespace
 

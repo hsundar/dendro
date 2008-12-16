@@ -8,6 +8,7 @@
 #include "petscmat.h"
 #include "omg.h"
 #include "oda.h"
+#include "odaUtils.h" 
 #include "petscmg.h"
 #include "parUtils.h"
 #include <iostream>
@@ -57,7 +58,9 @@ namespace ot {
   }
 
   PetscErrorCode DAMG_Initialize(MPI_Comm comm) {
-    PROF_MG_INIT_BEGIN  
+    PROF_MG_INIT_BEGIN 
+
+      ot::DA_Initialize(comm);
 
 #ifdef __USE_MG_INIT_TYPE3__
       ot::DAMG_InitPrivateType3(comm);
@@ -658,6 +661,8 @@ namespace ot {
 
   PetscErrorCode DAMG_Finalize() {
     PROF_MG_FINAL_BEGIN
+
+      ot::DA_Finalize();
 
       destroyRmatType1Stencil(RmatType1Stencil);
     destroyRmatType2Stencil(RmatType2Stencil);

@@ -42,7 +42,6 @@ double**** LaplacianType2Stencil;
 double***** MassType1Stencil; 
 double**** MassType2Stencil; 
 double****** ShapeFnStencil;
-double**** ShapeFnCoeffs;
 
 int main(int argc, char ** argv ) {	
   int size, rank;
@@ -161,7 +160,6 @@ int main(int argc, char ** argv ) {
     createMmatType1(MassType1Stencil);
   }
  createShFnMat(ShapeFnStencil);
- createShapeFnCoeffs(ShapeFnCoeffs);
 
   if(!rank) {
     std::cout << "Created Stencils."<< std::endl;
@@ -239,7 +237,6 @@ int main(int argc, char ** argv ) {
     destroyMmatType1(MassType1Stencil);
   }
   destroyShFnMat(ShapeFnStencil);
-  destroyShapeFnCoeffs(ShapeFnCoeffs);
 
   MPI_Barrier(MPI_COMM_WORLD);
 

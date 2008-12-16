@@ -36,26 +36,21 @@ int createLmatType1_Type3(double *****& Lmat1);
 int createMmatType1_Type3(double *****& Mmat1);
 
 int createShFnMat(double******& shFnMat);
-int createShapeFnCoeffs(double ****& shFnCoeffs);
 int createRHSType2(double***& RHS_data);
 
 int createShFnMat_Type1(double******& shFnMat);
-int createShapeFnCoeffs_Type1(double ****& shFnCoeffs);
 int createRHSType2_Type1(double***& RHS_data);
 
 int createShFnMat_Type2(double******& shFnMat);
-int createShapeFnCoeffs_Type2(double ****& shFnCoeffs);
 int createRHSType2_Type2(double***& RHS_data);
 
 int createShFnMat_Type3(double******& shFnMat);
-int createShapeFnCoeffs_Type3(double ****& shFnCoeffs);
 int createRHSType2_Type3(double***& RHS_data);
 
 int destroyLmatType1(double *****& Lmat1);
 int destroyMmatType1(double *****& Mmat1);
 
 int destroyShFnMat(double******& shFnMat);
-int destroyShapeFnCoeffs(double ****& shFnCoeffs);
 int destroyRHSType2(double***& RHS_data);
 
 int destroyLmatType2(double ****& Lmat2);

@@ -58,6 +58,7 @@ int main(int argc, char **argv)
 
   PetscInitialize(&argc, &argv, "options", NULL);
   ot::RegisterEvents();
+  ot::DA_Initialize(MPI_COMM_WORLD);
 
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -166,6 +167,7 @@ int main(int argc, char **argv)
   // Solve 
   KSPSolve(ksp, rhs, sol);
 
+  ot::DA_Finalize();
   PetscFinalize();
 
   return 0;

@@ -105,6 +105,8 @@ namespace ot {
     PetscLogEventRegister("W-Gh-N-End",PETSC_VIEWER_COOKIE,&writeToGhostNodesEndEvent);
     PetscLogEventRegister("W-Gh-E-Begin",PETSC_VIEWER_COOKIE,&writeToGhostElemsBeginEvent);
     PetscLogEventRegister("W-Gh-E-End",PETSC_VIEWER_COOKIE,&writeToGhostElemsEndEvent);
+    PetscLogEventRegister("DA-Init",PETSC_VIEWER_COOKIE,&daInitEvent);
+    PetscLogEventRegister("DA-Final",PETSC_VIEWER_COOKIE,&daFinalEvent);
     PetscLogEventRegister("DAMG-Init",PETSC_VIEWER_COOKIE,&damgInitEvent);
     PetscLogEventRegister("DAMG-Final",PETSC_VIEWER_COOKIE,&damgFinalEvent);
 

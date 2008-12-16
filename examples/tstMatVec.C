@@ -51,6 +51,7 @@ int main(int argc, char ** argv ) {
 
   PetscInitialize(&argc,&argv,"options",NULL);
   ot::RegisterEvents();
+  ot::DA_Initialize(MPI_COMM_WORLD);
 
 #ifdef PETSC_USE_LOG
   PetscLogEventRegister(&Jac1DiagEvent,"ODAmatDiag",PETSC_VIEWER_COOKIE);
@@ -287,6 +288,7 @@ int main(int argc, char ** argv ) {
   if (!rank) {
     std::cout << GRN << "Finalizing PETSC" << NRM << std::endl;
   }
+  ot::DA_Finalize();
   PetscFinalize();
 }//end function
 

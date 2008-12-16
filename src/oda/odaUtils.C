@@ -5,8 +5,12 @@
   @author Rahul S. Sampath, rahul.sampath@gmail.com
   */
 
+#include "mpi.h"
 #include "odaUtils.h"
 #include "TreeNode.h"
+#include <cstdio>
+#include <iostream>
+#include <cassert>
 #include "oda.h"
 #include "parUtils.h"
 #include "seqUtils.h"
@@ -26,6 +30,258 @@
 namespace ot {
 
   extern double**** ShapeFnCoeffs; 
+
+  void DA_Initialize(MPI_Comm comm) {
+    PROF_DA_INIT_BEGIN 
+
+#ifdef __USE_MG_INIT_TYPE3__
+      createShapeFnCoeffs_Type3(comm);
+#else
+#ifdef __USE_MG_INIT_TYPE2__
+    createShapeFnCoeffs_Type2(comm);
+#else
+    createShapeFnCoeffs_Type1(comm);
+#endif
+#endif
+
+    PROF_DA_INIT_END 
+  }
+
+  void DA_Finalize() {
+    PROF_DA_FINAL_BEGIN 
+
+      for(unsigned int cNum = 0; cNum < 8; cNum++) {
+        for(unsigned int eType = 0; eType < 18; eType++) {
+          for(unsigned int i = 0; i < 8; i++) {
+            delete [] (ShapeFnCoeffs[cNum][eType][i]);
+            ShapeFnCoeffs[cNum][eType][i] = NULL;
+          }
+          delete [] (ShapeFnCoeffs[cNum][eType]);
+          ShapeFnCoeffs[cNum][eType] = NULL;
+        }
+        delete [] (ShapeFnCoeffs[cNum]);
+        ShapeFnCoeffs[cNum] = NULL;
+      }
+
+    delete [] ShapeFnCoeffs;
+    ShapeFnCoeffs = NULL;
+
+    PROF_DA_FINAL_END 
+  }
+
+  int createShapeFnCoeffs_Type3(MPI_Comm comm) {
+    FILE* infile;
+    int rank;
+    MPI_Comm_rank(comm, &rank); 
+    char fname[250];
+    sprintf(fname,"ShapeFnCoeffs_%d.inp", rank);
+    infile = fopen(fname,"r");
+    if(!infile) {
+      std::cout<<"The file "<<fname<<" is not good for reading."<<std::endl;
+      assert(false);
+    }
+
+    typedef double* doublePtr;
+    typedef doublePtr* double2Ptr;
+    typedef double2Ptr* double3Ptr;
+
+    ShapeFnCoeffs = new double3Ptr[8];
+    for(unsigned int cNum = 0; cNum < 8; cNum++) {
+      ShapeFnCoeffs[cNum] = new double2Ptr[18];
+      for(unsigned int eType = 0; eType < 18; eType++) {
+        ShapeFnCoeffs[cNum][eType] = new doublePtr[8];
+        for(unsigned int i = 0; i < 8; i++) {
+          ShapeFnCoeffs[cNum][eType][i] = new double[8];
+          for(unsigned int j = 0; j < 8; j++) {
+            fscanf(infile,"%lf",&(ShapeFnCoeffs[cNum][eType][i][j]));
+          }
+        }
+      }
+    }
+
+    fclose(infile);
+    return 1;
+  }
+
+  int createShapeFnCoeffs_Type2(MPI_Comm comm) {
+    FILE* infile;
+
+    int rank, npes;
+    MPI_Comm_rank(comm, &rank);
+    MPI_Comm_size(comm, &npes);
+
+    const int THOUSAND = 1000;
+    int numGroups = (npes/THOUSAND);
+    if( (numGroups*THOUSAND) < npes) {
+      numGroups++;
+    }
+
+    MPI_Comm newComm;
+
+    bool* isEmptyList = new bool[npes];
+    for(int i = 0; i < numGroups; i++) {
+      for(int j = 0; (j < (i*THOUSAND)) && (j < npes); j++) {
+        isEmptyList[j] = true;
+      }
+      for(int j = (i*THOUSAND); (j < ((i+1)*THOUSAND)) && (j < npes); j++) {
+        isEmptyList[j] = false;
+      }
+      for(int j = ((i + 1)*THOUSAND); j < npes; j++) {
+        isEmptyList[j] = true;
+      }
+      MPI_Comm tmpComm;
+      par::splitComm2way(isEmptyList, &tmpComm, comm);
+      if(!(isEmptyList[rank])) {
+        newComm = tmpComm;
+      }
+    }//end for i
+    delete [] isEmptyList;
+
+    if((rank % THOUSAND) == 0) {
+      char fname[250];
+      sprintf(fname,"ShapeFnCoeffs_%d.inp", (rank/THOUSAND));
+      infile = fopen(fname,"r");
+      if(!infile) {
+        std::cout<<"The file "<<fname<<" is not good for reading."<<std::endl;
+        assert(false);
+      }
+    }
+
+    typedef double* doublePtr;
+    typedef doublePtr* double2Ptr;
+    typedef double2Ptr* double3Ptr;
+
+    ShapeFnCoeffs = new double3Ptr[8];
+    for(unsigned int cNum = 0; cNum < 8; cNum++) {
+      ShapeFnCoeffs[cNum] = new double2Ptr[18];
+      for(unsigned int eType = 0; eType < 18; eType++) {
+        ShapeFnCoeffs[cNum][eType] = new doublePtr[8];
+        for(unsigned int i = 0; i < 8; i++) {
+          ShapeFnCoeffs[cNum][eType][i] = new double[8];
+          if((rank % THOUSAND) == 0){
+            for(unsigned int j = 0; j < 8; j++) {
+              fscanf(infile,"%lf",&(ShapeFnCoeffs[cNum][eType][i][j]));
+            }
+          }
+        }
+      }
+    }
+
+    if((rank % THOUSAND) == 0){
+      fclose(infile);
+    }
+
+    double * tmpMat = new double[9216];
+
+    if((rank % THOUSAND) == 0) {
+      unsigned int ctr = 0;
+      for(unsigned int cNum = 0; cNum < 8; cNum++) {
+        for(unsigned int eType = 0; eType < 18; eType++) {
+          for(unsigned int i = 0; i < 8; i++) {
+            for(unsigned int j = 0; j < 8; j++) {
+              tmpMat[ctr] = ShapeFnCoeffs[cNum][eType][i][j];
+              ctr++;
+            }
+          }
+        }
+      }
+    }
+
+    par::Mpi_Bcast<double>(tmpMat,9216, 0, newComm);
+
+    if((rank % THOUSAND) != 0) {
+      unsigned int ctr = 0;
+      for(unsigned int cNum = 0; cNum < 8; cNum++) {
+        for(unsigned int eType = 0; eType < 18; eType++) {
+          for(unsigned int i = 0; i < 8; i++) {
+            for(unsigned int j = 0; j < 8; j++) {
+              ShapeFnCoeffs[cNum][eType][i][j] = tmpMat[ctr];
+              ctr++;
+            }
+          }
+        }
+      }
+    }
+
+    delete [] tmpMat;
+
+    return 1;
+  }//end of function
+
+  int createShapeFnCoeffs_Type1(MPI_Comm comm) {
+    FILE* infile;
+    int rank;
+    MPI_Comm_rank(comm, &rank);
+    if(!rank) {
+      char fname[250];
+      sprintf(fname,"ShapeFnCoeffs.inp");
+      infile = fopen(fname,"r");
+      if(!infile) {
+        std::cout<<"The file "<<fname<<" is not good for reading."<<std::endl;
+        assert(false);
+      }
+    }
+
+    typedef double* doublePtr;
+    typedef doublePtr* double2Ptr;
+    typedef double2Ptr* double3Ptr;
+
+    ShapeFnCoeffs = new double3Ptr[8];
+    for(unsigned int cNum = 0; cNum < 8; cNum++) {
+      ShapeFnCoeffs[cNum] = new double2Ptr[18];
+      for(unsigned int eType = 0; eType < 18; eType++) {
+        ShapeFnCoeffs[cNum][eType] = new doublePtr[8];
+        for(unsigned int i = 0; i < 8; i++) {
+          ShapeFnCoeffs[cNum][eType][i] = new double[8];
+          if(!rank){
+            for(unsigned int j = 0; j < 8; j++) {
+              fscanf(infile,"%lf",&(ShapeFnCoeffs[cNum][eType][i][j]));
+            }
+          }
+        }
+      }
+    }
+
+    if(!rank){
+      fclose(infile);
+    }
+
+    double * tmpMat = new double[9216];
+
+    if(!rank) {
+      unsigned int ctr = 0;
+      for(unsigned int cNum = 0; cNum < 8; cNum++) {
+        for(unsigned int eType = 0; eType < 18; eType++) {
+          for(unsigned int i = 0; i < 8; i++) {
+            for(unsigned int j = 0; j < 8; j++) {
+              tmpMat[ctr] = ShapeFnCoeffs[cNum][eType][i][j];
+              ctr++;
+            }
+          }
+        }
+      }
+    }
+
+    par::Mpi_Bcast<double>(tmpMat,9216, 0, comm);
+
+    if(rank) {
+      unsigned int ctr = 0;
+      for(unsigned int cNum = 0; cNum < 8; cNum++) {
+        for(unsigned int eType = 0; eType < 18; eType++) {
+          for(unsigned int i = 0; i < 8; i++) {
+            for(unsigned int j = 0; j < 8; j++) {
+              ShapeFnCoeffs[cNum][eType][i][j] = tmpMat[ctr];
+              ctr++;
+            }
+          }
+        }
+      }
+    }
+
+    delete [] tmpMat;
+
+    return 1;
+  }//end of function
 
   void interpolateData(ot::DA* da, const std::vector<double> & in,
       std::vector<double> & out, std::vector<double> * gradOut,
@@ -168,6 +424,8 @@ namespace ot {
           while( (ptsCtr < localList.size()) &&
               ( (currOct == ((localList[ptsCtr].value)->node)) ||
                 (currOct.isAncestor(((localList[ptsCtr].value)->node))) ) ) {
+            if(computeGradient) {
+            }
             ptsCtr++;
           }
 

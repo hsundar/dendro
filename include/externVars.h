@@ -105,6 +105,8 @@ namespace ot {
   int writeToGhostNodesEndEvent;
   int writeToGhostElemsBeginEvent;
   int writeToGhostElemsEndEvent;
+  int daInitEvent;
+  int daFinalEvent;
   //@}
 
   /** @name Variables to profile the functions in the omg module */
@@ -157,7 +159,7 @@ namespace ot {
 
 namespace ot {
 
-  /** @name Variables for storing the various stencils used in the omg module */
+  /** @name Variables for storing the various stencils used in the oda and omg module */
   //@{
   double**** RmatType2Stencil = NULL;
   double***** RmatType1Stencil = NULL;
@@ -165,6 +167,7 @@ namespace ot {
   unsigned short***** VtxMap2 = NULL; 
   unsigned short***** VtxMap3 = NULL; 
   unsigned short****** VtxMap4 = NULL; 
+  double**** ShapeFnCoeffs = NULL; 
   //@}
 
   /** @name Global Function Handle used in PC_BlockDiag */

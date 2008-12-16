@@ -21,6 +21,7 @@ int main(int argc, char ** argv ) {
 
   PetscInitialize(&argc,&argv,0,NULL);
   ot::RegisterEvents();
+  ot::DA_Initialize(MPI_COMM_WORLD);
 
   if(argc < 2) {
     std::cerr << "Usage: " << argv[0] << "inpfile " << std::endl;
@@ -325,6 +326,7 @@ int main(int argc, char ** argv ) {
     std::cout << GRN << "Finalizing PETSC" << NRM << std::endl;
   }
 
+  ot::DA_Finalize();
   PetscFinalize();
 }//end function
 

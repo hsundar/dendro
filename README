@@ -24,7 +24,6 @@ The DENDRO library comprises of 4 main modules, which are listed below:
 
 A quick tutorial can be found in Manual/Manual.pdf
 Detailed Doxygen documentation can be generated using the configure
-file provided under Doc/Doxyfile.  Use Doc/DoxyfileNoSources to strip
-source code from the documentation.
+file provided under Doc/Doxyfile. 
 
 

@@ -14,7 +14,10 @@
 #include "nodeAndValues.h"
 
 extern double****** ShapeFnStencil;
-extern double**** ShapeFnCoeffs;
+
+namespace ot { 
+  extern double**** ShapeFnCoeffs;
+}
 
 #define square(x) ((x)*(x))
 

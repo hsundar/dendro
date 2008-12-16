@@ -65,7 +65,6 @@ double**** LaplacianType2Stencil;
 double***** MassType1Stencil; 
 double**** MassType2Stencil; 
 double****** ShapeFnStencil;
-double**** ShapeFnCoeffs;
 
 double**** GradDivType2Stencil; 
 
