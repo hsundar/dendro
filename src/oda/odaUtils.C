@@ -406,28 +406,94 @@ namespace ot {
           (ptsCtr < localList.size()); da->next<ot::DA_FLAGS::WRITABLE>()) {
 
         Point pt = da->getCurrentOffset();
-        unsigned int currLev = da->getLevel(da->curr()) - 1;
+        unsigned int currLev = da->getLevel(da->curr());
 
-        ot::TreeNode currOct(pt.xint(), pt.yint(), pt.zint(), currLev + 1, 3, maxDepth);
+        ot::TreeNode currOct(pt.xint(), pt.yint(), pt.zint(), currLev, 3, maxDepth);
 
-        double hxOct = (static_cast<double>(1u << (balOctMaxD - currLev)))*hxFac;
         unsigned int indices[8];
         da->getNodeIndices(indices);
-        unsigned char chNum = da->getChildNumber();
+
+        unsigned char childNum = da->getChildNumber();
         unsigned char hnMask = da->getHangingNodeIndex(da->curr());
         unsigned char elemType = 0;
-        GET_ETYPE_BLOCK(elemType, hnMask, chNum)
+        GET_ETYPE_BLOCK(elemType, hnMask, childNum)
 
-          //All the recieved points lie within some octant or the other.
-          //So the ptsCtr will be incremented properly inside this loop.
-          //Evaluate at all points within this octant
-          while( (ptsCtr < localList.size()) &&
-              ( (currOct == ((localList[ptsCtr].value)->node)) ||
-                (currOct.isAncestor(((localList[ptsCtr].value)->node))) ) ) {
-            if(computeGradient) {
-            }
-            ptsCtr++;
-          }
+          double x0 = (pt.x())*hxFac;
+        double y0 = (pt.y())*hxFac;
+        double z0 = (pt.z())*hxFac;
+        double hxOct = (static_cast<double>(1u << (maxDepth - currLev)))*hxFac;
+
+        //All the recieved points lie within some octant or the other.
+        //So the ptsCtr will be incremented properly inside this loop.
+        //Evaluate at all points within this octant
+        while( (ptsCtr < localList.size()) &&
+            ( (currOct == ((localList[ptsCtr].value)->node)) ||
+              (currOct.isAncestor(((localList[ptsCtr].value)->node))) ) ) {
+
+          double px = ((localList[ptsCtr].value)->values)[0];
+          double py = ((localList[ptsCtr].value)->values)[1];
+          double pz = ((localList[ptsCtr].value)->values)[2];
+          double xloc =  (2.0*(px - x0)/hxOct) - 1.0;
+          double yloc =  (2.0*(py - y0)/hxOct) - 1.0;
+          double zloc =  (2.0*(pz - z0)/hxOct) - 1.0;
+
+          double ShFnVals[8];
+          for(int j = 0; j < 8; j++) {
+            ShFnVals[j] = ( ShapeFnCoeffs[childNum][elemType][j][0] + 
+                (ShapeFnCoeffs[childNum][elemType][j][1]*xloc) +
+                (ShapeFnCoeffs[childNum][elemType][j][2]*yloc) +
+                (ShapeFnCoeffs[childNum][elemType][j][3]*zloc) +
+                (ShapeFnCoeffs[childNum][elemType][j][4]*xloc*yloc) +
+                (ShapeFnCoeffs[childNum][elemType][j][5]*yloc*zloc) +
+                (ShapeFnCoeffs[childNum][elemType][j][6]*zloc*xloc) +
+                (ShapeFnCoeffs[childNum][elemType][j][7]*xloc*yloc*zloc) );
+          }//end for j
+
+          unsigned int outIdx = localList[ptsCtr].index;
+
+          for(int k = 0; k < dof; k++) {
+            tmpOut[(dof*outIdx) + k] = 0.0;
+            for(int j = 0; j < 8; j++) {
+              tmpOut[(dof*outIdx) + k] += (inArr[(dof*indices[j]) + k]*ShFnVals[j]);
+            }//end for j
+          }//end for k
+
+          if(computeGradient) {
+
+            double GradShFnVals[8][3];
+            for(int j = 0; j < 8; j++) {
+              GradShFnVals[j][0] = ( ShapeFnCoeffs[childNum][elemType][j][1] +
+                  (ShapeFnCoeffs[childNum][elemType][j][4]*yloc) +
+                  (ShapeFnCoeffs[childNum][elemType][j][6]*zloc) +
+                  (ShapeFnCoeffs[childNum][elemType][j][7]*yloc*zloc) );
+
+              GradShFnVals[j][1] = ( ShapeFnCoeffs[childNum][elemType][j][2] +
+                  (ShapeFnCoeffs[childNum][elemType][j][4]*xloc) +
+                  (ShapeFnCoeffs[childNum][elemType][j][5]*zloc) +
+                  (ShapeFnCoeffs[childNum][elemType][j][7]*xloc*zloc) );
+
+              GradShFnVals[j][2] = ( ShapeFnCoeffs[childNum][elemType][j][3] +
+                  (ShapeFnCoeffs[childNum][elemType][j][5]*yloc) +
+                  (ShapeFnCoeffs[childNum][elemType][j][6]*xloc) +
+                  (ShapeFnCoeffs[childNum][elemType][j][7]*xloc*yloc) );            
+            }//end for j
+
+            double gradFac = (2.0/hxOct);
+
+            for(int k = 0; k < dof; k++) {
+              for(int l = 0; l < 3; l++) {
+                tmpGradOut[(3*dof*outIdx) + (3*k) + l] = 0.0;
+                for(int j = 0; j < 8; j++) {
+                  tmpGradOut[(3*dof*outIdx) + (3*k) + l] += (inArr[(dof*indices[j]) + k]*GradShFnVals[j][l]);
+                }//end for j
+                tmpGradOut[(3*dof*outIdx) + (3*k) + l] *= gradFac;
+              }//end for l
+            }//end for k
+
+          }//end if need grad
+
+          ptsCtr++;
+        }//end while
 
       }//end writable loop
     } else {
