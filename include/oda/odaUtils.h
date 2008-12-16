@@ -1,9 +1,9 @@
 
 /**
- * @file odaUtils.h
- * @author		Rahul S. Sampath, rahul.sampath@gmail.com 
- * @brief A list of non-member functions for the ot::DA class.
-**/ 
+  @file odaUtils.h
+  @brief A list of non-member functions for the ot::DA class.
+  @author Rahul S. Sampath, rahul.sampath@gmail.com 
+*/ 
 
 #ifndef __ODAUTILS_H__
 #define __ODAUTILS_H__
@@ -111,7 +111,6 @@ namespace ot {
     };
 
     /**
-      @author Rahul Sampath
       @brief A flag to determine the type of iterator used.
 
       The set of elements a processor owns will be referred to as local elements. 
@@ -141,11 +140,12 @@ namespace ot {
       the other loopTypes FROM_STORED must be used only in the init portion. 
 
       A sample usage would look like:
-     * @code 
-     * for ( init<loopType> ; curr() < end<loopType>(); next<loopType>() ) { 
-     *     // process current element ...
-     * } 
-     * @endcode 
+      @code 
+      for ( init<loopType> ; curr() < end<loopType>(); next<loopType>() ) { 
+          // process current element ...
+      } 
+      @endcode 
+      @author Rahul Sampath
      */
     enum loopType {
       ALL, WRITABLE, DEPENDENT, INDEPENDENT, W_DEPENDENT, FROM_STORED
@@ -159,8 +159,8 @@ namespace ot {
 
   /**
     @brief A function that maps a given child number and hanging mask to one of the 18 standard hanging configurations.
-    @author Rahul Sampath
     @param hnMask The hanging mask returned using the function getHangingNodeIndex()
+    @author Rahul Sampath
     @see getHangingNodeIndex
     @see getChildNumber
     */
@@ -168,21 +168,21 @@ namespace ot {
     unsigned char getElemType(unsigned char hnMask);
 
   /**
-    @author Rahul Sampath
-    @author Hari Sundar
     @brief A function to determine the sort order, i.e.
     the relative orders of the
     indices of the 8 vertices of the current octant
+    @author Rahul Sampath
+    @author Hari Sundar
     */
   unsigned int getSortOrder(unsigned int x, unsigned int y, 
       unsigned int z, unsigned int sz);
 
   /**
+    @brief A helper function required for compressing/uncompressing
+    Pre-ghost offsets
     @author Rahul Sampath
     @param curr The current pre-ghost octant
     @param next The next pre-ghost octant
-    @brief A helper function required for compressing/uncompressing
-    Pre-ghost offsets
     @return a flag describing how the two octants touch each 
     other (if at all they touch)
     */
@@ -190,9 +190,9 @@ namespace ot {
       const ot::TreeNode& next, unsigned int maxDepth);
 
   /**
-    @author Rahul Sampath
     @brief Creates a nodal, non-ghosted, single dof vector and set the boundary flag for each node. 
     The flag is one of the enumerations in BoundaryType3
+    @author Rahul Sampath
     @see TreeNode::BoundaryType3        
     */
   void assignBoundaryFlags(ot::DA* da, 
@@ -205,7 +205,6 @@ namespace ot {
   bool isRegularGrid(ot::DA* da);
 
   /**
-    @author Rahul Sampath
     @brief Interpolates the function and (optionally) its gradient at the specified points
     @param da The octree mesh
     @param in input values (nodal, non-ghosted vector) 
@@ -218,6 +217,7 @@ namespace ot {
     the gradient of the next component of in and so on.
     @param dof Degrees of freedom per node
     @param pts Points to evaluate the field 
+    @author Rahul Sampath
     */
   void interpolateData(ot::DA* da, std::vector<double>& in,
       std::vector<double>& out, std::vector<double>* gradOut,
@@ -236,8 +236,8 @@ namespace ot {
   unsigned int getGlobalMaxLevel(ot::DA* da);	  
 
   /**
-    @author Rahul Sampath
     @brief saves the partition in VTK format
+    @author Rahul Sampath
     */
   void writePartitionVTK(ot::DA* da, const char* outFilename);
 
@@ -274,10 +274,14 @@ namespace ot {
       std::vector<TreeNode>& globalCoarse, std::vector<ot::TreeNode>& minsAllBlocks,
       unsigned int dim, unsigned int maxDepth, MPI_Comm commActive);
 
-  /**@brief Initializes the stencils used in the oda module */
+  /**
+    @brief Initializes the stencils used in the oda module 
+    */
   void DA_Initialize(MPI_Comm comm);
 
-  /**@brief Destroys the stencils used in R and P */
+  /**
+    @brief Destroys the stencils used in the oda module 
+    */
   void DA_Finalize();
 
   int createShapeFnCoeffs_Type1(MPI_Comm comm);
