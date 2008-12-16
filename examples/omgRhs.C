@@ -667,17 +667,17 @@ PetscErrorCode ComputeRHS8(ot::DAMG damg,Vec in) {
                         (sin(2.0*M_PI*yPt)*sin(2.0*M_PI*yPt)) +
                         (sin(2.0*M_PI*zPt)*sin(2.0*M_PI*zPt)) 
                         )));
-                double ShFnVal = ( ShapeFnCoeffs[childNum][elemType][j][0] + 
-                    (ShapeFnCoeffs[childNum][elemType][j][1]*gPts[numGaussPts-2][m]) +
-                    (ShapeFnCoeffs[childNum][elemType][j][2]*gPts[numGaussPts-2][n]) +
-                    (ShapeFnCoeffs[childNum][elemType][j][3]*gPts[numGaussPts-2][p]) +
-                    (ShapeFnCoeffs[childNum][elemType][j][4]*gPts[numGaussPts-2][m]*
+                double ShFnVal = ( ot::ShapeFnCoeffs[childNum][elemType][j][0] + 
+                    (ot::ShapeFnCoeffs[childNum][elemType][j][1]*gPts[numGaussPts-2][m]) +
+                    (ot::ShapeFnCoeffs[childNum][elemType][j][2]*gPts[numGaussPts-2][n]) +
+                    (ot::ShapeFnCoeffs[childNum][elemType][j][3]*gPts[numGaussPts-2][p]) +
+                    (ot::ShapeFnCoeffs[childNum][elemType][j][4]*gPts[numGaussPts-2][m]*
                      gPts[numGaussPts-2][n]) +
-                    (ShapeFnCoeffs[childNum][elemType][j][5]*gPts[numGaussPts-2][n]*
+                    (ot::ShapeFnCoeffs[childNum][elemType][j][5]*gPts[numGaussPts-2][n]*
                      gPts[numGaussPts-2][p]) +
-                    (ShapeFnCoeffs[childNum][elemType][j][6]*gPts[numGaussPts-2][p]*
+                    (ot::ShapeFnCoeffs[childNum][elemType][j][6]*gPts[numGaussPts-2][p]*
                      gPts[numGaussPts-2][m]) +
-                    (ShapeFnCoeffs[childNum][elemType][j][7]*gPts[numGaussPts-2][m]*
+                    (ot::ShapeFnCoeffs[childNum][elemType][j][7]*gPts[numGaussPts-2][m]*
                      gPts[numGaussPts-2][n]*gPts[numGaussPts-2][p]) );
                 integral += (wts[numGaussPts-2][m]*wts[numGaussPts-2][n]
                     *wts[numGaussPts-2][p]*rhsVal*ShFnVal);
@@ -693,8 +693,6 @@ PetscErrorCode ComputeRHS8(ot::DAMG damg,Vec in) {
 
   PetscFunctionReturn(0);
 }
-
-
 
 /**
   Sets cos(2*pi*x)cos(2*pi*y)cos(2*pi*z) at the node values
@@ -1032,14 +1030,14 @@ PetscErrorCode ComputeRHS9(ot::DAMG damg, Vec in) {
             double xLoc = (((2.0/hxOct)*(recvList[ptsCtr].values[0] - x)) - 1.0);
             double yLoc = (((2.0/hxOct)*(recvList[ptsCtr].values[1] - y)) - 1.0);
             double zLoc = (((2.0/hxOct)*(recvList[ptsCtr].values[2] - z)) - 1.0);
-            double ShFnVal = ( ShapeFnCoeffs[childNum][elemType][j][0] + 
-                (ShapeFnCoeffs[childNum][elemType][j][1]*xLoc) +
-                (ShapeFnCoeffs[childNum][elemType][j][2]*yLoc) +
-                (ShapeFnCoeffs[childNum][elemType][j][3]*zLoc) +
-                (ShapeFnCoeffs[childNum][elemType][j][4]*xLoc*yLoc) +
-                (ShapeFnCoeffs[childNum][elemType][j][5]*yLoc*zLoc) +
-                (ShapeFnCoeffs[childNum][elemType][j][6]*zLoc*xLoc) +
-                (ShapeFnCoeffs[childNum][elemType][j][7]*xLoc*yLoc*zLoc) );
+            double ShFnVal = ( ot::ShapeFnCoeffs[childNum][elemType][j][0] + 
+                (ot::ShapeFnCoeffs[childNum][elemType][j][1]*xLoc) +
+                (ot::ShapeFnCoeffs[childNum][elemType][j][2]*yLoc) +
+                (ot::ShapeFnCoeffs[childNum][elemType][j][3]*zLoc) +
+                (ot::ShapeFnCoeffs[childNum][elemType][j][4]*xLoc*yLoc) +
+                (ot::ShapeFnCoeffs[childNum][elemType][j][5]*yLoc*zLoc) +
+                (ot::ShapeFnCoeffs[childNum][elemType][j][6]*zLoc*xLoc) +
+                (ot::ShapeFnCoeffs[childNum][elemType][j][7]*xLoc*yLoc*zLoc) );
             inarray[indices[j]] += ((recvList[ptsCtr].values[3])*ShFnVal);
           }//end for j
           ptsCtr++;
