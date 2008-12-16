@@ -1,12 +1,11 @@
 
 /**
- * @file oda.h
- * @brief 		The class that manages the octree mesh that supports
- trilinear shape functions.
- * @author		Hari Sundar, hsundar@gmail.com
- * @author		Rahul S. Sampath, rahul.sampath@gmail.com
- * 
- */ 
+  @file oda.h
+  @brief 		The class that manages the octree mesh that supports
+  trilinear shape functions.
+  @author		Hari Sundar, hsundar@gmail.com
+  @author		Rahul S. Sampath, rahul.sampath@gmail.com
+  */ 
 
 #ifndef __OCT_DA_H__
 #define __OCT_DA_H__
@@ -473,36 +472,42 @@ namespace ot {
           */
         unsigned int getInputSize();
 
-        /** @name Constructors and destructors */
+        /**
+          @name Constructors and destructors
+          */
         //@{
 
         /**
           @author Hari Sundar
           @author Rahul Sampath
-         * @brief  The constructor that builds the DA from a Sorted, Linear,
-         Complete, 2:1 Balanced, Octree.
-         * @param	comm The MPI communication context which is to be used for setting up the DA.
-         @param iAmActive If an address is provided then the status of the calling processor is returned in that address.
-         'true' if the mesh is distributed on the calling processor and 'false' otherwise.
-         @param blocksPtr If this parameter is NOT NULL, then the input is assumed to be a valid partition of the octree that 
-         can be used for the mesh as it is. If this parameter is NULL, then a fresh partition is computed inside the
-         constructor itself. Typical users should pass NULL for this parameter.
-         @param compressLut Pass 'true' to compress the element-to-node mappings using Goloumb-Rice encoding and 'false' otherwise.
-         Note that uncompressing these mappings during the Matvecs will incur a small overhead.
-         * @param	in   The sorted, complete, linear, 2:1 balanced
-         octree that is to be used for constructing the DA.
-         @param inputActiveComm An MPI_Comm consisting of only those processors which call the constructor with an non-empty 'in' vector. This is a subset of comm, which can be got by calling the function par::splitComm2way.
-         * 
-         * The constructor builds the DA based on the input octree. It constructs all the required neighbour 
-         * information and also (optionally) compresses the structure to reduce the memory footprint.
-         */
+          @brief  The constructor that builds the DA from a Sorted, Linear,
+          Complete, 2:1 Balanced, Octree.
+          @param	comm The MPI communication context which is to be used for setting up the DA.
+          @param iAmActive If an address is provided then the status of the calling processor is returned in that address.
+          'true' if the mesh is distributed on the calling processor and 'false' otherwise.
+          @param blocksPtr If this parameter is NOT NULL, then the input is assumed to be a valid partition of the octree that 
+          can be used for the mesh as it is. If this parameter is NULL, then a fresh partition is computed inside the
+          constructor itself. Typical users should pass NULL for this parameter.
+          @param compressLut Pass 'true' to compress the element-to-node mappings using Goloumb-Rice encoding and 'false' otherwise.
+          Note that uncompressing these mappings during the Matvecs will incur a small overhead.
+          @param	in   The sorted, complete, linear, 2:1 balanced
+          octree that is to be used for constructing the DA.
+          @param inputActiveComm An MPI_Comm consisting of only those processors which call the constructor with an non-empty 'in' vector. This is a subset of comm, which can be got by calling the function par::splitComm2way.
+
+          The constructor builds the DA based on the input octree. It constructs all the required neighbour 
+          information and also (optionally) compresses the structure to reduce the memory footprint.
+          */
         DA(std::vector<ot::TreeNode> &in, MPI_Comm comm, MPI_Comm inputActiveComm,  
             bool compressLut = false, const std::vector<ot::TreeNode> *blocksPtr = NULL,
             bool *iAmActive = NULL);
 
         /**
           @author Rahul Sampath
-          @brief Private constructor used from within DAMG. This assumes that the input already included positive boundaries, the original octree has been embedded into the larger octree and the maxdepth has been set apropriately and the octants without hanging anchors have been tagged.
+          @brief Private constructor used from within DAMG.
+          This assumes that the input already included positive boundaries,
+          the original octree has been embedded into the larger octree and the
+          maxdepth has been set apropriately and the octants without
+          hanging anchors have been tagged.
           */
         DA(unsigned int dummy, std::vector<ot::TreeNode> &in, MPI_Comm comm, 
             MPI_Comm inputActiveComm,  bool compressLut = false,
@@ -515,21 +520,23 @@ namespace ot {
         ~DA();
         //@}
 
-        /** @name Information about the DA / domain */
+        /**
+          @name Information about the DA / domain
+          */
         //@{
 
         /** 
-         * @brief Get the MPI communicator from the DA.
-         * @return MPI_Comm
-         @author Rahul Sampath
-         */
+          @brief Get the MPI communicator from the DA.
+          @return MPI_Comm
+          @author Rahul Sampath
+          */
         MPI_Comm getComm();
 
         /** 
-         * @brief Get the communicator only containing the active processors.
-         * @return MPI_Comm
-         @author Rahul Sampath
-         */
+          @brief Get the communicator only containing the active processors.
+          @return MPI_Comm
+          @author Rahul Sampath
+          */
         MPI_Comm getCommActive();
 
         /**
@@ -559,44 +566,46 @@ namespace ot {
 
         /** 
           @author Hari Sundar
-         * @brief Get the offset for the current index. 
-         * @return The offset. 
-         Must not be called by inactive processors
-         *  
-         * @see getOffset() 
-         * @see getGhostedOffset() 
-         @see iAmActive()
-        **/
+          @brief Get the offset for the current index. 
+          @return The offset. 
+          Must not be called by inactive processors
+
+          @see getOffset() 
+          @see getGhostedOffset() 
+          @see iAmActive()
+          */
         Point getCurrentOffset();
 
         /**
           @author Hari Sundar
-         * @brief Get the offset for the smallest element on this processor, including ghost elements.
-         * @return The offset. 
-         *  
-         Must not be called by inactive processors
-         * @see getOffset() 
-         * @see getCurrentOffset() 
-         @see iAmActive()
-        **/
+          @brief Get the offset for the smallest element on this processor, including ghost elements.
+          @return The offset. 
+
+          Must not be called by inactive processors
+          @see getOffset() 
+          @see getCurrentOffset() 
+          @see iAmActive()
+          */
         Point getGhostedOffset();
 
         /**
           @author Hari Sundar
-         * @brief Get the offset for the smallest element on this processor, not including ghost elements.
-         * @return The offset. 
-         *  
-         Must not be called by inactive processors
-         * @see getGhostedOffset() 
-         * @see getCurrentOffset() 
-         @see iAmActive()
-        **/
+          @brief Get the offset for the smallest element on this processor, not including ghost elements.
+          @return The offset. 
+
+          Must not be called by inactive processors
+          @see getGhostedOffset() 
+          @see getCurrentOffset() 
+          @see iAmActive()
+          */
         Point getOffset();
 
         /**
           @author Hari Sundar
-          @brief Given an octant specified by a point (its anchor) and its level it returns the anchor of the octant
-          that immediately follows the given point in the Morton ordering. This function assumes that the octree is linear.        
+          @brief Given an octant specified by a point (its anchor) and
+          its level it returns the anchor of the octant
+          that immediately follows the given point in the Morton ordering.
+          This function assumes that the octree is linear.        
           @param p The anchor of the current octant
           @param d The level of the current octant
           @return the anchor of the next octant 
@@ -613,7 +622,8 @@ namespace ot {
 
         /**
           @author Rahul Sampath
-          @brief Points to the anchor of the next pre-ghost octant. This function is required because we only 
+          @brief Points to the anchor of the next pre-ghost octant.
+          This function is required because we only 
           store the levels of the octants and not their anchors. So the anchors are
           computed on the fly within the loops.
           */
@@ -624,7 +634,8 @@ namespace ot {
           @brief Call this function to check if curr() points to an octant
           touching the domain boundaries from the inside. This function is for real octants only, 
           pseudo-octants can not be tested using this function.
-          @param flags The type of boundary is returned in this variable. The type is one of the enumerations in BoundaryType2
+          @param flags The type of boundary is returned in this variable.
+          The type is one of the enumerations in BoundaryType2
           @return true if curr() points to an internal boundary octant      
           @see curr()
           @see TreeNode::BoundaryType2
@@ -649,72 +660,65 @@ namespace ot {
 
         /**
           @author Hari Sundar
-         * @brief Returns the total number of Nodes belonging to this processor. 
-         *        This does not include the ghost nodes. This will include the 
-         *		positive boundary nodes if any belong to this processor.
-         *
-         * @return The number of local nodes.
-        **/
+          @brief Returns the total number of Nodes belonging to this processor. 
+          This does not include the ghost nodes. This will include the 
+          positive boundary nodes if any belong to this processor.
+          @return The number of local nodes.
+          */
         unsigned int getNodeSize();
 
         /**
           @author Rahul Sampath
-         * @brief Returns the total number of positive Boundary Nodes belonging to this processor. 
-         *        This does not include the ghost nodes. 
-         *
-         * @return The number of local (positive) boundary nodes.
-        **/
+          @brief Returns the total number of positive Boundary Nodes belonging to this processor. 
+          This does not include the ghost nodes. 
+          @return The number of local (positive) boundary nodes.
+          */
         unsigned int getBoundaryNodeSize();
 
         /**
           @author Rahul Sampath
-         * @brief Returns the total number of internal Nodes belonging to this processor. 
-         *        This does not include the ghost nodes and positive boundaries . 
-         *
-         * @return The number of local internal nodes.
-        **/
+          @brief Returns the total number of internal Nodes belonging to this processor. 
+          This does not include the ghost nodes and positive boundaries . 
+          @return The number of local internal nodes.
+          */
         unsigned int getInternalNodeSize();
 
         /**
           @author Hari Sundar
-         * @brief Returns the total number of elements belonging to this processor. 
-         *        This does not include the ghost elements.  
-         *		
-         * @return The number of local elements.
-        **/
+          @brief Returns the total number of elements belonging to this processor. 
+          This does not include the ghost elements.  
+          @return The number of local elements.
+          */
         unsigned int getElementSize();
 
         /**
           @author Rahul Sampath
-         * @brief Returns the total number of pre-ghost elements. 
-        **/
+          @brief Returns the total number of pre-ghost elements. 
+          */
         unsigned int getPreGhostElementSize();
 
         /**
           @author Rahul Sampath
-         * @brief Returns the number of INDEPENDENT elements belonging to this processor. 
-         *		
-         * @return The number of local elements.
-        **/
+          @brief Returns the number of INDEPENDENT elements belonging to this processor. 
+          @return The number of local elements.
+          */
         unsigned int getIndependentSize();
 
         /**
           @author Hari Sundar
-         * @brief Returns the total number of Nodes on this processor, 
-         *        including the ghost nodes. This will include the 
-         *		boundary nodes if any belong to this processor.
-         *
-         * @return The number of nodes.
-        **/
+          @brief Returns the total number of Nodes on this processor, 
+          including the ghost nodes. This will include the 
+          boundary nodes if any belong to this processor.
+          @return The number of nodes.
+          */
         unsigned int getGhostedNodeSize();
 
         /**
           @author Hari Sundar
-         * @brief Returns the total number of elements on this processor, 
-         *        including the ghost elements. 
-         *
-         * @return The number of nodes.
-        **/
+          @brief Returns the total number of elements on this processor, 
+          including the ghost elements. 
+          @return The number of nodes.
+          */
         unsigned int getGhostedElementSize();
 
         /**
@@ -737,45 +741,43 @@ namespace ot {
 
         /**
           @author Hari Sundar
-         * @brief Returns the maximum depth (level) of the octree from which this DA was created.
-         *
-         * @return The maximum depth of the octree.
-         The return value is the maximum depth in the modified octree that includes 'pseudo-octants' for boundary nodes. This octree has
-         a maximum depth equal to 1 more than that of the input octree used to construct the finite element mesh. Hence, the value
-         returned by this function will be 1 more than the true maximum depth of the input octree.
-        **/ 
+          @brief Returns the maximum depth (level) of the octree from which this DA was created.
+
+          @return The maximum depth of the octree.
+          The return value is the maximum depth in the modified octree that includes 'pseudo-octants' for boundary nodes. This octree has
+          a maximum depth equal to 1 more than that of the input octree used to construct the finite element mesh. Hence, the value
+          returned by this function will be 1 more than the true maximum depth of the input octree.
+          */ 
         unsigned int getMaxDepth();
 
         /**
           @author Hari Sundar
-         * @brief Returns the dimension of the octree from which this DA was created.
-         *
-         * @return The dimension of the octree.
-        **/
+          @brief Returns the dimension of the octree from which this DA was created.
+          @return The dimension of the octree.
+          */
         unsigned int getDimension();
 
         //@}
 
-        /** @name Communication functions **/
+        /** 
+          @name Communication functions 
+          */
         //@{
 
         /**
           @author Hari Sundar
           @author Rahul Sampath	 
-         * @brief Updates the ghost values by obtaining values from the processors which own them.
-         * 
-         * @param arr		the local buffer which needs to be updated. This must be obtained with a call to
-         *							vecGetBuffer().
-         * @param isElemental	specifies whether the current buffer is elemental (true) or nodal (false).
-         * @param dof		The degrees of freedom for the current vector, default is 1.
-         *
-         * @see ReadFromGhostsEnd()
-         *
-         * Updates the ghost values by obtaining values from the processors which own them.
-         ReadFromGhostsEnd()
-         * must be called before the ghosted values can be used. 
-         *
-        **/
+          @brief Updates the ghost values by obtaining values from the processors which own them.
+
+          @param arr		the local buffer which needs to be updated. This must be obtained with a call to
+          vecGetBuffer().
+          @param isElemental	specifies whether the current buffer is elemental (true) or nodal (false).
+          @param dof		The degrees of freedom for the current vector, default is 1.
+          @see ReadFromGhostsEnd()
+          Updates the ghost values by obtaining values from the processors which own them.
+          ReadFromGhostsEnd()
+          must be called before the ghosted values can be used. 
+          */
         //Communicating Ghost Nodes
         template <typename T>
           int ReadFromGhostsBegin ( T* arr, unsigned int dof=1);
@@ -839,21 +841,21 @@ namespace ot {
 
         //@}
 
-
-        /** @name Array access functions **/
+        /**
+          @name Array access functions 
+          */
         //@{
 
         /**
-         * @author Hari Sundar
-         * @brief Returns a PETSc vector of appropriate size of the requested type.
-         * @param local     the local vector, a PETSc vector that may be used with the PETSc routines.
-         * @param isElemental true if an elemental vector is desired, 
-         *                        false for a nodal vector.
-         * @param isGhosted true if memory is to be allocated for ghost values.
-         * @param dof       the degrees of freedom for the vector. The default is 1.
-         * 
-         * @return PETSc error code.
-         */
+          @author Hari Sundar
+          @brief Returns a PETSc vector of appropriate size of the requested type.
+          @param local     the local vector, a PETSc vector that may be used with the PETSc routines.
+          @param isElemental true if an elemental vector is desired, 
+          false for a nodal vector.
+          @param isGhosted true if memory is to be allocated for ghost values.
+          @param dof       the degrees of freedom for the vector. The default is 1.
+          @return PETSc error code.
+          */
         int createVector(Vec &local, bool isElemental, bool isGhosted, unsigned int dof=1);
 
         /**
@@ -865,18 +867,18 @@ namespace ot {
 
         /**
           @author Rahul Sampath
-         * @brief Returns a PETSc Matrix of appropriate size of the requested type.
-         @param M the matrix
-         @param mtype the type of matrix
-         @param dof the number of degrees of freedom per node.
-         */
+          @brief Returns a PETSc Matrix of appropriate size of the requested type.
+          @param M the matrix
+          @param mtype the type of matrix
+          @param dof the number of degrees of freedom per node.
+          */
         int createMatrix(Mat &M, MatType mtype, unsigned int dof=1);
 
         /**
           @author Rahul Sampath
-         * @brief Similar to createMatrix, except the matrix is only distributed on the active processors.
-         @see createMatrix()
-         */
+          @brief Similar to createMatrix, except the matrix is only distributed on the active processors.
+          @see createMatrix()
+          */
         int createActiveMatrix(Mat &M, MatType mtype, unsigned int dof=1);
 
         /**
@@ -884,7 +886,8 @@ namespace ot {
           @brief Computes mappings between the local and global numberings for nodal buffers.
           @see setValuesInMatrix()
           Call this function only if you need to create Matrices using this mesh. This function must be called
-          once before calling setValuesInMatrix(). This function should not be called more than once for a given mesh.
+          once before calling setValuesInMatrix(). This function should not
+          be called more than once for a given mesh.
           */
         int computeLocalToGlobalMappings();
 
@@ -912,7 +915,8 @@ namespace ot {
 
         /**
           @author Rahul Sampath
-          @brief a wrapper for setting values into the Matrix. This internally calls PETSc's MatSetValues() function.
+          @brief a wrapper for setting values into the Matrix.
+          This internally calls PETSc's MatSetValues() function.
           @param mat The matrix
           @param records The values and their indices
           @param dof the number of degrees of freedom per node
@@ -922,7 +926,8 @@ namespace ot {
           'records' will be cleared inside the function. It would be more efficient to set values in chunks by
           calling this function multiple times with different sets of
           values instead of a single call at the end of the loop. One
-          can use the size of 'records' to determine the number of  such chunks. Calls to this function with the INSERT_VALUES and ADD_VALUES
+          can use the size of 'records' to determine the number of
+          such chunks. Calls to this function with the INSERT_VALUES and ADD_VALUES
           options cannot be mixed without intervening calls to PETSc's MatAssembly routines.
           */
         int setValuesInMatrix(Mat mat, std::vector<ot::MatRecord>& records,
@@ -930,233 +935,224 @@ namespace ot {
 
         /**
           @author Hari Sundar
-         * @brief Returns a std. vector of appropriate size of the requested type. 
-         *
-         * @param local the local vector.
-         * @param isElemental true if an elemental vector is desired, 
-         *                    false for a nodal vector.
-         * @param isGhosted true if memory is to be allocated for ghost 
-         *                  values.
-         * @param dof the degrees of freedom for the vector. The default is 1.
-         *
-         * @return PETSc error code.
-        **/
+          @brief Returns a std. vector of appropriate size of the requested type. 
+
+          @param local the local vector.
+          @param isElemental true if an elemental vector is desired, 
+          false for a nodal vector.
+          @param isGhosted true if memory is to be allocated for ghost 
+          values.
+          @param dof the degrees of freedom for the vector. The default is 1.
+          @return PETSc error code.
+          */
         template <typename T>
           int  createVector(std::vector<T> &local, bool isElemental,
               bool isGhosted, unsigned int dof=1);
 
         /**
           @author Hari Sundar
-         * @brief Returns a C-array of type PetscScalar from a PETSc Vec for quick local access. 
-         *
-         * @param in The PETSc Vec which needs to be accessed localy. 
-         * @param out The local C-array which is used to access data 
-         *            localy.
-         * @param isElemental true if in is an elemental vector, false 
-         *                    if it is a nodal vector.
-         * @param isGhosted true if in contains ghost values.
-         * @param isReadOnly true if the buffer is required only for 
-         *                   reading, should be set to false if writes
-         *                   will be performed.
-         * @param dof the degrees of freedom for the vector. The default is 1.
-         *
-         * @see vecRestoreBuffer()
-         *
-         * Returns a C-array of type PetscScalar from a PETSc Vec for quick local access. In addition, this operation is 
-         * required to use the oda based indexing. vecRestoreBuffer() must be called when the buffer is no longer needed.
-        **/
+          @brief Returns a C-array of type PetscScalar from a PETSc Vec for quick local access. 
+          @param in The PETSc Vec which needs to be accessed localy. 
+          @param out The local C-array which is used to access data 
+          localy.
+          @param isElemental true if in is an elemental vector, false 
+          if it is a nodal vector.
+          @param isGhosted true if in contains ghost values.
+          @param isReadOnly true if the buffer is required only for 
+          reading, should be set to false if writes
+          will be performed.
+          @param dof the degrees of freedom for the vector. The default is 1.
+          @see vecRestoreBuffer()
+          Returns a C-array of type PetscScalar from a PETSc Vec for
+          quick local access. In addition, this operation is 
+          required to use the oda based indexing. vecRestoreBuffer() must be
+          called when the buffer is no longer needed.
+          */
         int vecGetBuffer(Vec in, PetscScalar* &out, bool isElemental,
             bool isGhosted, bool isReadOnly, unsigned int dof=1); 
 
         /**
           @author Hari Sundar
-         * @brief Returns a C-array of type T from a distributed std vector for quick local access. 
-         *
-         * @param in The std::vector which needs to be accessed localy. 
-         * @param out The local C-array which is used to access data 
-         *            localy. 
-         * @param isElemental true if in is an elemental vector, false 
-         *                    if it is a nodal vector.
-         * @param isGhosted true if in contains ghost values.
-         * @param isReadOnly true if the buffer is required only for 
-         *                   reading, should be set to false if writes
-         *                   will be performed.
-         * @param dof the degrees of freedom for the vector. The default is 1.
-         *
-         * @see vecRestoreBuffer()
-         *
-         * Returns a C-array of type T from a distributed std vector for quick local access. In addition, this operation is 
-         * required to use the oda based indexing. vecRestoreBuffer() must be called when the buffer is no longer needed.
-        **/
+          @brief Returns a C-array of type T from a distributed std vector for quick local access. 
+          @param in The std::vector which needs to be accessed localy. 
+          @param out The local C-array which is used to access data 
+          localy. 
+          @param isElemental true if in is an elemental vector, false 
+          if it is a nodal vector.
+          @param isGhosted true if in contains ghost values.
+          @param isReadOnly true if the buffer is required only for 
+          reading, should be set to false if writes
+          will be performed.
+          @param dof the degrees of freedom for the vector. The default is 1.
+          @see vecRestoreBuffer()
+          Returns a C-array of type T from a distributed std vector 
+          for quick local access. In addition, this operation is 
+          required to use the oda based indexing. vecRestoreBuffer() must be 
+          called when the buffer is no longer needed.
+          */
         template < typename T >
           int vecGetBuffer(std::vector<T> &in, T* &out, bool isElemental,
               bool isGhosted, bool isReadOnly, unsigned int dof=1); 
 
         /**
           @author Hari Sundar
-         * @brief Restores the C-array of type PetscScalar to a PETSc Vec after quick local access. 
-         *
-         * @param in The PETSc Vec which was accessed localy. 
-         * @param out The local C-array which is used to access data 
-         *            localy. 
-         * @param isElemental true if in is an elemental vector, false 
-         *                    if it is a nodal vector.
-         * @param isGhosted true if in contains ghost values.
-         * @param isReadOnly true if the buffer was used only for 
-         *                   reading, should be set to false if writes
-         *                   will be performed.
-         * @param dof the degrees of freedom for the vector. The default is 1.
-         *
-         * @see vecGetBuffer()
-         *
-         * Restores the C-array of type PetscScalar to a PETSc Vec after quick local access. 
-        **/
+          @brief Restores the C-array of type PetscScalar to a PETSc Vec after quick local access. 
+          @param in The PETSc Vec which was accessed localy. 
+          @param out The local C-array which is used to access data 
+          localy. 
+          @param isElemental true if in is an elemental vector, false 
+          if it is a nodal vector.
+          @param isGhosted true if in contains ghost values.
+          @param isReadOnly true if the buffer was used only for 
+          reading, should be set to false if writes
+          will be performed.
+          @param dof the degrees of freedom for the vector. The default is 1.
+          @see vecGetBuffer()
+          Restores the C-array of type PetscScalar to a PETSc Vec after quick local access. 
+          */
         int vecRestoreBuffer(Vec in, PetscScalar* out, bool isElemental, 
             bool isGhosted, bool isReadOnly, unsigned int dof=1); 
 
         /**
           @author Hari Sundar
-         * @brief Restores the C-array of type T to a distributed std vector after quick local access. 
-         *
-         * @param in The std::vector which was accessed localy. 
-         * @param out The local C-array which is used to access data 
-         *            localy. 
-         * @param isElemental true if in is an elemental vector, false 
-         *                    if it is a nodal vector.
-         * @param isGhosted true if in contains ghost values.
-         * @param isReadOnly true if the buffer was used only for 
-         *                   reading, should be set to false if writes
-         *                   will be performed.
-         * @param dof the degrees of freedom for the vector. The default is 1.
-         *
-         * @see vecGetBuffer()
-         *
-         * Restores the C-array of type T to a distributed std vector after quick local access. 
-        **/
+          @brief Restores the C-array of type T to a distributed std vector after quick local access. 
+          @param in The std::vector which was accessed localy. 
+          @param out The local C-array which is used to access data 
+          localy. 
+          @param isElemental true if in is an elemental vector, false 
+          if it is a nodal vector.
+          @param isGhosted true if in contains ghost values.
+          @param isReadOnly true if the buffer was used only for 
+          reading, should be set to false if writes
+          will be performed.
+          @param dof the degrees of freedom for the vector. The default is 1.
+          @see vecGetBuffer()
+          Restores the C-array of type T to a distributed std vector after quick local access. 
+          */
         template < typename T >
           int vecRestoreBuffer(std::vector<T> &in, T* out, bool isElemental,
               bool isGhosted, bool isReadOnly, unsigned int dof=1); 
         //@}
 
-        //------------------------------------------------------------------------------------------------------------------
+        //----------------------------------
 
-        //** @name Element/Node access and iterators **/
+        /**
+          @name Element/Node access and iterators
+          */
         //@{
 
         /**
-         * 
-         * @author Rahul Sampath
-         @author Hari Sundar
-         * @brief Initializes the internal counters for a new loop. Remember that the DA
-         * currently only supports elemental loops.
-         * @param LoopType valid types are All, Local, Independent,
-         *                 Dependent, and Ghosted.
-         * 
-         * Sample loop through the elements:
-         *  
-         * @code
-         * for ( init<loopType>; curr() < end<loopType>(); next<loopType>() ) { 
-         *     // Do whatever is required ...
-         * } 
-         * @endcode
-         *  
-         * @see next()
-         * @see curr()
-         * @see end()
-         */
+          @author Rahul Sampath
+          @author Hari Sundar
+          @brief Initializes the internal counters for a new loop. Remember that the DA
+          currently only supports elemental loops.
+          @param LoopType valid types are All, Local, Independent,
+          Dependent, and Ghosted.
+
+          Sample loop through the elements:
+
+          @code
+          for ( init<loopType>; curr() < end<loopType>(); next<loopType>() ) { 
+        // Do whatever is required ...
+        } 
+        @endcode
+
+        @see next()
+        @see curr()
+        @see end()
+        */
         template<ot::DA_FLAGS::loopType type>
           void init();
 
         /**
-         * 
-         * @author Hari Sundar
-         @author Rahul Sampath
-         * @brief Returns an index to the begining of the current loop.
-         *        The loop needs to be initialized using a call to
-         *        init().
-         * @return the index to the begining of the loop.
-         *  
-         * Sample loop through the elements:
-         *  
-         * @code 
-         * for ( init<loopType>; curr() < end<loopType>(); next<loopType>() ) { 
-         *     // Do whatever is required ...
-         * } 
-         * @endcode 
-         *  
-         * @see end()
-         * @see next()
-         * @see init()
-         */		
+
+          @author Hari Sundar
+          @author Rahul Sampath
+          @brief Returns an index to the begining of the current loop.
+          The loop needs to be initialized using a call to
+          init().
+          @return the index to the begining of the loop.
+
+          Sample loop through the elements:
+
+          @code 
+          for ( init<loopType>; curr() < end<loopType>(); next<loopType>() ) { 
+        // Do whatever is required ...
+        } 
+        @endcode 
+
+        @see end()
+        @see next()
+        @see init()
+        */		
         unsigned int curr();
 
         /**
-         * 
-         * @author Rahul Sampath
-         * @brief Returns an index to the begining of the current loop.
-         *        The loop needs to be initialized using a call to
-         *        init(). This also stores the current position within an
-         internal structure. This can be used to re-start a loop using the FROM_STORED loopType.
-         * @return the index to the begining of the loop.
-         * @see loopType
-         @see curr() 
-         *  
-         */
+
+          @author Rahul Sampath
+          @brief Returns an index to the begining of the current loop.
+          The loop needs to be initialized using a call to
+          init(). This also stores the current position within an
+          internal structure. This can be used to re-start a loop using the FROM_STORED loopType.
+          @return the index to the begining of the loop.
+          @see loopType
+          @see curr()            
+          */
         unsigned int currWithInfo();
 
         /**
           @author Rahul Sampath
           @author Hari Sundar
-         * @brief Returns an index to the end of the current loop.
-         *        The loop needs to be initialized using a call to
-         *        init().
-         * 
-         * @return the index to the end of the loop. 
-         *  
-         * Sample loop through the elements: 
-         *  
-         * @code 
-         * for ( init<loopType>; curr() < end<loopType>(); next<loopType>() ) { 
-         *     // Do whatever is required ...
-         * } 
-         * @endcode 
-         *  
-         * @see curr()
-         * @see init()
-         * @see next()
-         */
+          @brief Returns an index to the end of the current loop.
+          The loop needs to be initialized using a call to
+          init().
+
+          @return the index to the end of the loop. 
+
+          Sample loop through the elements: 
+
+          @code 
+          for ( init<loopType>; curr() < end<loopType>(); next<loopType>() ) { 
+        // Do whatever is required ...
+        } 
+        @endcode 
+
+        @see curr()
+        @see init()
+        @see next()
+        */
         template<ot::DA_FLAGS::loopType type>
           unsigned int end();
 
         /**
           @author Rahul Sampath
           @author Hari Sundar
-         * @brief Returns an index to the next element of the current 
-         *        loop. The loop needs to be initialized using a call to
-         *        initializeLoopCounter().
-         * 
-         * @return the index to the end of the loop.
-         *  
-         * Sample loop through the elements:
-         *  
-         * @code
-         * for ( init<loopType>; curr() < end<loopType>(); next<loopType>() ) { 
-         *     // Do whatever is required ...
-         * } 
-         * @endcode 
-         *  
-         * @see init()
-         * @see curr()
-         * @see end()
-         */
+          @brief Returns an index to the next element of the current 
+          loop. The loop needs to be initialized using a call to
+          initializeLoopCounter().
+
+          @return the index to the end of the loop.
+
+          Sample loop through the elements:
+
+          @code
+          for ( init<loopType>; curr() < end<loopType>(); next<loopType>() ) { 
+        // Do whatever is required ...
+        } 
+        @endcode 
+
+        @see init()
+        @see curr()
+        @see end()
+        */
         template<ot::DA_FLAGS::loopType type>
           unsigned int next();
 
         /**
           @author Hari Sundar
-         * @brief Returns the child number of the current element.
-         * @return  the child number of the current element
-         */
+          @brief Returns the child number of the current element.
+          @return  the child number of the current element
+          */
         unsigned char getChildNumber();
 
         /**
@@ -1169,70 +1165,70 @@ namespace ot {
 
         /** 
           @author Hari Sundar
-         * @brief Returns true if the element specified by the index contains a hanging node.
-         * @param i the index to the element.
-        **/
+          @brief Returns true if the element specified by the index contains a hanging node.
+          @param i the index to the element.
+          */
         bool isHanging(unsigned int i);
 
         /**
           @author Hari Sundar
-         * @brief Returns true if the element/node specified by the index is a Ghost.
-         * @param i the index to the element/node.
-         */
+          @brief Returns true if the element/node specified by the index is a Ghost.
+          @param i the index to the element/node.
+          */
         bool isGhost(unsigned int i);
 
         /**
           @author Hari Sundar
-         * @brief Returns true if the element specified by the index corresponds to a node.
-         * @param i the index to the element.
-         */
+          @brief Returns true if the element specified by the index corresponds to a node.
+          @param i the index to the element.
+          */
         bool isNode(unsigned int i);
 
         /** 
           @author Hari Sundar
-         * @brief Returns information pertaining to which of the elements 8 nodes are hanging.
-         * @param i the index to the element.
-         * @return the bitmask specifying which of the nodes are hanging.
-         *
-         * Returns information pertaining to which of the elements 8 nodes are hanging.	
-         */
+          @brief Returns information pertaining to which of the elements 8 nodes are hanging.
+          @param i the index to the element.
+          @return the bitmask specifying which of the nodes are hanging.
+
+          Returns information pertaining to which of the elements 8 nodes are hanging.	
+          */
         unsigned char getHangingNodeIndex(unsigned int i);
 
         /** 
           @author Hari Sundar
-         * @brief Returns the type mask for the given element.
-         * @param i the index to the element.
-         * 
-         * Returns the type mask for the given element. The type mask is
-         * used to identify what kind of an element the element in 
-         * question is. Information can be obtained from the bits of the 
-         * mask. The information is stored as NHDL, where N is 1 bit to 
-         * identify a node, H is 1 bit to identify a hanging element, D 
-         * is one bit to identify a dependent element, and the remaining 
-         * 5 bits are used to detect the level of the octant. 
-         */
+          @brief Returns the type mask for the given element.
+          @param i the index to the element.
+
+          Returns the type mask for the given element. The type mask is
+          used to identify what kind of an element the element in 
+          question is. Information can be obtained from the bits of the 
+          mask. The information is stored as NHDL, where N is 1 bit to 
+          identify a node, H is 1 bit to identify a hanging element, D 
+          is one bit to identify a dependent element, and the remaining 
+          5 bits are used to detect the level of the octant. 
+          */
         unsigned char getTypeMask(unsigned int i);
 
         /** 
           @author Hari Sundar
-         * @brief Returns the level of the octant specified by the index.
-         * @param i the index to the element/node.
-         * @return the level of the octant.
-         The return value is the level of the octant in the modified octree that includes 'pseudo-octants' for boundary nodes. This octree has
-         a maximum depth equal to 1 more than that of the input octree used to construct the finite element mesh. Hence, the value
-         returned by this function will be 1 more than the true level of the octant in the input octree.
-        **/
+          @brief Returns the level of the octant specified by the index.
+          @param i the index to the element/node.
+          @return the level of the octant.
+          The return value is the level of the octant in the modified octree that includes 'pseudo-octants' for boundary nodes. This octree has
+          a maximum depth equal to 1 more than that of the input octree used to construct the finite element mesh. Hence, the value
+          returned by this function will be 1 more than the true level of the octant in the input octree.
+          */
         unsigned char getLevel(unsigned int i);
 
         /**
           @author Hari Sundar
           @author Rahul Sampath
-         * @brief Returns the indices to the nodes of the current 
-         *        element.
-         * @param nodes   Indices into the nodes of the given element. Should be
-         *                allocated by the user prior to calling.
-         * @return Error code.
-         */ 
+          @brief Returns the indices to the nodes of the current 
+          element.
+          @param nodes   Indices into the nodes of the given element. Should be
+          allocated by the user prior to calling.
+          @return Error code.
+          */ 
         int getNodeIndices(unsigned int* nodes);
         //@}
 
@@ -1245,7 +1241,8 @@ namespace ot {
 
         /**
           @author Hari Sundar
-          @brief Call this function, if a call to getNodeIndices() is skipped within the loop and if the element-to-node mappings are compressed.
+          @brief Call this function, if a call to getNodeIndices() 
+          is skipped within the loop and if the element-to-node mappings are compressed.
           @see getNodeIndices()
           */
         void updateQuotientCounter();
