@@ -11,8 +11,8 @@
  -numRefinements 0
  -nlevels 20
 
- %-fullJacMatType aij
- -fullJacMatType superlu_dist
+ -fullJacMatType aij
+ %-fullJacMatType superlu_dist
  -buildFullCoarseMat 1
  -buildFullMatAll 0
 

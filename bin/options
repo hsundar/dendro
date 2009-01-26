@@ -24,8 +24,8 @@
 
  -numGaussPts 7
 
- %-fullJacMatType aij
- -fullJacMatType superlu_dist
+ -fullJacMatType aij
+ %-fullJacMatType superlu_dist
  -numRefinements 0
  -nlevels 10
  -buildFullCoarseMat 1
