@@ -155,7 +155,7 @@ PetscErrorCode ElasticityMatGetDiagonal(Mat J, Vec diag) {
           for(int dofOut = 0; dofOut < 3; dofOut++) {\
             for(int dofIn = 0; dofIn < 3; dofIn++) {\
               outArr[(3*indices[k]) + dofOut] += ((mu+lambda)*fac*\
-                  (GradDivType2Stencil[childNum][elemType][(3*k) + dofIn][(3*j) + dofOut])\
+                  (GradDivType2Stencil[childNum][elemType][(3*k) + dofOut][(3*j) + dofIn])\
                   *inArr[(3*indices[j]) + dofIn]);\
             }/*end for dofIn*/\
           }/*end for dofOut*/\
@@ -273,7 +273,7 @@ PetscErrorCode ElasticityMatMult(Mat J, Vec in, Vec out)
               currRec.rowDim = dofOut;\
               currRec.colDim = dofIn;\
               currRec.val = ((mu+lambda)*fac*\
-                  GradDivType2Stencil[childNum][elemType][(3*k)+dofIn][(3*j)+dofOut]);\
+                  GradDivType2Stencil[childNum][elemType][(3*k)+dofOut][(3*j)+dofIn]);\
               records.push_back(currRec);\
             } /*end for dofIn*/\
           } /*end for dofOut*/\
@@ -721,7 +721,7 @@ void computeInvBlockDiagEntriesForElasticityMat(Mat J, double **invBlockDiagEntr
               for(int dofIn = 0; dofIn < 3; dofIn++) {
                 blockDiagArr[(9*indices[k]) + (3*dofOut) + dofIn] +=
                   ((mu+lambda)*fac*
-                   GradDivType2Stencil[childNum][elemType][(3*k) + dofIn][(3*k) + dofOut]);
+                   GradDivType2Stencil[childNum][elemType][(3*k) + dofOut][(3*k) + dofIn]);
               }/*end dofIn*/
             } /*end dofOut*/
           }
