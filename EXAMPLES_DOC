@@ -1,63 +1,61 @@
 
-Name of the executable  Functionality   Reads *.Pts?    Reads *.Inp?   
+Executable  Functionality   Reads *.Pts?    Reads *.Inp?   Reads *.ot?
 
-buildDA       Builds a single level mesh    Yes   No
+buildDA   Builds a single level mesh    Yes   No  Yes
 
-checkError     Checks approximation error in solution
+checkError  Checks approximation error in solution  Yes Yes No
 
-createCoarser
+createCoarser Writes out the coarsest octants Yes Yes No
 
-downSample
+downSample Writes the anchors of the coarsest octree Yes Yes No
 
-dumpMesh
+dumpMesh Dumps out the mesh No Yes Yes 
 
-elasticitySolver
+elasticitySolver Solves linear elasticity problem Yes Yes No
 
-fileList
+justBal Balanced octree No No Yes
 
-justBal
+justCoarsen Coarsens octree No No Yes
 
-justCoarsen
+newElasMesh Setup multigrid No Yes No
 
-newElasMesh
+newElasSolver Solves Linear elasticity No Yes No
 
-newElasSolver
+octLaplacian solves laplacian Yes Yes No
 
-octLaplacian
+omgNeumann_2spheres solves laplacian No Yes Yes
 
-omgNeumann_2spheres
+omgNeumann_ex1 solves laplacian Yes Yes No
 
-omgNeumann_ex1
+omgNeumann_ex2 solves laplacian Yes Yes No
 
-omgNeumann_ex2
+omgNeumann_ex3 solves laplacian Yes Yes No
 
-omgNeumann_ex3
+pts2Mesh dumps VTK file containing partition info Yes Yes No
 
-pts2Mesh
+rippleBal runs ripple algorithm No No Yes
 
-rippleBal
+runScal balances octree Yes No No 
 
-runScal
+seqRipple Runs ripple algorithm No No Yes
 
-seqRipple
+seqRipplePtr Runs ripple algorithm No No Yes
 
-seqRipplePtr
+testConAndBal construct and balances octree No No No 
 
-testConAndBal
+testConBalAndCoarsen constructs, balances and coarsest octree No No No 
 
-testConBalAndCoarsen
+testElasMatVec runs a few matvecs No Yes No
 
-testElasMatVec
+testShFn No No No
 
-testShFn
+tstMatVec uses DA Yes Yes No
 
-tstMatVec
+tstMg uses multigrid Yes Yes No
 
-tstMg
+tstRegularMg Uses Multigrid on regular octree No Yes No
 
-tstRegularMg
-
-tstRipple
+tstRipple Runs Ripple Algorithm  Yes No No
 
 
 

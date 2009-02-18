@@ -48,7 +48,10 @@ files into multiple files (1 for each processor) and the programs expect
 the sequence of files to be named as follows:
 <prefix><Rank>_<Number of Processors>.pts
 The program scripts/splitPoints.C can be used to split the '*.pts' as
-described above.
+described above. The '*.pts' files are binary files. 
+
+Some examples read '*.ot' files for input. These files store the anchors and
+levels of each octant in an octree in ASCII format. 
 
 Read the file EXAMPLES_DOC for more information about the examples.
 
