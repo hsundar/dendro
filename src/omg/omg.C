@@ -63,7 +63,7 @@ namespace ot {
       ot::DA_Initialize(comm);
 
 #ifdef __USE_MG_INIT_TYPE3__
-      ot::DAMG_InitPrivateType3(comm);
+    ot::DAMG_InitPrivateType3(comm);
 #else
 #ifdef __USE_MG_INIT_TYPE2__
     ot::DAMG_InitPrivateType2(comm);
@@ -664,7 +664,7 @@ namespace ot {
 
       ot::DA_Finalize();
 
-      destroyRmatType1Stencil(RmatType1Stencil);
+    destroyRmatType1Stencil(RmatType1Stencil);
     destroyRmatType2Stencil(RmatType2Stencil);
     destroyVtxMaps(VtxMap1, VtxMap2, VtxMap3, VtxMap4);
 
