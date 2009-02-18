@@ -1,5 +1,5 @@
+
 SHELL = /bin/sh
-#Include Petsc Variable Defs 
 include ${PETSC_DIR}/bmake/${PETSC_ARCH}/petscconf
 include ${PETSC_DIR}/bmake/common/variables
 CEXT = C
