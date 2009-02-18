@@ -1,5 +1,5 @@
 
-INCLUDE = -I./include -I./include/oct -I./include/fem -I./include/oda  -I./include/omg  -I./include/seq  -I./include/par -I./include/point  -I./include/test -I./include/binOps -I./include/pc -I./include/sys -I./examples ${PETSC_INCLUDE}
+INCLUDE = -I./include -I./include/oct -I./include/fem -I./include/oda  -I./include/omg  -I./include/seq  -I./include/par -I./include/point  -I./include/test -I./include/binOps -I./include/pc -I./include/sys -I./examples/include ${PETSC_INCLUDE}
 
 ARCHIVES = ./lib/libOMG.a ./lib/libODA.a ./lib/libOct.a ./lib/libPar.a ./lib/libPoint.a ./lib/libTest.a ./lib/libBinOps.a ./lib/libSys.a ./lib/libPC.a 
 
@@ -17,7 +17,8 @@ EXEC_MG = bin/checkError bin/newElasMesh bin/newElasSolver \
 
 EXEC_TESTS = bin/createCoarser bin/chkNl bin/chkMl bin/dumpMesh\
             bin/downSample \
-             bin/checkResults bin/checkSV bin/chkCoarsen bin/justCoarsen bin/testNodeAndVals bin/testPetscInt
+             bin/checkResults bin/checkSV bin/chkCoarsen \
+	     bin/justCoarsen bin/testNodeAndVals bin/testPetscInt
 
 EXEC_UTIL = bin/gen2spheres
 
@@ -29,7 +30,10 @@ all : $(ARCHIVES) $(EXEC)
 %.o: %.$(CEXT)
 	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 
-./examples/%.o: ./examples/%.$(CEXT)
+./examples/src/backend/%.o: ./examples/src/backend/%.$(CEXT)
+	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+
+./examples/src/drivers/%.o: ./examples/src/drivers/%.$(CEXT)
 	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 
 ./src/%.o: ./src/%.$(CEXT)
@@ -101,82 +105,94 @@ all : $(ARCHIVES) $(EXEC)
 	${AR} ${AR_FLAGS} $@ $^
 	${RANLIB} $@
 
-bin/octLaplacian : ./examples/octLaplacian.o $(ARCHIVES)
+bin/octLaplacian : ./examples/src/drivers/octLaplacian.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/dumpMesh : ./examples/src/drivers/dumpMesh.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/buildDA : ./examples/src/drivers/buildDA.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/tstRipple : ./examples/src/drivers/tstRipple.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/rippleBal : ./examples/src/drivers/rippleBal.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/seqRipple : ./examples/src/drivers/seqRipple.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/seqRipplePtr : ./examples/src/drivers/seqRipplePtr.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/justBal : ./examples/src/drivers/justBal.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/justCoarsen : ./examples/src/drivers/justCoarsen.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/tstMatVec : ./examples/src/drivers/tstMatVec.o ./examples/src/backend/odaJac.o  ./examples/src/backend/handleType2Stencils.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/downSample : ./examples/src/drivers/downSample.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/createCoarser : ./examples/src/drivers/createCoarser.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/newElasMesh : ./examples/src/drivers/newElasMesh.o ./examples/src/backend/elasticityJac.o ./examples/src/backend/elasticityRhs.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/vecMass.o ./examples/src/backend/handleType2Stencils.o  $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/pts2Mesh : ./examples/src/drivers/pts2Mesh.o ./examples/src/backend/elasticityJac.o ./examples/src/backend/elasticityRhs.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/vecMass.o ./examples/src/backend/handleType2Stencils.o  $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/newElasSolver : ./examples/src/drivers/newElasSolver.o ./examples/src/backend/elasticityJac.o ./examples/src/backend/elasticityRhs.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/vecMass.o ./examples/src/backend/handleType2Stencils.o  $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/testElasMatVec : ./examples/src/drivers/testElasMatVec.o ./examples/src/backend/elasticityJac.o ./examples/src/backend/elasticityRhs.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/vecMass.o ./examples/src/backend/handleType2Stencils.o  $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/elasticitySolver : ./examples/src/drivers/elasticitySolver.o ./examples/src/backend/elasticityJac.o ./examples/src/backend/elasticityRhs.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/vecMass.o ./examples/src/backend/handleType2Stencils.o  $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/checkError : ./examples/src/drivers/checkError.o ./examples/src/backend/omgJac.o ./examples/src/backend/matProp.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/handleType2Stencils.o ./examples/src/backend/handleType1Stencils.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
+	
+bin/tstMg : ./examples/src/drivers/tstMg.o ./examples/src/backend/omgJac.o ./examples/src/backend/matProp.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/handleType2Stencils.o ./examples/src/backend/handleType1Stencils.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
+	
+bin/omgNeumann_ex1: ./examples/src/drivers/omgNeumann_ex1.o ./examples/src/backend/omgNeumann.o ./examples/src/backend/handleType2Stencils.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
+
+bin/omgNeumann_ex2: ./examples/src/drivers/omgNeumann_ex2.o ./examples/src/backend/omgNeumann.o ./examples/src/backend/handleType2Stencils.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
+
+bin/omgNeumann_ex3: ./examples/src/drivers/omgNeumann_ex3.o ./examples/src/backend/omgNeumann.o ./examples/src/backend/handleType2Stencils.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
+
+bin/omgNeumann_2spheres: ./examples/src/drivers/omgNeumann_2spheres.o ./examples/src/backend/omgNeumann.o ./examples/src/backend/handleType2Stencils.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
+
+bin/tstMgReg : ./examples/src/drivers/tstRegularMg.o ./examples/src/backend/omgJac.o ./examples/src/backend/matProp.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/handleType2Stencils.o ./examples/src/backend/handleType1Stencils.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/checkDataPts: ./examples/src/drivers/checkDataPts.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/runScal : ./examples/src/drivers/runScal.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/testConAndBal : ./examples/src/drivers/testConAndBal.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/testConBalAndCoarsen : ./examples/src/drivers/testConBalAndCoarsen.o $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
 
 bin/chkMl : ./src/test/compareMFiles.o $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
 
 bin/chkNl : ./src/test/compareNlFiles.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/dumpMesh : ./examples/dumpMesh.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/buildDA : ./examples/buildDA.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/tstRipple : ./examples/tstRipple.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/rippleBal : ./examples/rippleBal.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/seqRipple : ./examples/seqRipple.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/seqRipplePtr : ./examples/seqRipplePtr.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/justBal : ./examples/justBal.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/justCoarsen : ./examples/justCoarsen.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/tstMatVec : ./examples/tstMatVec.o ./examples/odaJac.o  ./examples/handleType2Stencils.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/downSample : ./examples/downSample.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/createCoarser : ./examples/createCoarser.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/newElasMesh : ./examples/newElasMesh.o ./examples/elasticityJac.o ./examples/elasticityRhs.o ./examples/odaJac.o ./examples/omgRhs.o ./examples/vecMass.o ./examples/handleType2Stencils.o  $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/pts2Mesh : ./examples/pts2Mesh.o ./examples/elasticityJac.o ./examples/elasticityRhs.o ./examples/odaJac.o ./examples/omgRhs.o ./examples/vecMass.o ./examples/handleType2Stencils.o  $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/newElasSolver : ./examples/newElasSolver.o ./examples/elasticityJac.o ./examples/elasticityRhs.o ./examples/odaJac.o ./examples/omgRhs.o ./examples/vecMass.o ./examples/handleType2Stencils.o  $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/testElasMatVec : ./examples/testElasMatVec.o ./examples/elasticityJac.o ./examples/elasticityRhs.o ./examples/odaJac.o ./examples/omgRhs.o ./examples/vecMass.o ./examples/handleType2Stencils.o  $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/elasticitySolver : ./examples/elasticitySolver.o ./examples/elasticityJac.o ./examples/elasticityRhs.o ./examples/odaJac.o ./examples/omgRhs.o ./examples/vecMass.o ./examples/handleType2Stencils.o  $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/checkError : ./examples/checkError.o ./examples/omgJac.o ./examples/matProp.o ./examples/odaJac.o ./examples/omgRhs.o ./examples/handleType2Stencils.o ./examples/handleType1Stencils.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
-	
-bin/tstMg : ./examples/tstMg.o ./examples/omgJac.o ./examples/matProp.o ./examples/odaJac.o ./examples/omgRhs.o ./examples/handleType2Stencils.o ./examples/handleType1Stencils.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
-	
-bin/omgNeumann_ex1: ./examples/omgNeumann_ex1.o ./examples/omgNeumann.o ./examples/handleType2Stencils.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
-
-bin/omgNeumann_ex2: ./examples/omgNeumann_ex2.o ./examples/omgNeumann.o ./examples/handleType2Stencils.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
-
-bin/omgNeumann_ex3: ./examples/omgNeumann_ex3.o ./examples/omgNeumann.o ./examples/handleType2Stencils.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
-
-bin/omgNeumann_2spheres: ./examples/omgNeumann_2spheres.o ./examples/omgNeumann.o ./examples/handleType2Stencils.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
-
-bin/tstMgReg : ./examples/tstRegularMg.o ./examples/omgJac.o ./examples/matProp.o ./examples/odaJac.o ./examples/omgRhs.o ./examples/handleType2Stencils.o ./examples/handleType1Stencils.o $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
 
 bin/testNodeAndVals : ./src/test/testNodeAndVals.o $(ARCHIVES)
@@ -186,18 +202,6 @@ bin/testPetscInt : ./src/test/testPetscInt.o
 	$(PCC) $(CFLAGS) $^ -o $@ $(PETSC_LIB)
 
 bin/chkCoarsen : ./src/test/checkCoarsening.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/checkDataPts: ./examples/checkDataPts.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/runScal : ./examples/runScal.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/testConAndBal : ./examples/testConAndBal.o $(ARCHIVES)
-	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
-
-bin/testConBalAndCoarsen : ./examples/testConBalAndCoarsen.o $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
 
 bin/checkSV : ./src/test/checkScatterValues.o $(ARCHIVES)
@@ -210,13 +214,18 @@ bin/gen2spheres : ./scripts/gen2spheres.o $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
 
 clean :
-	rm -rf ./src/oct/*~ ./src/oct/*.o ./src/omg/*~ ./src/omg/*.o
-	rm -rf ./src/oda/*~ ./src/oda/*.o ./examples/*~ ./examples/*.o
-	rm -rf ./src/par/*~ ./src/par/*.o 
-	rm -rf ./src/pc/*.o ./src/pc/*~ ./src/sys/*~ ./src/sys/*.o
-	rm -rf ./src/point/*~ ./src/point/*.o ./src/test/*~ ./src/test/*.o
-	rm -rf ./src/binOps/*~ ./src/binOps/*.o ./*~ ./*.o 
+	rm -rf ./src/pc/*.o ./src/pc/*~ 
+	rm -rf ./src/omg/*~ ./src/omg/*.o
+	rm -rf ./src/oda/*~ ./src/oda/*.o 
 	rm -rf ./src/oda/private/*~ ./src/oda/private/*.o
+	rm -rf ./src/oct/*~ ./src/oct/*.o
+	rm -rf ./src/par/*~ ./src/par/*.o 
+	rm -rf ./src/sys/*~ ./src/sys/*.o
+	rm -rf ./src/point/*~ ./src/point/*.o 
+	rm -rf ./src/binOps/*~ ./src/binOps/*.o ./*~ ./*.o 
+	rm -rf ./examples/src/backend/*~ ./examples/src/backend/*.o
+	rm -rf ./examples/src/drivers/*~ ./examples/src/drivers/*.o
+	rm -rf ./src/test/*~ ./src/test/*.o
 	rm -rf ./scripts/gen2spheres.o
 	rm -rf $(EXEC)
 
