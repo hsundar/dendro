@@ -34,10 +34,32 @@ for a bash shell environment.
 
 Type 'make' to build the library and the example programs. 
 Go to the 'bin' directory and run the examples. For example,
-'omgNewmann_ex1' is Neumann Laplacian problem.
+'newElasSolver' uses the multigrid solver for the constant 
+coefficient linear elasticity problem with homogeneous
+dirichlet boundary conditions. You must copy the '*.inp' files 
+from the 'Stencils' folder into the directory containing the executable
+before running any program that uses the 'omg' module, i.e.
+multigrid solver. 
+
+If you want to trying out any of the examples that read a point dataset 
+from a file, you can copy sample point datasets from the 'data' folder into
+the directory containing the executable. You must first split the '*.pts'
+files into multiple files (1 for each processor) and the programs expect
+the sequence of files to be named as follows:
+<prefix><Rank>_<Number of Processors>.pts
+The program scripts/splitPoints.C can be used to split the '*.pts' as
+described above.
+
+Read the file EXAMPLES_DOC for more information about the examples.
 
 You can provide additional optimization flags to the compiler by
-setting the flag 'CFLAGS' in the makefile.
+setting the flag 'CFLAGS' in the makefile. If you pass the options
+'__USE_MG_INIT_TYPE2__' or '__USE_MG_INIT_TYPE3__' to 'CFLAGS',
+then you must also copy the scripts 'scripts/copyInpType2.sh' or
+'scripts/copyInpType3.sh', respectively into the directory
+containing the executable before running any program that uses
+the 'omg' module. Check that the '*.inp' files are
+already present in the same directory first. 
 
 The functions in the library are profiled using PETSc. To profile the
 major functions in the library, pass the flag '-DPETSC_USE_LOG' to the
