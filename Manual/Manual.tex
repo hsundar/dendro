@@ -1,4 +1,5 @@
-\documentclass[10pt,reqno,a4paper]{report}
+\documentclass[12pt,reqno,a4paper]{report}
+\usepackage{setspace}
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
@@ -58,6 +59,8 @@ citecolor = {blue}
 \def\bfE{\mbox{\boldmath$E$}}
 \def\bfG{\mbox{\boldmath$G$}}
 
+\doublespacing
+
 \begin{document}
 
 \begin{titlepage}
@@ -66,7 +69,7 @@ citecolor = {blue}
 
 {\large DENDRO Manual }\\[1cm]
 
-{\large Version 1.2 }\\[2cm]
+{\large Version 1.0 }\\[2cm]
 
 {\large Rahul S. Sampath, Hari Sundar, Santi S. Adavani,}\\
 {\large Ilya Lashuk \& George Biros}\\[2cm]
@@ -97,7 +100,7 @@ citecolor = {blue}
 
 \chapter{Introduction}
 \label{sec:introduction}
-'DENDRO' is a collection of tools for parallel tree-based applications. It is written entirely in C++ using the standard template library (STL) and uses the Message Passing standard, MPI. It supports the PETSc objects 'Mat' and 'Vec' and provides interfaces to PETSc's linear and non-linear solvers.
+'DENDRO' is a collection of tools for parallel tree-based applications. It is written in C++ using the standard template library (STL) and uses the Message Passing standard, MPI. It supports the PETSc objects 'Mat' and 'Vec' and provides interfaces to PETSc's linear and non-linear solvers.
 
 \section{Layout of DENDRO}
 \label{sec:layout}
@@ -124,7 +127,7 @@ echo $PETSC_DIR; echo $PETSC_ARCH
 \end{verbatim} 
 The first line of the ouput should point to the directory in which you installed PETSc and the second line must be the value of 'PETSC\_ARCH' that you set while compiling PETSc.
 \item Set the environment variable DENDRO\_DIR to point to the top level directory where you want to install DENDRO. 
-\item Create a directory named 'lib' under the top level directory, 'dendro'.
+\item Create a directory named 'lib' (if it is not already present) under the top level directory, 'dendro'.
 \item Type 'make' to build the library and the example programs. 
 \item You can provide additional optimization flags to the compiler by setting the flag 'CFLAGS' in the makefile from the command line.
 \item The functions in the library are profiled using PETSc. 
@@ -134,6 +137,9 @@ You can then view the log summary by passing the
  option '-log\_summary' to your executable.
  \item By default, DENDRO will print some relevant information during the execution of the program. If you want to suppress this output pass the flag '-D\_\_SILENT\_MODE\_\_' to the compiler in the variable 'CFLAGS'.
  \item By default, DENDRO will be compiled with 32 bit global indices. If you are solving very large problems that require 64 bit indices to represent the global sizes, then pass the flag '-D\_\_USE\_64\_BIT\_INT\_\_' to the compiler in the variable 'CFLAGS'.
+ \item You must copy the '*.inp' files from the 'Stencils' folder into the directory containing the executable
+before running any program that uses the 'omg' module, i.e. multigrid solver. 
+\item There are few example files that you can try out. Read the file 'EXAMPLES\_DOC' for more information about the examples. Section \ref{sec:examples} discusses a few of these.
 \end{enumerate}
 
 \chapter{Solving partial differential equations (PDEs) using DENDRO}
@@ -665,7 +671,7 @@ Examples of matvecs for matrix-free methods and functions to create full matrice
 \label{chp:multigrid}
 Follow the following steps to use PETSc's multigrid solver through the DENDRO framework. DENDRO's ot::DAMG object is similar to PETSc's DMMG object. Refer to the PETSc manual for a description of the DMMG object.
 \begin{enumerate}
-\item Call the function \lstinline[basicstyle=\bfseries]!ot::Initialize()! at the beginning of your main program, just after calling the function  \lstinline[basicstyle=\bfseries]!PetscInitialize()!.
+\item Call the function \lstinline[basicstyle=\bfseries]!ot::DAMG_Initialize()! at the beginning of your main program, just after calling the function  \lstinline[basicstyle=\bfseries]!PetscInitialize()!.
 
 \item Create the multigrid object, coarser octrees, and the finite element meshes for all the levels by calling the following function. The inter-grid transfer operators between the levels will also be created within the function.
 
@@ -707,12 +713,13 @@ PetscErrorCode ot::DAMGSolve()
 PetscErrorCode ot::DAMGDestroy()
 \end{lstlisting}
 
-\item Call the function \lstinline[basicstyle=\bfseries]!ot::Finalize()! at the end of your main program, just before calling the function  \lstinline[basicstyle=\bfseries]!PetscFinalize()!.
+\item Call the function \lstinline[basicstyle=\bfseries]!ot::DAMG_Finalize()! at the end of your main program, just before calling the function  \lstinline[basicstyle=\bfseries]!PetscFinalize()!.
 
 \end{enumerate}
 
 
 \section{Examples using the octree based multigrid solver}
+\label{sec:examples}
 We provide several examples illustrating the usage of the multigrid solver described above. They can be found in the files
 \verb'dendro/examples/omgNeumann_ex1.C', 
 \verb'dendro/examples/omgNeumann_ex2.C',
@@ -742,11 +749,11 @@ The example executable is launched using the command line
 mpirun -np N omgNeumann_ex3 <filePrefix>
 \end{verbatim}
 where the \verb|<filePrefix>| is the common prefix of the files that contain points to be read by different 
-MPI processes. The \verb'options' file (which contains different PETSc options) must be present in current directory. An example of such \verb'options' file can be found in \verb'dendro/'. The \verb'*.inp' files must also be present in current directory, as discussed in Chapter \ref{chp:install}.
+MPI processes. The \verb'options' file (which contains different PETSc options) must be present in current directory. An example \verb'options' file can be found in \verb'dendro/bin/'. The \verb'*.inp' files must also be present in current directory, as discussed in Chapter \ref{chp:install}.
 
 To be specific, the files with the points should have the names of the form \verb?<filePrefix>X_N.pts? where \verb?X? is 0,\dots,\verb|N|-1. The file \verb?<filePrefix>X_N.pts? is read by the process with MPI rank X. The files with the points are binary files and their format is as follows. The first several bytes (binary representation of an ``unsigned int'' C type for your architecture, typically 4 bytes) contain the number of points. The rest of the file contains the coordinates of the points. Each coordinate is stored using the binary representation of the C type ``double'' on your architecture (typically 8 bytes). The coordinates are stored in the order $x_1,y_1,z_1,x_2,y_2,z_2,\ldots$
 
-There is a useful utility \verb'dendro/scripts/splitPoints.cpp' which splits the points for use by several MPI processes. This utility is invoked as follows:
+There is a useful utility \verb'dendro/scripts/splitPoints.C' which splits the points for use by several MPI processes. This utility is invoked as follows:
 \begin{verbatim}
 splitPoints file numProcs outFilePrefix
 \end{verbatim}
