@@ -3,7 +3,7 @@
   @file odaUtils.h
   @brief A list of non-member functions for the ot::DA class.
   @author Rahul S. Sampath, rahul.sampath@gmail.com 
-*/ 
+  */ 
 
 #ifndef __ODAUTILS_H__
 #define __ODAUTILS_H__
@@ -142,11 +142,11 @@ namespace ot {
       A sample usage would look like:
       @code 
       for ( init<loopType> ; curr() < end<loopType>(); next<loopType>() ) { 
-          // process current element ...
-      } 
-      @endcode 
-      @author Rahul Sampath
-     */
+    // process current element ...
+    } 
+    @endcode 
+    @author Rahul Sampath
+    */
     enum loopType {
       ALL, WRITABLE, DEPENDENT, INDEPENDENT, W_DEPENDENT, FROM_STORED
     };
@@ -287,6 +287,17 @@ namespace ot {
   int createShapeFnCoeffs_Type1(MPI_Comm comm);
   int createShapeFnCoeffs_Type2(MPI_Comm comm);
   int createShapeFnCoeffs_Type3(MPI_Comm comm);
+
+  /*
+     @author Rahul S. Sampath
+     @brief Injects values from fine grid nodes
+     to coarse grid nodes. Coarse and fine grids must be aligned. 
+     setZero sets the argument to 0.
+     T must support the '+=' operator.
+     */
+  template <typename T>
+    void injectNodalVector(ot::DA* dac, ot::DA* daf, unsigned int dof,
+        std::vector<T>& fVec, std::vector<T>& cVec, void (*setZero)(T&));
 
 }//end namespace
 
