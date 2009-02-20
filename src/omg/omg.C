@@ -2580,7 +2580,9 @@ Type2: Use Aux. Coarse and Fine are not aligned.
 
       assert( (commCompareResult == MPI_CONGRUENT) || (commCompareResult == MPI_IDENT));
 
-      KSPCreate(commActive, &(data->ksp_private));
+      if(data->ksp_private == NULL) {
+        KSPCreate(commActive, &(data->ksp_private));
+      }
 
       KSPSetOperators(data->ksp_private, Amat_private, Pmat_private, pFlag);
 
