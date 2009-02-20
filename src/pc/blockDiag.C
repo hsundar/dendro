@@ -50,15 +50,16 @@ namespace ot {
         }
         PetscLogObjectMemory(pc, (((data->dof)*(data->nodeSize))*sizeof(double)));
       }
-
-      if(computeInvBlockDiagEntriesForPC_BlockDiag) {
-        (*computeInvBlockDiagEntriesForPC_BlockDiag)(pcMat, data->invBlockDiagEntries);
-      } else {
-        SETERRQ(PETSC_ERR_USER,
-            " Expected function to be set: computeInvBlockDiagEntriesForPC_BlockDiag");
-        assert(false);
-      }
     }
+
+    if(computeInvBlockDiagEntriesForPC_BlockDiag) {
+      (*computeInvBlockDiagEntriesForPC_BlockDiag)(pcMat, data->invBlockDiagEntries);
+    } else {
+      SETERRQ(PETSC_ERR_USER,
+          " Expected function to be set: computeInvBlockDiagEntriesForPC_BlockDiag");
+      assert(false);
+    }
+
     PetscFunctionReturn(0);
   }
 
@@ -66,10 +67,6 @@ namespace ot {
 
     PetscFunctionBegin;
     PC_BlockDiag* data = static_cast<PC_BlockDiag*>(pc->data);
-
-    if(!(data->invBlockDiagEntries)) {
-      PCSetUp_BlockDiag(pc);
-    }
 
     //y = invBlockDiagEntries*x
     VecZeroEntries(y);

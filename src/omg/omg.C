@@ -2600,11 +2600,15 @@ Type2: Use Aux. Coarse and Fine are not aligned.
         //The command line options get higher precedence.
         //This also calls PCSetFromOptions for the private pc internally
         KSPSetFromOptions(data->ksp_private);  
+
+        assert((data->sol_private == NULL) && (data->rhs_private == NULL));
+
+        MatGetVecs(Amat_private, &(data->sol_private), &(data->rhs_private));
+      } else {
+        assert((data->sol_private != NULL) && (data->rhs_private != NULL));
       }
 
       KSPSetOperators(data->ksp_private, Amat_private, Pmat_private, pFlag);
-
-      MatGetVecs(Amat_private, &(data->sol_private), &(data->rhs_private));
 
     } else {
       data->sol_private = NULL;
