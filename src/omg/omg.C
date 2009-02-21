@@ -2580,7 +2580,17 @@ Type2: Use Aux. Coarse and Fine are not aligned.
 
       assert( (commCompareResult == MPI_CONGRUENT) || (commCompareResult == MPI_IDENT));
 
-      if(data->ksp_private == NULL) {
+      if(pc->setupcalled == 0) {
+        assert(data->ksp_private == NULL);
+        assert(data->rhs_private == NULL);
+        assert(data->sol_private == NULL);
+      } else {
+        assert(data->ksp_private != NULL);
+        assert(data->rhs_private != NULL);
+        assert(data->sol_private != NULL);
+      }
+
+      if(pc->setupcalled == 0) {
         KSPCreate(commActive, &(data->ksp_private));
 
         const char *prefix;
@@ -2601,11 +2611,7 @@ Type2: Use Aux. Coarse and Fine are not aligned.
         //This also calls PCSetFromOptions for the private pc internally
         KSPSetFromOptions(data->ksp_private);  
 
-        assert((data->sol_private == NULL) && (data->rhs_private == NULL));
-
         MatGetVecs(Amat_private, &(data->sol_private), &(data->rhs_private));
-      } else {
-        assert((data->sol_private != NULL) && (data->rhs_private != NULL));
       }
 
       KSPSetOperators(data->ksp_private, Amat_private, Pmat_private, pFlag);
