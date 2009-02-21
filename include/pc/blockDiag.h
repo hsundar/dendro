@@ -9,7 +9,8 @@
 #ifndef _BLOCKDIAG_H_
 #define _BLOCKDIAG_H_
 
-#include "private/pcimpl.h"
+#include "petscpc.h"
+#include "petscvec.h"
 
 namespace ot {
 

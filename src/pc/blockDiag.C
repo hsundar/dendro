@@ -6,6 +6,7 @@
 
 #include "petscmat.h"
 #include "petscpc.h"
+#include "private/pcimpl.h"
 #include "blockDiag.h"
 #include <cassert>
 

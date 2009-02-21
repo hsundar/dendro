@@ -5,11 +5,13 @@
   */
 
 #include "dtypes.h"
+#include "petscpc.h"
+#include "petscmg.h"
 #include "petscmat.h"
+#include "private/pcimpl.h"
 #include "omg.h"
 #include "oda.h"
 #include "odaUtils.h" 
-#include "petscmg.h"
 #include "parUtils.h"
 #include <iostream>
 #include "dendro.h"
