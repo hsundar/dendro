@@ -39,6 +39,7 @@ The GNU General Public License can be found <A href="http://www.cc.gatech.edu/cs
 
 Other Links
 - <A href="http://www.cc.gatech.edu/csela/dendro/download-dendro.html"> Download Dendro </A>
+- <A href="http://www.cc.gatech.edu/csela/dendro/dendro-papers.html"> Related Publications </A>
 - <A href="http://www.cc.gatech.edu/csela/dendro/Manual.pdf"> Dendro Manual </A>
 - <A href="http://www.cc.gatech.edu/csela/dendro/FAQ.html"> FAQ </A> 
 
