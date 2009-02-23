@@ -68,6 +68,7 @@ namespace ot {
 
     bool repeatLoop = true;
     while(repeatLoop) {
+
       inSz = tnAndValsList.size();
 
       MPI_Request requests[4];
@@ -97,7 +98,10 @@ namespace ot {
       }
 
       MPI_Status statuses[4];
-      MPI_Waitall(4, requests, statuses);
+
+      if(npesCurr > 1) {
+        MPI_Waitall(4, requests, statuses);
+      }
 
       //Check and coarsen
       int idxOfPrevFC = -1;
@@ -542,6 +546,7 @@ namespace ot {
           repeatLoop = false;
         }
       }
+
     }//end while
 
     linOct.clear();
