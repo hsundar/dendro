@@ -86,7 +86,11 @@ namespace ot {
                                                       eType = 17;
                                                       break;
                                                     }
-        default:  assert(false);
+        default: {
+                   std::cout<<"cNum: "<<static_cast<int>(cNum)<<
+                     " hnMask: "<<static_cast<int>(hnMask)<<std::endl;
+                   assert(false);
+                 }
       }
       return eType; 
     }//end fn;
