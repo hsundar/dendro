@@ -32,7 +32,10 @@ namespace ot {
     MPI_Comm_rank(comm, &rank);
     MPI_Comm_size(comm, &npes);
 
-    assert(binOp::isPowerOfTwo(N));
+    bool isNvalid = binOp::isPowerOfTwo(N);
+
+    assert(isNvalid);
+
     unsigned int rgLevel = binOp::fastLog2(N);
     unsigned int elemLen = (1u << (maxDepth - rgLevel));
 
@@ -545,7 +548,7 @@ namespace ot {
         if(rank >= splittingSize) {
           repeatLoop = false;
         }
-      }
+      }//end if splitting comm
 
     }//end while
 

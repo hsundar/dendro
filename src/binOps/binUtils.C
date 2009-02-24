@@ -1,29 +1,31 @@
 
 /**
-@file binUtils.C
-@brief A set of functions for fast binary operations
-@author Rahul S. Sampath, rahul.sampath@gmail.com
-@author Hari Sundar, hsundar@gmail.com
-*/
+  @file binUtils.C
+  @brief A set of functions for fast binary operations
+  @author Rahul S. Sampath, rahul.sampath@gmail.com
+  @author Hari Sundar, hsundar@gmail.com
+  */
 
 #include <vector>
+#include <cassert>
+#include "binUtils.h"
 
 namespace binOp {
 
-  unsigned int binLength(unsigned int num) {
-    unsigned int len =1;
-    while(num > 1) {
-        num = (num>>1);
-        len++;
+  unsigned int fastLog2(unsigned int num) {
+    if(num) {
+      return (binLength(num) - 1);
+    } else {
+      assert(false);
+      return -1;
     }
-    return len;
   }//end function
 
-  unsigned int fastLog2(unsigned int num) {
-    unsigned int len = 0;
-    while(num > 0) {
-        num = (num>>1);
-        len++;
+  unsigned int binLength(unsigned int num) {
+    unsigned int len = 1;
+    while(num > 1) {
+      num = (num>>1);
+      len++;
     }
     return len;
   }//end function
@@ -51,35 +53,35 @@ namespace binOp {
   }//end function
 
 
-bool isPowerOfTwo(unsigned int n) {
-  return !(n & (n - 1)) && n;
-}
+  bool isPowerOfTwo(unsigned int n) {
+    return (n && (!(n & (n - 1))));
+  }
 
-// compute the next highest power of 2 of 32-bit v
-int getNextHighestPowerOfTwo(unsigned int n) {
-  unsigned int v = n;
-  v--;
-  v |= v >> 1;
-  v |= v >> 2;
-  v |= v >> 4;
-  v |= v >> 8;
-  v |= v >> 16;
-  v++;
-  return v;
-}
+  // compute the next highest power of 2 of 32-bit v
+  int getNextHighestPowerOfTwo(unsigned int n) {
+    unsigned int v = n;
+    v--;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    v++;
+    return v;
+  }
 
-// compute the prev highest power of 2 of 32-bit v
-int getPrevHighestPowerOfTwo(unsigned int n) {
-  unsigned int v = n;
-  v--;
-  v |= v >> 1;
-  v |= v >> 2;
-  v |= v >> 4;
-  v |= v >> 8;
-  v |= v >> 16;
-  v++;
-  return  v >> 1;
-}
+  // compute the prev highest power of 2 of 32-bit v
+  int getPrevHighestPowerOfTwo(unsigned int n) {
+    unsigned int v = n;
+    v--;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    v++;
+    return  v >> 1;
+  }
 
 }//end namespace
 

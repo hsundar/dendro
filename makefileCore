@@ -24,8 +24,9 @@ EXEC_UTIL = bin/gen2spheres
 
 EXEC = $(EXEC_BAL) $(EXEC_DA) $(EXEC_MG) $(EXEC_TESTS) $(EXEC_UTIL)
 
-
 all : $(ARCHIVES) $(EXEC)
+
+core : $(ARCHIVES) 
 
 %.o: %.$(CEXT)
 	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
