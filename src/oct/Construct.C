@@ -64,7 +64,7 @@ namespace ot {
     DendroIntL globInSize;
     par::Mpi_Allreduce<DendroIntL>(&inSz, &globInSize, 1, MPI_SUM, comm);
 
-    assert( globInSize > (10*npes) );
+    assert( globInSize >= (10*npes) );
 
     int npesCurr = npes;
     MPI_Comm commCurr = comm;
@@ -74,6 +74,8 @@ namespace ot {
 
       inSz = tnAndValsList.size();
 
+      assert(inSz >= 10);
+
       MPI_Request requests[4];
 
       //Send first 7 to previous processor
@@ -81,29 +83,35 @@ namespace ot {
       ot::NodeAndValues<double, 1> prevOcts[7];
       if( rank ) {
         par::Mpi_Irecv<ot::NodeAndValues<double, 1> >(prevOcts, 7, (rank - 1), 
-            1, commCurr, requests);
+            1, commCurr, &(requests[0]));
       }
 
       ot::NodeAndValues<double, 1> nextOcts[7];
       if( rank < (npesCurr - 1) ) {
         par::Mpi_Irecv<ot::NodeAndValues<double, 1> >(nextOcts, 7, (rank + 1),
-            1, commCurr, (requests + 1));
+            1, commCurr, &(requests[1]));
       }
 
       if( rank ) {
         par::Mpi_Issend<ot::NodeAndValues<double, 1> >((&(*(tnAndValsList.begin()))), 7,
-            (rank - 1), 1, commCurr, (requests + 2));
+            (rank - 1), 1, commCurr, &(requests[2]));
       }
 
       if( rank < (npesCurr - 1) ) {
         par::Mpi_Issend<ot::NodeAndValues<double, 1> >((&(*(tnAndValsList.end() - 7))), 7,
-            (rank + 1), 1, commCurr, (requests + 3));
+            (rank + 1), 1, commCurr, &(requests[3]));
       }
 
       MPI_Status statuses[4];
 
-      if(npesCurr > 1) {
-        MPI_Waitall(4, requests, statuses);
+      if( rank ) {
+        MPI_Wait(&(requests[0]), &(statuses[0]));
+        MPI_Wait(&(requests[2]), &(statuses[2]));
+      }
+
+      if( rank < (npesCurr - 1) ) {
+        MPI_Wait(&(requests[1]), &(statuses[1]));
+        MPI_Wait(&(requests[3]), &(statuses[3]));
       }
 
       //Check and coarsen
