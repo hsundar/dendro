@@ -184,14 +184,11 @@ int main(int argc, char ** argv )
   }
   da->vecRestoreBuffer(sol,solArray,false,false,true,1); 
 
+  double gMaxDiff;
+  par::Mpi_Reduce<double>(&maxDiff, &gMaxDiff, 1, MPI_MAX, 0, MPI_COMM_WORLD);  
   if (!rank)
   {
-    double gMaxDiff;
-    par::Mpi_Reduce<double>(&maxDiff, &gMaxDiff, 1, MPI_MAX, 0, MPI_COMM_WORLD);  
     std::cout<<"Maximum difference: "<<gMaxDiff<<std::endl;
-  }
-  else {
-    par::Mpi_Reduce<double>(&maxDiff, &maxDiff, 1, MPI_MAX, 0, MPI_COMM_WORLD);  
   }
     
   double solmax,solmin;
