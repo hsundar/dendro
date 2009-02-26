@@ -87,8 +87,6 @@ namespace ot {
                                                       break;
                                                     }
         default: {
-                   std::cout<<"cNum: "<<static_cast<int>(cNum)<<
-                     " hnMask: "<<static_cast<int>(hnMask)<<std::endl;
                    assert(false);
                  }
       }
