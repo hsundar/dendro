@@ -25,7 +25,10 @@ for i in range(p):
   fname = argv[1] + repr(i)+ '_' +  repr(p) +  suff + ".ot"
   fin = open (fname, "r")
   dim_dep = fin.readline()
-  n = int(fin.readline())
+  if dim_dep == "":
+     n = 0
+  else:
+     n = int(fin.readline())
   ntotal += n
   fin.close();
 
@@ -38,7 +41,10 @@ for i in range(p):
   fname = argv[1] + repr(i)+ '_' +  repr(p) +  suff + ".ot"
   fin = open (fname, "r")
   dim_dep = fin.readline()
-  n = int(fin.readline())
+  if dim_dep == "":
+     n = 0
+  else:
+     n = int(fin.readline())
   for j in range(n):
     tstr = fin.readline()
     fout.write(tstr);

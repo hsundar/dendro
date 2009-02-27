@@ -1407,6 +1407,14 @@ namespace ot {
       par::Mpi_Bcast<int>(activeNpesInCoarseBal, (nlevels - 1), 0, comm);
     }
 
+#ifdef __DEBUG_MG__
+    for(int lev = 0; lev < (nlevels - 1); lev++) {
+      char fname[256];
+      sprintf(fname, "coarseOctBeforeBdy_%d_%d_%d.ot", lev, rank, npes);
+      ot::writeNodesToFile(fname, coarserOctrees[lev]);
+    }
+#endif
+
 #ifdef __USE_PVT_DA_IN_MG__
     //All processors are active on the finest level
     std::vector<ot::TreeNode> positiveBoundaries;
@@ -1459,6 +1467,15 @@ namespace ot {
 
 #endif
 
+#ifdef __DEBUG_MG__
+    for(int lev = 0; lev < (nlevels - 1); lev++) {
+      char fname[256];
+      sprintf(fname, "coarseOctAfterBdy_%d_%d_%d.ot", lev, rank, npes);
+      ot::writeNodesToFile(fname, coarserOctrees[lev]);
+    }
+#endif
+
+
     //All processors should know the global size at each level
     DendroIntL* localOctreeSizeForThisLevel = new DendroIntL[nlevels];
     DendroIntL* globalOctreeSizeForThisLevel = new DendroIntL[nlevels];
@@ -1491,14 +1508,6 @@ namespace ot {
         int maxProcsToUse = (globalOctreeSizeForThisLevel[i]/THOUSAND);
         if(maxProcsToUse == 0) {
           maxProcsToUse = 1;
-        }
-        if(maxProcsToUse < 1) {
-          if(!rank) {
-            std::cout<<"There are too few octants."<<
-              " Can not use more than 1 processor."<<std::endl;
-            fflush(stdout);
-          }
-          assert(false);
         }
         maxProcsForThisLevel[i] = maxProcsToUse;
       } else {
