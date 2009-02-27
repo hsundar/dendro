@@ -384,7 +384,7 @@ void DA::DA_FactoryPart3(std::vector<ot::TreeNode>& in, MPI_Comm comm, bool comp
   MPI_Barrier(m_mpiCommActive);
 
   if(!m_iRankActive) {
-    std::cout<<"Partition is correct."<<std::endl;
+    std::cout<<"Partition is correct. Using "<<m_iNpesActive<<" active processors."<<std::endl;
   }
 
   MPI_Barrier(m_mpiCommActive);
