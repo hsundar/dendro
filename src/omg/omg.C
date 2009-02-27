@@ -1408,11 +1408,13 @@ namespace ot {
     }
 
 #ifdef __DEBUG_MG__
+    char fname[256];
     for(int lev = 0; lev < (nlevels - 1); lev++) {
-      char fname[256];
       sprintf(fname, "coarseOctBeforeBdy_%d_%d_%d.ot", lev, rank, npes);
       ot::writeNodesToFile(fname, coarserOctrees[lev]);
     }
+    sprintf(fname, "finestOctBeforeBdy_%d_%d.ot", rank, npes);
+    ot::writeNodesToFile(fname, finestOctree);
 #endif
 
 #ifdef __USE_PVT_DA_IN_MG__
@@ -1469,10 +1471,11 @@ namespace ot {
 
 #ifdef __DEBUG_MG__
     for(int lev = 0; lev < (nlevels - 1); lev++) {
-      char fname[256];
       sprintf(fname, "coarseOctAfterBdy_%d_%d_%d.ot", lev, rank, npes);
       ot::writeNodesToFile(fname, coarserOctrees[lev]);
     }
+    sprintf(fname, "finestOctAfterBdy_%d_%d.ot", rank, npes);
+    ot::writeNodesToFile(fname, finestOctree);
 #endif
 
 
@@ -1858,9 +1861,11 @@ namespace ot {
     ot::DA* newDa = NULL;
     while(idxOfCoarsestLev >= 0) {
 #ifdef __DEBUG_MG__
+      MPI_Barrier(comm);
       if(!rank) {
-        std::cout<<"Meshing lev: "<<idxOfCoarsestLev<<std::endl;
+        std::cout<<"Meshing 1st DA for lev: "<<idxOfCoarsestLev<<std::endl;
       }
+      MPI_Barrier(comm);
 #endif
 
       if(newDa == NULL) {
@@ -1989,6 +1994,14 @@ namespace ot {
 
         fineOctreeCopy.clear();
 
+#ifdef __DEBUG_MG__
+        MPI_Barrier(comm);
+        if(!rank) {
+          std::cout<<"Meshing 2nd DA for lev: "<<idxOfCoarsestLev<<std::endl;
+        }
+        MPI_Barrier(comm);
+#endif
+
         //This DA is aligned with the coarser grid
 #ifndef __USE_PVT_DA_IN_MG__
         newDa = new DA(fineOctAfterPart, comm, newComm, compressLut, blocksPtr, NULL);
@@ -2060,6 +2073,14 @@ namespace ot {
     delete [] maxProcsForThisLevel;
     maxProcsForThisLevel = NULL;
 
+#ifdef __DEBUG_MG__
+    MPI_Barrier(comm);
+    if(!rank) {
+      std::cout<<"Meshing finest octree: "<<std::endl;
+    }
+    MPI_Barrier(comm);
+#endif
+
     //mesh finest level here
     if(newDa == NULL) {
 #ifndef __USE_PVT_DA_IN_MG__
@@ -2068,6 +2089,14 @@ namespace ot {
       newDa = new DA(1, finestOctree, comm, activeComms[0], compressLut, blocksPtr, NULL);
 #endif
     }
+
+#ifdef __DEBUG_MG__
+    MPI_Barrier(comm);
+    if(!rank) {
+      std::cout<<"Finished meshing finest octree: "<<std::endl;
+    }
+    MPI_Barrier(comm);
+#endif
 
     tmpDAMG[nlevels-1]->da = newDa;
     newDa = NULL;
@@ -2547,7 +2576,7 @@ Type2: Use Aux. Coarse and Fine are not aligned.
 
       if(getPrivateMatricesForKSP_Shell) {
         (*getPrivateMatricesForKSP_Shell)(Amat, &Amat_private,
-            &Pmat_private, &pFlag);
+                                          &Pmat_private, &pFlag);
       } else {
         SETERRQ(PETSC_ERR_USER,
             " Expected function to be set:\
