@@ -8,7 +8,7 @@ LIBS = -L./lib -lOMG -lODA -lOct -lPar -lPoint -lTest -lBinOps -lSys -lPC ${PETS
 EXEC_BAL = bin/tstRipple  bin/runScal bin/rippleBal \
      bin/justBal bin/seqRipple bin/seqRipplePtr bin/testConAndBal bin/testConBalAndCoarsen
 
-EXEC_DA = bin/tstMatVec  bin/buildDA bin/octLaplacian 
+EXEC_DA = bin/tstMatVec  bin/buildDA bin/buildRgDA bin/octLaplacian 
 
 EXEC_MG = bin/checkError bin/newElasMesh bin/newElasSolver \
    bin/elasticitySolver bin/tstMgReg bin/tstMg bin/omgNeumann_ex1 \
@@ -113,6 +113,9 @@ bin/dumpMesh : ./examples/src/drivers/dumpMesh.o $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
 
 bin/buildDA : ./examples/src/drivers/buildDA.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/buildRgDA : ./examples/src/drivers/buildRgDA.o $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
 
 bin/tstRipple : ./examples/src/drivers/tstRipple.o $(ARCHIVES)
