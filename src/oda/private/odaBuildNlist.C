@@ -2274,8 +2274,11 @@ while( (m_uiPreGhostElementSize < in.size()) && (in[m_uiPreGhostElementSize] < m
   }
 }//end while
 
-#ifdef __DEBUG_DA_NLIST__
+if(nelem != (m_uiPreGhostElementSize + m_uiElementSize) ) {
+  std::cout<<"Processor "<<m_iRankAll<<" failing."<<std::endl;
+}
 assert( nelem == (m_uiPreGhostElementSize + m_uiElementSize) );
+#ifdef __DEBUG_DA_NLIST__
 MPI_Barrier(m_mpiCommActive);
 if(!m_iRankActive) {
   std::cout<<std::endl;

@@ -34,6 +34,10 @@ int main(int argc, char ** argv ) {
   regLev = atoi(argv[1]);
   if(argc > 2) { compressLut = (bool)(atoi(argv[2]));}
 
+  if(!rank) {
+    std::cout<<"sizeof(DendroIntL) = "<<sizeof(DendroIntL)<<" sizeof(PetscInt) = "<<sizeof(PetscInt)<<std::endl;
+  }
+
   ot::createRegularOctree(balOct, regLev, 3, 30, MPI_COMM_WORLD);
 
   //ODA ...

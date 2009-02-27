@@ -3,7 +3,7 @@ SHELL = /bin/sh
 include ${PETSC_DIR}/bmake/${PETSC_ARCH}/petscconf
 include ${PETSC_DIR}/bmake/common/variables
 CEXT = C
-CFLAGS = -D__DEBUG_DA__ -D__DEBUG_MG__ -D__USE_PVT_DA_IN_MG__ -DPETSC_USE_LOG
+CFLAGS =  -D__USE_PVT_DA_IN_MG__ -DPETSC_USE_LOG
 
 #-D__SILENT_MODE__
 #-D__USE_64_BIT_INT__
