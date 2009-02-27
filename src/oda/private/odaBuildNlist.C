@@ -2275,7 +2275,8 @@ while( (m_uiPreGhostElementSize < in.size()) && (in[m_uiPreGhostElementSize] < m
 }//end while
 
 if(nelem != (m_uiPreGhostElementSize + m_uiElementSize) ) {
-  std::cout<<"Processor "<<m_iRankAll<<" failing."<<std::endl;
+  std::cout<<"Processor "<<m_iRankAll<<" failing: nelem = "<<nelem
+    <<" pgSize = "<<m_uiPreGhostElementSize<<" elemSz = "<<m_uiElementSize<<std::endl;
 }
 assert( nelem == (m_uiPreGhostElementSize + m_uiElementSize) );
 #ifdef __DEBUG_DA_NLIST__
