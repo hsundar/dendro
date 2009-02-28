@@ -609,6 +609,7 @@ void DA::DA_FactoryPart3(std::vector<ot::TreeNode>& in, MPI_Comm comm, bool comp
   //only decendants of these blocks, hence recvK[i][j] < recvK[i+][k] for all i,j
   //and k.
   // PreGhost ....
+  m_uiPreGhostElementSize = 0;
   for (int i=0; i<myOff; i++) {
     localOcts[i] = recvK[i];
     if (!(localOcts[i].getFlag() & ot::TreeNode::BOUNDARY) ) {

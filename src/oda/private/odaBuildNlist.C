@@ -43,7 +43,7 @@ namespace ot {
   assert(tmpMlbIdx == fastIdx);\
 }
 
-//New Build Node list using 4-way searches...
+//Build Node list using 4-way searches...
 void DA::buildNodeList(std::vector<ot::TreeNode> &in) {
 #ifdef __PROF_WITH_BARRIER__
   MPI_Barrier(m_mpiCommActive);
@@ -90,6 +90,20 @@ void DA::buildNodeList(std::vector<ot::TreeNode> &in) {
       iLoopEnd = nelem;
     }
 
+    MPI_Barrier(m_mpiCommActive);
+    if(!m_iRankActive) {
+      std::cout<<"numFullLoopCtr: "<<numFullLoopCtr<<std::endl;
+    }
+      if(m_iRankAll == 123) {
+      std::cout<<"Processor "<<m_iRankAll<<": preElemSz: "<<m_uiPreGhostElementSize
+      <<" elemBeg: "<<m_uiElementBegin<<" elemEnd: "<<m_uiElementEnd
+      <<" postGhostBegin: "<<m_uiPostGhostBegin
+      <<" locBufferSz: "<<m_uiLocalBufferSize
+      <<" nelem: "<<nelem
+      <<" iLoopSt: "<<iLoopSt
+      <<" iLoopEnd: "<<iLoopEnd<<std::endl;
+      }
+    MPI_Barrier(m_mpiCommActive);
 #ifdef __DEBUG_DA_NLIST__
     MPI_Barrier(m_mpiCommActive);
     if(!m_iRankActive) {
@@ -102,9 +116,8 @@ void DA::buildNodeList(std::vector<ot::TreeNode> &in) {
       <<" nelem: "<<nelem
       <<" iLoopSt: "<<iLoopSt
       <<" iLoopEnd: "<<iLoopEnd<<std::endl;
-    if(m_uiElementBegin < m_uiPostGhostBegin) {
+    assert(m_uiElementBegin < m_uiPostGhostBegin);
       std::cout<<m_iRankActive<<" my First Octant(elem/Bnd): "<<in[m_uiElementBegin]<<std::endl;
-    }
     MPI_Barrier(m_mpiCommActive);
 #endif
 
