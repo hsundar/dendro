@@ -90,20 +90,6 @@ void DA::buildNodeList(std::vector<ot::TreeNode> &in) {
       iLoopEnd = nelem;
     }
 
-    MPI_Barrier(m_mpiCommActive);
-    if(!m_iRankActive) {
-      std::cout<<"numFullLoopCtr: "<<numFullLoopCtr<<std::endl;
-    }
-      if(m_iRankAll == 123) {
-      std::cout<<"Processor "<<m_iRankAll<<": preElemSz: "<<m_uiPreGhostElementSize
-      <<" elemBeg: "<<m_uiElementBegin<<" elemEnd: "<<m_uiElementEnd
-      <<" postGhostBegin: "<<m_uiPostGhostBegin
-      <<" locBufferSz: "<<m_uiLocalBufferSize
-      <<" nelem: "<<nelem
-      <<" iLoopSt: "<<iLoopSt
-      <<" iLoopEnd: "<<iLoopEnd<<std::endl;
-      }
-    MPI_Barrier(m_mpiCommActive);
 #ifdef __DEBUG_DA_NLIST__
     MPI_Barrier(m_mpiCommActive);
     if(!m_iRankActive) {
@@ -117,7 +103,7 @@ void DA::buildNodeList(std::vector<ot::TreeNode> &in) {
       <<" iLoopSt: "<<iLoopSt
       <<" iLoopEnd: "<<iLoopEnd<<std::endl;
     assert(m_uiElementBegin < m_uiPostGhostBegin);
-      std::cout<<m_iRankActive<<" my First Octant(elem/Bnd): "<<in[m_uiElementBegin]<<std::endl;
+    std::cout<<m_iRankActive<<" my First Octant(elem/Bnd): "<<in[m_uiElementBegin]<<std::endl;
     MPI_Barrier(m_mpiCommActive);
 #endif
 
@@ -2183,13 +2169,11 @@ std::vector<seq::IndexHolder<ot::TreeNode> > inHolder(in.size());
 for (unsigned int i=0; i < in.size(); i++) {
   in[i].setWeight(i);
   inHolder[i].value = &in[i];
-  if( i >= nelem ) {
-    //Mark new octants, old postghosts and boundaries 
-    //Note, OLD FOREIGNs are NOT marked here itself. Old FOREIGNs will be
-    //identified later. If not, it will mess up the computation of
-    //new nelem for cases which do not have any own elements. 
+  if( (i >= nelem) || ( (i < iLoopEnd) &&
+        (m_ucpLutMasks[(2*i) + 1] == ot::DA_FLAGS::FOREIGN) ) ) {
+    //Mark old Foreign, new octants, postghosts and boundaries
     inHolder[i].index = 0;
-  }else {
+  } else {
     inHolder[i].index = 1;
   }
 } // end i for resort set weights ...
@@ -2212,13 +2196,19 @@ TreeNode  myFirstOctant = in[m_uiElementBegin];
 assert( (m_uiPostGhostBegin - 1) < in.size() );
 TreeNode  myLastOctant = in[m_uiPostGhostBegin - 1];
 
-//This is a misnomer. It is really the index of the last element for
-//which the LUT was constructed.
-unsigned int oldNelem = iLoopEnd;
 //Correct nelem...
-nelem = static_cast<unsigned int>(in.size());
-while( (nelem > 0) && (inHolder[nelem-1].index == 0) ) {
-  nelem--;
+nelem = 0;
+if(m_uiElementSize) {
+  while( (nelem < in.size()) &&
+      ((*(inHolder[nelem].value)) <= in[m_uiElementEnd - 1]) ) {
+    nelem++; 
+  }
+} else {
+  while( ( nelem < in.size() ) &&
+      ( (*(inHolder[nelem].value)) < myFirstOctant ) &&
+      ( !((inHolder[nelem].value)->getFlag() & ot::TreeNode::BOUNDARY) ) ) {
+    nelem++; 
+  }
 }
 
 #ifdef __DEBUG_DA_NLIST__
@@ -2253,13 +2243,7 @@ MPI_Barrier(m_mpiCommActive);
 std::vector<ot::TreeNode> tmpIn(in.size());
 for(unsigned int i = 0;  i < in.size(); i++) {
   tmpIn[i] = *(inHolder[i].value);
-  if( (inHolder[i].value->getWeight() < oldNelem) &&
-      (m_ucpLutMasks[2*(inHolder[i].value->getWeight()) + 1] == ot::DA_FLAGS::FOREIGN) ) {
-    //Identify old Foreign
-    tmpIn[i].setWeight(0);
-  }else {
-    tmpIn[i].setWeight(inHolder[i].index);
-  }
+  tmpIn[i].setWeight(inHolder[i].index);
 }//end for i
 
 in = tmpIn;
@@ -2280,7 +2264,7 @@ MPI_Barrier(m_mpiCommActive);
 // PreGhosts ....
 m_uiPreGhostElementSize = 0;
 while( (m_uiPreGhostElementSize < in.size()) && (in[m_uiPreGhostElementSize] < myFirstOctant) ) {
-  if (!(in[m_uiPreGhostElementSize].getFlag() & ot::TreeNode::BOUNDARY) ) {
+  if ( !(in[m_uiPreGhostElementSize].getFlag() & ot::TreeNode::BOUNDARY) ) {
     m_uiPreGhostElementSize++;
   }else {
     break;
@@ -2289,7 +2273,7 @@ while( (m_uiPreGhostElementSize < in.size()) && (in[m_uiPreGhostElementSize] < m
 
 if(nelem != (m_uiPreGhostElementSize + m_uiElementSize) ) {
   std::cout<<"Processor "<<m_iRankAll<<" failing: nelem = "<<nelem
-    <<" pgSize = "<<m_uiPreGhostElementSize<<" elemSz = "<<m_uiElementSize<<std::endl;
+    <<" pgElemSz = "<<m_uiPreGhostElementSize<<" elemSz = "<<m_uiElementSize<<std::endl;
 }
 assert( nelem == (m_uiPreGhostElementSize + m_uiElementSize) );
 #ifdef __DEBUG_DA_NLIST__
@@ -2343,7 +2327,7 @@ MPI_Barrier(m_mpiCommActive);
 //outer-loop (numFullLoopCtr).
 //The second time the preghosts will be visited once again.
 //Skip correction of nlist for Foreigns 
-for (unsigned int i = 0; i < oldNelem; i++) {
+for (unsigned int i = 0; i < iLoopEnd; i++) {
 #ifdef __DEBUG_DA_NLIST__
   assert(i < oldToNew.size() );
   assert(oldToNew[i] < nelem);
