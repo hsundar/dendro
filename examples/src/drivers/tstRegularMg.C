@@ -134,8 +134,10 @@ int main(int argc, char ** argv ) {
   MPI_Barrier(MPI_COMM_WORLD);
 
   for(int i=0;i<nlevels;i++) {
-    std::cout<<"Level "<<i<<" is regular? "<<
-      (isRegularGrid(damg[i]->da))<<std::endl;
+    bool isRegOct = isRegularGrid(damg[i]->da);
+    if(!rank) {
+    std::cout<<"Level "<<i<<" is regular? "<<isRegOct<<std::endl;
+    }
   }//end for i
 
 
