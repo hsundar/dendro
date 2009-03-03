@@ -14,7 +14,7 @@
 %If the range(difference between the max and min coeffs of the 8 fine octants)
 %is less than the below value times the max coeff, then it's ok to approximate using average values even for the exact case. 
  -tolToCoarsenMatProp 0.1
- -numCubes 1048576
+ -numCubes 64
  -jacType 2
  -rhsType 4
 
