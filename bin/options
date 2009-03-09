@@ -3,8 +3,8 @@
 
  -massBaseMatProp 1.0
  -lapBaseMatProp 1.0
- -lapMatPropFac 1.0
- -massMatPropFac 1.0
+ -lapMatPropFac 0.0
+ -massMatPropFac 0.0
  %-setMatPropsAtCoarsest
  %-setMatPropsUsingPts
  %-setMatPropFromAnalyticFn
