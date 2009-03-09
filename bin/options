@@ -3,8 +3,8 @@
 
  -massBaseMatProp 1.0
  -lapBaseMatProp 1.0
- -lapMatPropFac 1.0e7
- -massMatPropFac 0.0
+ -lapMatPropFac 1.0
+ -massMatPropFac 1.0
  %-setMatPropsAtCoarsest
  %-setMatPropsUsingPts
  %-setMatPropFromAnalyticFn
@@ -14,11 +14,11 @@
 %If the range(difference between the max and min coeffs of the 8 fine octants)
 %is less than the below value times the max coeff, then it's ok to approximate using average values even for the exact case. 
  -tolToCoarsenMatProp 0.1
- -numCubes 64
+ -numCubes 1
  -jacType 2
  -rhsType 4
 
- -useRegularOctreeAtLevel 7
+ %-useRegularOctreeAtLevel 7
 
  -minCoarsestLevel 0
 
@@ -49,7 +49,7 @@
  
  -ksp_type cg
  -ksp_converged_reason
- -ksp_max_it 1
+ -ksp_max_it 10
  -ksp_rtol 1e-8
  %-ksp_atol 1e-30
  
