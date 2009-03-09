@@ -52,7 +52,7 @@ int main(int argc, char ** argv ) {
   double mgLoadFac = 2.0;
   bool incCorner = 1;  
 
-  PetscInitialize(&argc,&argv,"options",help);
+  PetscInitialize(&argc,&argv,"optionsFBM",help);
   ot::RegisterEvents();
 
   ot::DAMG_Initialize(MPI_COMM_WORLD);
