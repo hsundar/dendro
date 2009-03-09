@@ -13,6 +13,7 @@
 #include "dtypes.h"
 #include <cassert>
 #include <iostream>
+#include <algorithm>
 #include "dendro.h"
 
 #ifdef __DEBUG__
