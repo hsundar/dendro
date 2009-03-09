@@ -1,38 +1,17 @@
  
- %-damg_grid_sequence
-
  -massBaseMatProp 1.0
  -lapBaseMatProp 1.0
- -lapMatPropFac 0.0
- -massMatPropFac 0.0
- %-setMatPropsAtCoarsest
- %-setMatPropsUsingPts
- %-setMatPropFromAnalyticFn
- %-setCheckerBoardMatProp
- %-lapFreq 2.0
-
-%If the range(difference between the max and min coeffs of the 8 fine octants)
-%is less than the below value times the max coeff, then it's ok to approximate using average values even for the exact case. 
- -tolToCoarsenMatProp 0.1
- -numCubes 1
- -jacType 2
- -rhsType 4
-
- %-useRegularOctreeAtLevel 7
+ -lapMatPropFac 1.0
+ -massMatPropFac 1.0
 
  -minCoarsestLevel 0
 
- -numGaussPts 7
+ -numGaussPts 4
 
  -fullJacMatType aij
- %-fullJacMatType superlu_dist
- -numRefinements 0
- -nlevels 10
+ -nlevels 20
  -buildFullCoarseMat 1
  -buildFullMatAll 0
-
- %-setRandomGuess
- -randomSeed 200
 
  -private_ksp_type richardson
  -private_ksp_left_pc 
@@ -52,131 +31,6 @@
  -ksp_max_it 10
  -ksp_rtol 1e-8
  %-ksp_atol 1e-30
- 
- %-pc_type hypre
- 
-  %-pc_hypre_type boomeramg
-
-  % -pc_hypre_boomeramg_cycle_type <V> (choose one of)  V
-  % -pc_hypre_boomeramg_max_levels <25>: Number of levels (of grids) allowed (None)
-  %-pc_hypre_boomeramg_max_iter <1>: Maximum iterations used PER hypre call (None)
-  %-pc_hypre_boomeramg_tol <0>: Convergence tolerance PER hypre call (0.0 = use a fixed number of iterations) (None)
-  % -pc_hypre_boomeramg_truncfactor <0>: Truncation factor for interpolation (0=no truncation) (None)
-  % -pc_hypre_boomeramg_P_max <0>: Max elements per row for interpolation operator ( 0=unlimited ) (None)
-  % -pc_hypre_boomeramg_agg_nl <0>: Number of levels of aggressive coarsening (None)
-  % -pc_hypre_boomeramg_agg_num_paths <1>: Number of paths for aggressive coarsening (None)
-  % -pc_hypre_boomeramg_strong_threshold <0.25>: Threshold for being strongly connected (None)
-  % -pc_hypre_boomeramg_max_row_sum <0.9>: Maximum row sum (None)
-  % -pc_hypre_boomeramg_grid_sweeps_all <1>: Number of sweeps for the up and down grid levels (None)
-  % -pc_hypre_boomeramg_grid_sweeps_down <1>: Number of sweeps for the down cycles (None)
-  % -pc_hypre_boomeramg_grid_sweeps_up <1>: Number of sweeps for the up cycles (None)
-  % -pc_hypre_boomeramg_grid_sweeps_coarse <1>: Number of sweeps for the coarse level (None)
-  % -pc_hypre_boomeramg_relax_type_all <symmetric-SOR/Jacobi> (choose one of) Jacobi sequential-Gauss-Seidel  SOR/Jacobi backward-SOR/Jacobi  symmetric-SOR/Jacobi   Gaussian-elimination
-  % -pc_hypre_boomeramg_relax_type_down <symmetric-SOR/Jacobi> (choose one of) Jacobi sequential-Gauss-Seidel  SOR/Jacobi backward-SOR/Jacobi  symmetric-SOR/Jacobi   Gaussian-elimination
-  % -pc_hypre_boomeramg_relax_type_up <symmetric-SOR/Jacobi> (choose one of) Jacobi sequential-Gauss-Seidel  SOR/Jacobi backward-SOR/Jacobi  symmetric-SOR/Jacobi   Gaussian-elimination
-  % -pc_hypre_boomeramg_relax_type_coarse <Gaussian-elimination> (choose one of) Jacobi sequential-Gauss-Seidel  SOR/Jacobi backward-SOR/Jacobi  symmetric-SOR/Jacobi   Gaussian-elimination
-  % -pc_hypre_boomeramg_relax_weight_all <1>: Relaxation weight for all levels (0 = hypre estimates, -k = determined with k CG steps) (None)
-  % -pc_hypre_boomeramg_relax_weight_level <1>: Set the relaxation weight for a particular level (weight,level) (None)
-  % -pc_hypre_boomeramg_outer_relax_weight_all <1>: Outer relaxation weight for all levels ( -k = determined with k CG steps) (None)
-  % -pc_hypre_boomeramg_outer_relax_weight_level <1>: Set the outer relaxation weight for a particular level (weight,level) (None)
-  % -pc_hypre_boomeramg_no_CF: <FALSE> Do not use CF-relaxation (None)
-  % -pc_hypre_boomeramg_measure_type <local> (choose one of) local global
-  % -pc_hypre_boomeramg_coarsen_type <Falgout> (choose one of) CLJP Ruge-Stueben  modifiedRuge-Stueben   Falgout  PMIS  HMIS
-  % -pc_hypre_boomeramg_interp_type <classical> (choose one of) classical   direct multipass multipass-wts ext+i ext+i-cc standard standard-wts   FF FF1
-  % -pc_hypre_boomeramg_print_statistics: Print statistics (None)
-  % -pc_hypre_boomeramg_nodal_coarsen: <FALSE> HYPRE_BoomerAMGSetNodal() (None)
-  % -pc_hypre_boomeramg_nodal_relaxation: <FALSE> Nodal relaxation via Schwarz (None)
-
-  -pc_hypre_boomeramg_cycle_type  V
-  -pc_hypre_boomeramg_max_levels 25
-  -pc_hypre_boomeramg_max_iter 1
-  -pc_hypre_boomeramg_tol 0.0
-  -pc_hypre_boomeramg_relax_type_all Jacobi 
-  -pc_hypre_boomeramg_relax_type_coarse Gaussian-elimination 
-  -pc_hypre_boomeramg_grid_sweeps_all 4
-
- %-pc_type sor 
- %-pc_sor_symmetric
- %-pc_sor_its 2
- %-pc_sor_omega 1.0
-
- %-pc_type jacobi
-
- %Options for Recursive Two Level MG
- %-damg_useRTLMG
-
- -rtlmg_finest_pc_type mg
- -rtlmg_finest_pc_mg_type multiplicative
- -rtlmg_finest_pc_mg_multiplicative_cycles 1
- -rtlmg_finest_pc_mg_cycle_type v
-
- -rtlmg_finest_private_ksp_type preonly
- -rtlmg_finest_private_ksp_max_it 1 
- -rtlmg_finest_private_ksp_rtol 1e-10
- -rtlmg_finest_private_pc_type lu
-
- -rtlmg_levels_pc_type mg
- -rtlmg_levels_pc_mg_type multiplicative
- -rtlmg_levels_pc_mg_multiplicative_cycles 10
- -rtlmg_levels_pc_mg_cycle_type v
-
- %Since this is a 2-level scheme, levels_1 is the same as levels
- -rtlmg_finest_mg_levels_1_ksp_type richardson
- -rtlmg_finest_mg_levels_1_ksp_left_pc
- -rtlmg_finest_mg_levels_1_ksp_norm_type no
- -rtlmg_finest_mg_levels_1_ksp_richardson_scale 0.667
- -rtlmg_finest_mg_levels_1_ksp_max_it 4
- -rtlmg_finest_mg_levels_1_pc_type jacobi
-
- -rtlmg_finest_mg_levels_ksp_rtol 1e-10
- %-rtlmg_finest_mg_levels_ksp_atol 1e-13
- %-rtlmg_finest_mg_levels_ksp_view
-
- -rtlmg_finest_mg_coarse_ksp_type cg
- -rtlmg_finest_mg_coarse_ksp_max_it 10
- -rtlmg_finest_mg_coarse_ksp_converged_reason
- %-rtlmg_finest_mg_coarse_ksp_final_residual
- %-rtlmg_finest_mg_coarse_ksp_monitor
-
- -rtlmg_finest_mg_coarse_ksp_rtol 1e-10
- %-rtlmg_finest_mg_coarse_ksp_atol 1e-13
- %-rtlmg_finest_mg_coarse_ksp_view
- 
- -rtlmg_levels_mg_levels_1_ksp_type richardson
- -rtlmg_levels_mg_levels_1_ksp_left_pc
- -rtlmg_levels_mg_levels_1_ksp_norm_type no
- -rtlmg_levels_mg_levels_1_ksp_richardson_scale 0.667
- -rtlmg_levels_mg_levels_1_ksp_max_it 4
- -rtlmg_levels_mg_levels_1_pc_type jacobi
-
- -rtlmg_levels_mg_levels_ksp_rtol 1e-10
- %-rtlmg_levels_mg_levels_ksp_atol 1e-13
- %-rtlmg_levels_mg_levels_ksp_view
-
- -rtlmg_levels_mg_coarse_ksp_type cg
- -rtlmg_levels_mg_coarse_ksp_max_it 10
- -rtlmg_levels_mg_coarse_ksp_rtol 1e-10
- %-rtlmg_levels_mg_coarse_ksp_converged_reason
- %-rtlmg_levels_mg_coarse_ksp_final_residual
- %-rtlmg_levels_mg_coarse_ksp_monitor
-
- %If all processors are active on the coarsest grid, then the following options
- %will be used. Else they will be ignored
- -rtlmg_levels_1_mg_coarse_ksp_type preonly
- -rtlmg_levels_1_mg_coarse_ksp_max_it 1
- -rtlmg_levels_1_mg_coarse_pc_type lu
- 
- %If NOT all processors are active on the coarsest grid, then the following options
- %will be used. Else they will be ignored
- -rtlmg_levels_1_mg_coarse_private_ksp_type preonly
- -rtlmg_levels_1_mg_coarse_private_ksp_max_it 1
- -rtlmg_levels_1_mg_coarse_private_ksp_rtol 1e-10
- -rtlmg_levels_1_mg_coarse_private_pc_type lu
- %-rtlmg_levels_1_mg_coarse_private_ksp_monitor
- %-rtlmg_levels_1_mg_coarse_private_ksp_view
-
- %-rtlmg_levels_mg_coarse_ksp_atol 1e-13
- %-rtlmg_levels_mg_coarse_ksp_view
  
 %Options for the Standard MG scheme
  -pc_type mg
@@ -226,11 +80,11 @@
  %-malloc_debug
 
  %-options_table: dump list of options inputted
- -options_table
+ %-options_table
 
  %-options_left: dump list of unused options
  %-options_left no: don't dump list of unused options
- -options_left
+ %-options_left
 
  %-log_summary
  
