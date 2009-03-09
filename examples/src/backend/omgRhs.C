@@ -20,7 +20,6 @@ namespace ot {
 }
 
 #define square(x) ((x)*(x))
-#define SQR(x) ((x)*(x))
 
 #define EVAL_FN(x,y,z,result) {\
   result = 0.0;\
@@ -71,7 +70,7 @@ PetscErrorCode ComputeFBM_RHS(ot::DAMG damg,Vec in) {
 //The location of the delta
 //functions is given in the file "fbmInp<rank>_<npes>.pts"
 PetscErrorCode ComputeFBM_RHS_Part2(ot::DAMG damg, Vec in) {
-  PetscFunctionBegin;	 	 
+  PetscFunctionBegin;
 
   ot::DA* da = damg->da;
 
@@ -184,8 +183,8 @@ PetscErrorCode ComputeFBM_RHS_Part2(ot::DAMG damg, Vec in) {
 
   //We can simply communicate the doubles instead, but then we will need to
   //recreate octants from doubles to do further processing.
-  std::vector<ot::NodeAndValues<double, 4> > sendList(sendOffsets[npesAll] + sendCnt[npesAll]);
-  std::vector<ot::NodeAndValues<double, 4> > recvList(recvOffsets[npesAll] + recvCnt[npesAll]);
+  std::vector<ot::NodeAndValues<double, 4> > sendList(sendOffsets[npesAll - 1] + sendCnt[npesAll - 1]);
+  std::vector<ot::NodeAndValues<double, 4> > recvList(recvOffsets[npesAll - 1] + recvCnt[npesAll - 1]);
 
   int* tmpSendCnt = new int[npesAll];
   for(int i = 0; i < npesAll; i++) {
@@ -383,7 +382,7 @@ PetscErrorCode ComputeFBM_RHS_Part1(ot::DAMG damg, Vec in) {
                 if(!( (x >= (0.5 - fbmR)) && (x <= (0.5 + fbmR)) &&
                       (y >= (0.5 - fbmR)) && (y <= (0.5 + fbmR)) &&
                       (z >= (0.5 - fbmR)) && (z <= (0.5 + fbmR))  ) ) {
-                  rhsVal = -6.0 -(SQR(fbmR)) + (SQR(x - 0.5)) + (SQR(y - 0.5)) + (SQR(z - 0.5));
+                  rhsVal = -6.0 -(square(fbmR)) + (square(x - 0.5)) + (square(y - 0.5)) + (square(z - 0.5));
                 }
                 double ShFnVal = ( ot::ShapeFnCoeffs[childNum][elemType][j][0] + 
                     (ot::ShapeFnCoeffs[childNum][elemType][j][1]*gPts[numGaussPts-2][m]) +
@@ -1320,8 +1319,8 @@ PetscErrorCode ComputeRHS9(ot::DAMG damg, Vec in) {
 
   //We can simply communicate the doubles instead, but then we will need to
   //recreate octants from doubles to do further processing.
-  std::vector<ot::NodeAndValues<double, 4> > sendList(sendOffsets[npesAll] + sendCnt[npesAll]);
-  std::vector<ot::NodeAndValues<double, 4> > recvList(recvOffsets[npesAll] + recvCnt[npesAll]);
+  std::vector<ot::NodeAndValues<double, 4> > sendList(sendOffsets[npesAll - 1] + sendCnt[npesAll - 1]);
+  std::vector<ot::NodeAndValues<double, 4> > recvList(recvOffsets[npesAll - 1] + recvCnt[npesAll - 1]);
 
   int* tmpSendCnt = new int[npesAll];
   for(int i = 0; i < npesAll; i++) {
