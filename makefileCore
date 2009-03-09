@@ -18,7 +18,7 @@ EXEC_MG = bin/checkError bin/newElasMesh bin/newElasSolver \
 EXEC_TESTS = bin/createCoarser bin/chkNl bin/chkMl bin/dumpMesh\
             bin/downSample \
              bin/checkResults bin/checkSV bin/chkCoarsen \
-	     bin/justCoarsen bin/testNodeAndVals bin/testPetscInt bin/testFBM
+	     bin/justCoarsen bin/testNodeAndVals bin/testPetscInt bin/tstFBM
 
 EXEC_UTIL = bin/gen2spheres
 
