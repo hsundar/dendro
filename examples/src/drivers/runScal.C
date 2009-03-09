@@ -5,6 +5,7 @@
 #include "octUtils.h"
 #include "TreeNode.h"
 #include "parUtils.h"
+#include <cstdlib>
 #include "externVars.h"
 #include "dendro.h"
 

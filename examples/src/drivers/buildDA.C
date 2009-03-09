@@ -11,6 +11,7 @@
 #include "TreeNode.h"
 #include "colors.h"
 #include "oda.h"
+#include <cstdlib>
 #include "externVars.h"
 #include "dendro.h"
 

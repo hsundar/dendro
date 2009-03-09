@@ -8,6 +8,7 @@
 #include "oda.h"
 #include "omgJac.h"
 #include "handleStencils.h"
+#include <cstdlib>
 #include "colors.h"
 #include "externVars.h"
 #include "dendro.h"

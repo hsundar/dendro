@@ -6,6 +6,7 @@
 #include "parUtils.h"
 #include "omg.h"
 #include "oda.h"
+#include <cstdlib>
 #include "colors.h"
 #include "externVars.h"
 #include "dendro.h"

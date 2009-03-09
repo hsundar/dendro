@@ -6,6 +6,7 @@
 #include "omg.h"
 #include "oda.h"
 #include "omgJac.h"
+#include <cstdlib>
 #include "handleStencils.h"
 #include "colors.h"
 #include "externVars.h"

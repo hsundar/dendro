@@ -11,6 +11,7 @@
 #include "petscvec.h"
 #include "petscksp.h"
 #include "oda.h"
+#include <cstdlib>
 #include "massMatrix.h"
 #include "stiffnessMatrix.h"
 #include "externVars.h"

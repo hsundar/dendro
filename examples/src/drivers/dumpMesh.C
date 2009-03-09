@@ -5,6 +5,7 @@
 #include "parUtils.h"
 #include "TreeNode.h"
 #include "oda.h"
+#include <cstdlib>
 #include "colors.h"
 #include "externVars.h"
 #include "dendro.h"
