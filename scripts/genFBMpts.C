@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <vector>
 #include <cassert>
+#include <cmath>
 
 #define __PI__ 3.14159265
 
