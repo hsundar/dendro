@@ -4,6 +4,7 @@
 #include "sys.h"
 #include "octUtils.h"
 #include "TreeNode.h"
+#include <cstdlib>
 #include "externVars.h"
 
 //Don't want time to be synchronized. Need to check load imbalance.

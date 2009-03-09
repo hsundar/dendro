@@ -15,6 +15,7 @@
 #include "handleStencils.h"
 #include "elasticityJac.h"
 #include "omgJac.h"
+#include <cstdlib>
 #include "colors.h"
 #include "externVars.h"
 #include "dendro.h"
