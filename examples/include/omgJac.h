@@ -70,6 +70,10 @@ PetscErrorCode ComputeRHS5(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeRHS6(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeRHS7(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeRHS8(ot::DAMG damg, Vec in);
+PetscErrorCode ComputeRHS9(ot::DAMG damg, Vec in);
+PetscErrorCode ComputeFBM_RHS(ot::DAMG damg, Vec in);
+PetscErrorCode ComputeFBM_RHS_Part1(ot::DAMG damg, Vec in);
+PetscErrorCode ComputeFBM_RHS_Part2(ot::DAMG damg, Vec in);
 PetscErrorCode SetSolution5(ot::DA* da, Vec in);
 
 double ComputeError5(ot::DA* da, Vec in);

@@ -18,7 +18,7 @@ EXEC_MG = bin/checkError bin/newElasMesh bin/newElasSolver \
 EXEC_TESTS = bin/createCoarser bin/chkNl bin/chkMl bin/dumpMesh\
             bin/downSample \
              bin/checkResults bin/checkSV bin/chkCoarsen \
-	     bin/justCoarsen bin/testNodeAndVals bin/testPetscInt
+	     bin/justCoarsen bin/testNodeAndVals bin/testPetscInt bin/testFBM
 
 EXEC_UTIL = bin/gen2spheres
 
@@ -161,6 +161,9 @@ bin/elasticitySolver : ./examples/src/drivers/elasticitySolver.o ./examples/src/
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
 
 bin/checkError : ./examples/src/drivers/checkError.o ./examples/src/backend/omgJac.o ./examples/src/backend/matProp.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/handleType2Stencils.o ./examples/src/backend/handleType1Stencils.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
+	
+bin/tstFBM : ./examples/src/drivers/tstFBM.o ./examples/src/backend/omgJac.o ./examples/src/backend/matProp.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/handleType2Stencils.o ./examples/src/backend/handleType1Stencils.o $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
 	
 bin/tstMg : ./examples/src/drivers/tstMg.o ./examples/src/backend/omgJac.o ./examples/src/backend/matProp.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/handleType2Stencils.o ./examples/src/backend/handleType1Stencils.o $(ARCHIVES)

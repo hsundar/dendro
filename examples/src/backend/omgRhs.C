@@ -20,6 +20,7 @@ namespace ot {
 }
 
 #define square(x) ((x)*(x))
+#define SQR(x) ((x)*(x))
 
 #define EVAL_FN(x,y,z,result) {\
   result = 0.0;\
@@ -44,6 +45,371 @@ namespace ot {
     double dz = ((z) - 0.6);\
     result += exp(-((square(dx) + square(dy) + square(dz))/0.005));\
   }\
+}
+
+PetscErrorCode ComputeFBM_RHS(ot::DAMG damg,Vec in) {
+  PetscFunctionBegin;
+
+  Vec tmp;
+  VecDuplicate(in, &tmp);
+
+  ComputeFBM_RHS_Part1(damg, in);
+
+  ComputeFBM_RHS_Part2(damg, tmp);
+
+  PetscReal fbmR = 0;
+  PetscOptionsGetReal(0,"-fbmR",&fbmR,0);
+
+  VecAXPY(in, 2.0*fbmR, tmp);
+
+  VecDestroy(tmp);
+
+  PetscFunctionReturn(0);
+}
+
+//Force is a sum of delta functions.
+//The location of the delta
+//functions is given in the file "fbmInp<rank>_<npes>.pts"
+PetscErrorCode ComputeFBM_RHS_Part2(ot::DAMG damg, Vec in) {
+  PetscFunctionBegin;	 	 
+
+  ot::DA* da = damg->da;
+
+  MPI_Comm commAll = da->getComm();
+
+  int rankAll = da->getRankAll();
+  int npesAll = da->getNpesAll();
+
+  unsigned int dim = da->getDimension();
+  unsigned int maxDepth = da->getMaxDepth();
+  int npesActive = da->getNpesActive();
+
+  if( npesActive < npesAll ) {
+    unsigned int tmpArr[3];
+    tmpArr[0] = dim;
+    tmpArr[1] = maxDepth;
+    tmpArr[2] = npesActive;
+
+    par::Mpi_Bcast<unsigned int>(tmpArr, 3, 0, commAll);
+
+    dim = tmpArr[0];
+    maxDepth = tmpArr[1];
+    npesActive = static_cast<int>(tmpArr[2]);
+  }
+
+  unsigned int balOctMaxD = (maxDepth - 1);
+
+  char pFile[250];
+  sprintf(pFile,"fbmInp%d_%d.pts", rankAll, npesAll);
+
+  std::vector<double> pts;
+  ot::readPtsFromFile(pFile, pts);
+
+  unsigned int numLocalDelta = pts.size()/3.0; 
+
+  std::vector<ot::NodeAndValues<double, 4> > tnAndVal(numLocalDelta);
+
+  for(unsigned int i = 0; i < numLocalDelta; i++) {
+    double x = pts[3*i];
+    double y = pts[(3*i) + 1];
+    double z = pts[(3*i) + 2];
+
+    unsigned int xint = static_cast<unsigned int>(x*static_cast<double>(1u << balOctMaxD));
+    unsigned int yint = static_cast<unsigned int>(y*static_cast<double>(1u << balOctMaxD));
+    unsigned int zint = static_cast<unsigned int>(z*static_cast<double>(1u << balOctMaxD));
+
+    tnAndVal[i].node = ot::TreeNode(xint, yint, zint, maxDepth, dim, maxDepth);
+
+    tnAndVal[i].values[0] = x;
+    tnAndVal[i].values[1] = y;
+    tnAndVal[i].values[2] = z;
+    tnAndVal[i].values[3] = 1.0;
+  }//end for i
+
+  pts.clear();
+
+  std::vector<ot::TreeNode> minBlocks = da->getMinAllBlocks();
+
+  if(npesActive < npesAll) {
+    bool* activeStates = new bool[npesAll];
+
+    activeStates[0] = true;
+    for(int i = 1; i < npesActive; i++) {
+      activeStates[i] = false;
+    }
+    for(int i = npesActive; i < npesAll; i++) {
+      activeStates[i] = true;
+    }
+
+    MPI_Comm tmpComm;
+
+    par::splitComm2way(activeStates, &tmpComm, commAll);
+
+    if(rankAll == 0) {
+      par::Mpi_Bcast<ot::TreeNode>(&(*(minBlocks.begin())) , npesActive, 0, tmpComm);
+    }
+    if(rankAll >= npesActive) {
+      minBlocks.resize(npesActive);
+      par::Mpi_Bcast<ot::TreeNode>(&(*(minBlocks.begin())) , npesActive, 0, tmpComm);
+    }
+
+    delete [] activeStates;
+  }
+
+  unsigned int* part = new unsigned int[tnAndVal.size()];
+
+  int *sendCnt = new int[npesAll];
+  for(int i = 0; i < npesAll; i++) {
+    sendCnt[i] = 0;
+  }
+
+  for(int i = 0; i < tnAndVal.size(); i++) {
+    seq::maxLowerBound<ot::TreeNode>(minBlocks, tnAndVal[i].node, part[i], NULL, NULL);
+    sendCnt[part[i]]++; 
+  }
+
+  int *recvCnt = new int[npesAll];
+
+  par::Mpi_Alltoall<int>( sendCnt, recvCnt, 1, commAll);
+
+  int *sendOffsets = new int[npesAll];
+  int *recvOffsets = new int[npesAll];
+
+  sendOffsets[0] = 0;
+  recvOffsets[0] = 0;
+  for(int i = 1; i < npesAll; i++) {
+    sendOffsets[i] = sendOffsets[i - 1] + sendCnt[i - 1];
+    recvOffsets[i] = recvOffsets[i - 1] + recvCnt[i - 1];
+  }
+
+  //We can simply communicate the doubles instead, but then we will need to
+  //recreate octants from doubles to do further processing.
+  std::vector<ot::NodeAndValues<double, 4> > sendList(sendOffsets[npesAll] + sendCnt[npesAll]);
+  std::vector<ot::NodeAndValues<double, 4> > recvList(recvOffsets[npesAll] + recvCnt[npesAll]);
+
+  int* tmpSendCnt = new int[npesAll];
+  for(int i = 0; i < npesAll; i++) {
+    tmpSendCnt[i] = 0;
+  }
+
+  for(int i = 0; i < tnAndVal.size(); i++) {
+    sendList[sendOffsets[part[i]] + tmpSendCnt[part[i]]] = tnAndVal[i];
+    tmpSendCnt[part[i]]++;
+  }
+  delete [] tmpSendCnt;
+  tnAndVal.clear();
+
+  par::Mpi_Alltoallv_sparse<ot::NodeAndValues<double, 4> >( &(*(sendList.begin())), sendCnt,
+      sendOffsets, &(*(recvList.begin())), recvCnt, recvOffsets, commAll);
+
+  sendList.clear();
+
+  delete [] part;
+  delete [] sendCnt;
+  delete [] recvCnt;
+  delete [] sendOffsets;
+  delete [] recvOffsets;
+
+  sort(recvList.begin(), recvList.end());
+
+  //Now the points are sorted and aligned with the DA partition
+
+  //In PETSc's debug mode they use an Allreduce where all processors (active
+  //and inactive) participate. Hence, VecZeroEntries must be called by active
+  //and inactive processors.
+  VecZeroEntries(in);
+
+  if(!(da->iAmActive())) {
+    assert(recvList.empty());
+  } else {
+    PetscScalar *inarray;
+    da->vecGetBuffer(in, inarray, false, false, false, 1);
+
+    unsigned int ptsCtr = 0;
+
+    for(da->init<ot::DA_FLAGS::WRITABLE>();
+        da->curr() < da->end<ot::DA_FLAGS::WRITABLE>();
+        da->next<ot::DA_FLAGS::WRITABLE>())  
+    {
+      Point pt;
+      pt = da->getCurrentOffset();
+      unsigned int idx = da->curr();
+      unsigned levelhere = da->getLevel(idx);
+      unsigned int xint = pt.xint();
+      unsigned int yint = pt.yint();
+      unsigned int zint = pt.zint();
+      ot::TreeNode currOct(xint, yint, zint, levelhere, dim, maxDepth);
+      while( (ptsCtr < recvList.size()) && 
+          (recvList[ptsCtr].node < currOct) ) {
+        ptsCtr++;
+      }
+      double hxOct = (double)((double)(1u << (maxDepth - levelhere))/(double)(1u << balOctMaxD));
+      double x = static_cast<double>(xint)/((double)(1u << balOctMaxD));
+      double y = static_cast<double>(yint)/((double)(1u << balOctMaxD));
+      double z = static_cast<double>(zint)/((double)(1u << balOctMaxD));
+      unsigned int indices[8];
+      da->getNodeIndices(indices); 
+      unsigned char childNum = da->getChildNumber();
+      unsigned char hnMask = da->getHangingNodeIndex(idx);
+      unsigned char elemType = 0;
+      GET_ETYPE_BLOCK(elemType,hnMask,childNum)
+        while( (ptsCtr < recvList.size()) && 
+            ( currOct.isAncestor(recvList[ptsCtr].node) || 
+              ( currOct == (recvList[ptsCtr].node) ) ) ) {
+          for(unsigned int j = 0; j < 8; j++) {
+            double xLoc = (((2.0/hxOct)*(recvList[ptsCtr].values[0] - x)) - 1.0);
+            double yLoc = (((2.0/hxOct)*(recvList[ptsCtr].values[1] - y)) - 1.0);
+            double zLoc = (((2.0/hxOct)*(recvList[ptsCtr].values[2] - z)) - 1.0);
+            double ShFnVal = ( ot::ShapeFnCoeffs[childNum][elemType][j][0] + 
+                (ot::ShapeFnCoeffs[childNum][elemType][j][1]*xLoc) +
+                (ot::ShapeFnCoeffs[childNum][elemType][j][2]*yLoc) +
+                (ot::ShapeFnCoeffs[childNum][elemType][j][3]*zLoc) +
+                (ot::ShapeFnCoeffs[childNum][elemType][j][4]*xLoc*yLoc) +
+                (ot::ShapeFnCoeffs[childNum][elemType][j][5]*yLoc*zLoc) +
+                (ot::ShapeFnCoeffs[childNum][elemType][j][6]*zLoc*xLoc) +
+                (ot::ShapeFnCoeffs[childNum][elemType][j][7]*xLoc*yLoc*zLoc) );
+            inarray[indices[j]] += ((recvList[ptsCtr].values[3])*ShFnVal);
+          }//end for j
+          ptsCtr++;
+        }
+    }//end for i
+
+    da->WriteToGhostsBegin<PetscScalar>(inarray, 1);
+    da->WriteToGhostsEnd<PetscScalar>(inarray, 1);
+
+    da->vecRestoreBuffer(in, inarray, false, false, false, 1);
+
+  }//end if active
+
+  PetscFunctionReturn(0);
+
+}//end fn.
+
+PetscErrorCode ComputeFBM_RHS_Part1(ot::DAMG damg, Vec in) {
+  PetscFunctionBegin;	 	 
+
+  ot::DA* da = damg->da;
+  PetscScalar *inarray;
+
+  VecZeroEntries(in);
+  da->vecGetBuffer(in,inarray,false,false,false,1);
+
+  unsigned int maxD;
+  unsigned int balOctmaxD;
+
+  PetscInt numGaussPts = 0;
+  PetscOptionsGetInt(0,"-numGaussPts",&numGaussPts,0);
+
+  PetscReal fbmR = 0;
+  PetscOptionsGetReal(0,"-fbmR",&fbmR,0);
+
+  assert(numGaussPts <= 7);
+  assert(numGaussPts >= 2);
+
+  std::vector<std::vector<double> > wts(6);
+  std::vector<std::vector<double> > gPts(6);
+
+  for(int k = 0; k < 6; k++) {
+    wts[k].resize(k+2);
+    gPts[k].resize(k+2);
+  }
+
+  //2-pt rule
+  wts[0][0] = 1.0; wts[0][1] = 1.0;
+  gPts[0][0] = sqrt(1.0/3.0); gPts[0][1] = -sqrt(1.0/3.0); 
+
+  //3-pt rule
+  wts[1][0] = 0.88888889;  wts[1][1] = 0.555555556;  wts[1][2] = 0.555555556;
+  gPts[1][0] = 0.0;  gPts[1][1] = 0.77459667;  gPts[1][2] = -0.77459667;
+
+  //4-pt rule
+  wts[2][0] = 0.65214515;  wts[2][1] = 0.65214515;
+  wts[2][2] = 0.34785485; wts[2][3] = 0.34785485;  
+  gPts[2][0] = 0.33998104;  gPts[2][1] = -0.33998104;
+  gPts[2][2] = 0.86113631; gPts[2][3] = -0.86113631;
+
+  //5-pt rule
+  wts[3][0] = 0.568888889;  wts[3][1] = 0.47862867;  wts[3][2] =  0.47862867;
+  wts[3][3] = 0.23692689; wts[3][4] = 0.23692689;
+  gPts[3][0] = 0.0;  gPts[3][1] = 0.53846931; gPts[3][2] = -0.53846931;
+  gPts[3][3] = 0.90617985; gPts[3][4] = -0.90617985;
+
+  //6-pt rule
+  wts[4][0] = 0.46791393;  wts[4][1] = 0.46791393;  wts[4][2] = 0.36076157;
+  wts[4][3] = 0.36076157; wts[4][4] = 0.17132449; wts[4][5] = 0.17132449;
+  gPts[4][0] = 0.23861918; gPts[4][1] = -0.23861918; gPts[4][2] = 0.66120939;
+  gPts[4][3] = -0.66120939; gPts[4][4] = 0.93246951; gPts[4][5] = -0.93246951;
+
+  //7-pt rule
+  wts[5][0] = 0.41795918;  wts[5][1] = 0.38183005;  wts[5][2] = 0.38183005;
+  wts[5][3] = 0.27970539;  wts[5][4] = 0.27970539; 
+  wts[5][5] = 0.12948497; wts[5][6] = 0.12948497;
+  gPts[5][0] = 0.0;  gPts[5][1] = 0.40584515;  gPts[5][2] = -0.40584515;
+  gPts[5][3] = 0.74153119;  gPts[5][4] = -0.74153119;
+  gPts[5][5] = 0.94910791; gPts[5][6] = -0.94910791;
+
+  if(da->iAmActive()) {
+    maxD = da->getMaxDepth();
+    balOctmaxD = maxD - 1;
+    for(da->init<ot::DA_FLAGS::ALL>();
+        da->curr() < da->end<ot::DA_FLAGS::ALL>();
+        da->next<ot::DA_FLAGS::ALL>())  
+    {
+      Point pt;
+      pt = da->getCurrentOffset();
+      unsigned int idx = da->curr();
+      unsigned levelhere = (da->getLevel(idx) - 1);
+      double hxOct = (double)((double)(1u << (balOctmaxD - levelhere))/(double)(1u << balOctmaxD));
+      double x = (double)(pt.xint())/((double)(1u << (maxD-1)));
+      double y = (double)(pt.yint())/((double)(1u << (maxD-1)));
+      double z = (double)(pt.zint())/((double)(1u << (maxD-1)));
+      double fac = ((hxOct*hxOct*hxOct)/8.0);
+      unsigned int indices[8];
+      da->getNodeIndices(indices); 
+      unsigned char childNum = da->getChildNumber();
+      unsigned char hnMask = da->getHangingNodeIndex(idx);
+      unsigned char elemType = 0;
+      GET_ETYPE_BLOCK(elemType,hnMask,childNum)
+        for(unsigned int j = 0; j < 8; j++) {
+          double integral = 0.0;
+          //Quadrature Rule
+          for(int m = 0; m < numGaussPts; m++) {
+            for(int n = 0; n < numGaussPts; n++) {
+              for(int p = 0; p < numGaussPts; p++) {
+                double xPt = ( (hxOct*(1.0 +gPts[numGaussPts-2][m])*0.5) + x );
+                double yPt = ( (hxOct*(1.0 + gPts[numGaussPts-2][n])*0.5) + y );
+                double zPt = ( (hxOct*(1.0 + gPts[numGaussPts-2][p])*0.5) + z );
+                double rhsVal = 0.0;
+                if(!( (x >= (0.5 - fbmR)) && (x <= (0.5 + fbmR)) &&
+                      (y >= (0.5 - fbmR)) && (y <= (0.5 + fbmR)) &&
+                      (z >= (0.5 - fbmR)) && (z <= (0.5 + fbmR))  ) ) {
+                  rhsVal = -6.0 -(SQR(fbmR)) + (SQR(x - 0.5)) + (SQR(y - 0.5)) + (SQR(z - 0.5));
+                }
+                double ShFnVal = ( ot::ShapeFnCoeffs[childNum][elemType][j][0] + 
+                    (ot::ShapeFnCoeffs[childNum][elemType][j][1]*gPts[numGaussPts-2][m]) +
+                    (ot::ShapeFnCoeffs[childNum][elemType][j][2]*gPts[numGaussPts-2][n]) +
+                    (ot::ShapeFnCoeffs[childNum][elemType][j][3]*gPts[numGaussPts-2][p]) +
+                    (ot::ShapeFnCoeffs[childNum][elemType][j][4]*gPts[numGaussPts-2][m]*
+                     gPts[numGaussPts-2][n]) +
+                    (ot::ShapeFnCoeffs[childNum][elemType][j][5]*gPts[numGaussPts-2][n]*
+                     gPts[numGaussPts-2][p]) +
+                    (ot::ShapeFnCoeffs[childNum][elemType][j][6]*gPts[numGaussPts-2][p]*
+                     gPts[numGaussPts-2][m]) +
+                    (ot::ShapeFnCoeffs[childNum][elemType][j][7]*gPts[numGaussPts-2][m]*
+                     gPts[numGaussPts-2][n]*gPts[numGaussPts-2][p]) );
+                integral += (wts[numGaussPts-2][m]*wts[numGaussPts-2][n]
+                    *wts[numGaussPts-2][p]*rhsVal*ShFnVal);
+              }
+            }
+          }
+          inarray[indices[j]] += (fac*integral);
+        }//end for j
+    }//end for i
+  }//end if active
+
+  da->vecRestoreBuffer(in,inarray,false,false,false,1);
+
+  PetscFunctionReturn(0);
 }
 
 //Rhs = sum of 3 gaussian functions centered at different points.
