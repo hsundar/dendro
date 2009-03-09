@@ -105,7 +105,7 @@ PetscErrorCode ComputeFBM_RHS_Part2(ot::DAMG damg, Vec in) {
   std::vector<double> pts;
   ot::readPtsFromFile(pFile, pts);
 
-  unsigned int numLocalDelta = pts.size()/3.0; 
+  unsigned int numLocalDelta = pts.size()/3; 
 
   std::vector<ot::NodeAndValues<double, 4> > tnAndVal(numLocalDelta);
 

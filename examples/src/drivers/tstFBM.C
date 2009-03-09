@@ -50,6 +50,7 @@ int main(int argc, char ** argv ) {
   unsigned int maxDepth=30;
   bool compressLut=false;
   double mgLoadFac = 2.0;
+  bool incCorner = 1;  
 
   PetscInitialize(&argc,&argv,"options",help);
   ot::RegisterEvents();
@@ -60,7 +61,7 @@ int main(int argc, char ** argv ) {
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
   char pFile[256];
-  sprintf(pFile, "fbmInp%d_%d.pts",rank, size);
+  sprintf(pFile, "fbmInp%d_%d.pts",rank, npes);
 
   std::vector<double> pts;
   ot::readPtsFromFile(pFile, pts);
