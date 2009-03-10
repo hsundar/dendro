@@ -96,6 +96,8 @@ PetscErrorCode ComputeFBM_RHS(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeFBM_RHS_Part1(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeFBM_RHS_Part2(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeFBM_RHS_Part3(ot::DAMG damg, Vec in);
+PetscErrorCode SetSolutionFBM(ot::DAMG damg, Vec in);
+PetscErrorCode EnforceZeroFBM(ot::DAMG damg, Vec in);
 PetscErrorCode SetSolution5(ot::DA* da, Vec in);
 
 double ComputeError5(ot::DA* da, Vec in);

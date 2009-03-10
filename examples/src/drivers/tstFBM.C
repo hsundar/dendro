@@ -96,9 +96,15 @@ int main(int argc, char ** argv ) {
     std::cout<<"nlevels initial: "<<nlevels<<std::endl;
   }
 
+  MPI_Barrier(MPI_COMM_WORLD);
+  double setupStartTime = MPI_Wtime();
+  
   // Note: The user context for all levels will be set separately later.
   ot::DAMGCreateAndSetDA(PETSC_COMM_WORLD, nlevels, NULL, &damg,
       balOct, dof, mgLoadFac, compressLut, incCorner);
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  double setupEndTime = MPI_Wtime();
 
   if(!rank) {
     std::cout<<"nlevels final: "<<nlevels<<std::endl;
@@ -124,7 +130,31 @@ int main(int argc, char ** argv ) {
 
   ot::DAMGSetKSP(damg, CreateDirichletJacobian, ComputeDirichletJacobian, ComputeFBM_RHS);
 
+  MPI_Barrier(MPI_COMM_WORLD);
+  double solveStartTime = MPI_Wtime();
+  
   ot::DAMGSolve(damg);
+  
+  MPI_Barrier(MPI_COMM_WORLD);
+  double solveEndTime = MPI_Wtime();
+
+  Vec solTrue;
+  VecDuplicate(DAMGGetx(damg), &solTrue);
+  SetSolutionFBM(damg[nlevels - 1], solTrue);
+  EnforceZeroFBM(damg[nlevels - 1], DAMGGetx(damg));
+
+  VecAXPY(solTrue, -1.0, DAMGGetx(damg));
+
+  PetscReal maxNormErr;
+  VecNorm(solTrue, NORM_INFINITY, &maxNormErr);
+
+  VecDestroy(solTrue);
+
+  if(!rank) {
+    std::cout<<" Total Setup Time: "<<(setupEndTime - setupStartTime)<<std::endl;
+    std::cout<<" Total Solve Time: "<<(solveEndTime - solveStartTime)<<std::endl;
+    std::cout<<" maxNormErr (Pointwise): "<<maxNormErr<<std::endl;
+  }
 
   destroyLmatType2(LaplacianType2Stencil);
   destroyMmatType2(MassType2Stencil);

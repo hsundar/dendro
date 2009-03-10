@@ -46,6 +46,136 @@ namespace ot {
   }\
 }
 
+PetscErrorCode EnforceZeroFBM(ot::DAMG damg, Vec tmp) {
+  PetscFunctionBegin;	 	 
+
+  PetscScalar *inarray;
+
+  ot::DA* da = damg->da;
+  da->vecGetBuffer(tmp, inarray, false, false, false, 1);
+
+  PetscReal fbmR = 0;
+  PetscOptionsGetReal(0, "-fbmR", &fbmR, 0);
+
+  unsigned int maxD;
+  unsigned int balOctmaxD;
+
+  if(da->iAmActive()) {
+    maxD = da->getMaxDepth();
+    balOctmaxD = maxD - 1;
+    for(da->init<ot::DA_FLAGS::ALL>(); da->curr() < da->end<ot::DA_FLAGS::ALL>(); da->next<ot::DA_FLAGS::ALL>())  
+    {
+      Point pt;
+      pt = da->getCurrentOffset();
+      unsigned levelhere = da->getLevel(da->curr()) - 1;
+      double hxOct = (double)((double)(1u << (balOctmaxD - levelhere))/(double)(1u << balOctmaxD));
+      double x = (double)(pt.xint())/((double)(1u << (maxD-1)));
+      double y = (double)(pt.yint())/((double)(1u << (maxD-1)));
+      double z = (double)(pt.zint())/((double)(1u << (maxD-1)));
+
+      unsigned int indices[8];
+      da->getNodeIndices(indices); 
+      double coord[8][3] = {
+        {0.0,0.0,0.0},
+        {1.0,0.0,0.0},
+        {0.0,1.0,0.0},
+        {1.0,1.0,0.0},
+        {0.0,0.0,1.0},
+        {1.0,0.0,1.0},
+        {0.0,1.0,1.0},
+        {1.0,1.0,1.0}
+      };
+      unsigned char hn = da->getHangingNodeIndex(da->curr());
+
+      for(int i = 0; i < 8; i++)
+      {
+        if (!(hn & (1 << i))){
+          double xPt, yPt, zPt;
+          xPt = x + (coord[i][0]*hxOct);
+          yPt = y + (coord[i][1]*hxOct);
+          zPt = z + (coord[i][2]*hxOct); 
+          double distSqr = (square(xPt - 0.5)) + (square(yPt - 0.5)) + (square(zPt - 0.5));
+
+          if( distSqr <= square(1.5*fbmR) ) {
+            inarray[indices[i]] = 0.0;
+          }
+        }
+      }
+    }
+  }
+
+  da->vecRestoreBuffer(tmp, inarray, false, false, false, 1); 
+
+  PetscFunctionReturn(0);
+}
+
+
+PetscErrorCode SetSolutionFBM(ot::DAMG damg, Vec tmp) {
+  PetscFunctionBegin;	 	 
+
+  PetscScalar *inarray;
+  VecZeroEntries(tmp);
+
+  ot::DA* da = damg->da;
+  da->vecGetBuffer(tmp, inarray, false, false, false, 1);
+
+  PetscReal fbmR = 0;
+  PetscOptionsGetReal(0, "-fbmR", &fbmR, 0);
+
+  unsigned int maxD;
+  unsigned int balOctmaxD;
+
+  if(da->iAmActive()) {
+    maxD = da->getMaxDepth();
+    balOctmaxD = maxD - 1;
+    for(da->init<ot::DA_FLAGS::ALL>(); da->curr() < da->end<ot::DA_FLAGS::ALL>(); da->next<ot::DA_FLAGS::ALL>())  
+    {
+      Point pt;
+      pt = da->getCurrentOffset();
+      unsigned levelhere = da->getLevel(da->curr()) - 1;
+      double hxOct = (double)((double)(1u << (balOctmaxD - levelhere))/(double)(1u << balOctmaxD));
+      double x = (double)(pt.xint())/((double)(1u << (maxD-1)));
+      double y = (double)(pt.yint())/((double)(1u << (maxD-1)));
+      double z = (double)(pt.zint())/((double)(1u << (maxD-1)));
+
+      unsigned int indices[8];
+      da->getNodeIndices(indices); 
+      double coord[8][3] = {
+        {0.0,0.0,0.0},
+        {1.0,0.0,0.0},
+        {0.0,1.0,0.0},
+        {1.0,1.0,0.0},
+        {0.0,0.0,1.0},
+        {1.0,0.0,1.0},
+        {0.0,1.0,1.0},
+        {1.0,1.0,1.0}
+      };
+      unsigned char hn = da->getHangingNodeIndex(da->curr());
+
+      for(int i = 0; i < 8; i++)
+      {
+        if (!(hn & (1 << i))){
+          double xPt, yPt, zPt;
+          xPt = x + (coord[i][0]*hxOct);
+          yPt = y + (coord[i][1]*hxOct);
+          zPt = z + (coord[i][2]*hxOct); 
+          double distSqr = (square(xPt - 0.5)) + (square(yPt - 0.5)) + (square(zPt - 0.5));
+
+          if( distSqr > square(1.5*fbmR) ) {
+            double solVal = (square(xPt - 0.5)) + (square(yPt - 0.5)) 
+              + (square(zPt - 0.5)) - (square(fbmR));
+            inarray[indices[i]] = solVal;
+          }
+        }
+      }
+    }
+  }
+
+  da->vecRestoreBuffer(tmp, inarray, false, false, false, 1); 
+
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode ComputeFBM_RHS(ot::DAMG damg, Vec in) {
   PetscFunctionBegin;
 
@@ -464,10 +594,9 @@ PetscErrorCode ComputeFBM_RHS_Part1(ot::DAMG damg, Vec in) {
                   double xPt = ( (hxOct*(1.0 + gPts[numGaussPts-2][m])*0.5) + x );
                   double yPt = ( (hxOct*(1.0 + gPts[numGaussPts-2][n])*0.5) + y );
                   double zPt = ( (hxOct*(1.0 + gPts[numGaussPts-2][p])*0.5) + z );
+                  double distSqr = (square(xPt - 0.5)) + (square(yPt - 0.5)) + (square(zPt - 0.5));
                   double rhsVal = 0.0;
-                  if(!( (xPt >= (0.5 - fbmR)) && (xPt <= (0.5 + fbmR)) &&
-                        (yPt >= (0.5 - fbmR)) && (yPt <= (0.5 + fbmR)) &&
-                        (zPt >= (0.5 - fbmR)) && (zPt <= (0.5 + fbmR))  ) ) {
+                  if( distSqr > (square(fbmR)) ) {
                     rhsVal = -6.0 -(square(fbmR)) + (square(xPt - 0.5)) +
                       (square(yPt - 0.5)) + (square(zPt - 0.5));
                   }
