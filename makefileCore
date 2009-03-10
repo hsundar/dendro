@@ -20,7 +20,7 @@ EXEC_TESTS = bin/createCoarser bin/chkNl bin/chkMl bin/dumpMesh\
              bin/checkResults bin/checkSV bin/chkCoarsen \
 	     bin/justCoarsen bin/testNodeAndVals bin/testPetscInt bin/tstFBM
 
-EXEC_UTIL = bin/gen2spheres
+EXEC_UTIL = bin/gen2spheres bin/genPrlFBMpts
 
 EXEC = $(EXEC_BAL) $(EXEC_DA) $(EXEC_MG) $(EXEC_TESTS) $(EXEC_UTIL)
 
@@ -35,6 +35,9 @@ core : $(ARCHIVES)
 	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 
 ./examples/src/drivers/%.o: ./examples/src/drivers/%.$(CEXT)
+	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+
+./scripts/%.o: ./scripts/%.$(CEXT)
 	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 
 ./src/%.o: ./src/%.$(CEXT)
@@ -220,6 +223,9 @@ bin/checkResults : ./src/test/checkResults.o $(ARCHIVES)
 bin/gen2spheres : ./scripts/gen2spheres.o $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
 
+bin/genPrlFBMpts : ./scripts/genPrlFBMpts.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
 clean :
 	rm -rf ./src/pc/*.o ./src/pc/*~ 
 	rm -rf ./src/omg/*~ ./src/omg/*.o
@@ -233,7 +239,7 @@ clean :
 	rm -rf ./examples/src/backend/*~ ./examples/src/backend/*.o
 	rm -rf ./examples/src/drivers/*~ ./examples/src/drivers/*.o
 	rm -rf ./src/test/*~ ./src/test/*.o
-	rm -rf ./scripts/gen2spheres.o
+	rm -rf ./scripts/*.o ./scripts/*~
 	rm -rf $(EXEC)
 
 clobber : clean
