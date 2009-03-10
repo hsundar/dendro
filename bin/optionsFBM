@@ -1,11 +1,4 @@
  
- -massBaseMatProp 1.0
- -lapBaseMatProp 1.0
- -lapMatPropFac 1.0
- -massMatPropFac 1.0
-
- -minCoarsestLevel 0
-
  -numGaussPts 4
 
  -fullJacMatType aij
