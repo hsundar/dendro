@@ -47,6 +47,7 @@ int main(int argc, char **argv) {
   double ang2End = static_cast<double>(jIdx + 1)*__PI__/static_cast<double>(rootP);
 
   //The gather is for testing only
+#ifdef __DEBUG__
   double* allAng1Start = new double[npes];
   double* allAng2Start = new double[npes];
 
@@ -62,6 +63,7 @@ int main(int argc, char **argv) {
 
   delete [] allAng1Start;
   delete [] allAng2Start;
+#endif 
 
   double angInc1 = (ang1End - ang1Start)/static_cast<double>(numAng1);
   double angInc2 = (ang2End - ang2Start)/static_cast<double>(numAng2);
