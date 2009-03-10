@@ -114,17 +114,23 @@ int main(int argc, char ** argv ) {
   createMmatType2(MassType2Stencil);
   createShFnMat(ShapeFnStencil);
 
+  ot::DAMGCreateSuppressedDOFs(damg);
+
+  SetDirichletJacContexts(damg);
+
   //Global Function Handles for using KSP_Shell (will be used @ the coarsest grid if not all
   //processors are active on the coarsest grid)
-  ot::getPrivateMatricesForKSP_Shell = getPrivateMatricesForKSP_Shell_Jac1;
+  ot::getPrivateMatricesForKSP_Shell = getPrivateMatricesForKSP_Shell_DirichletJac;
 
-  ot::DAMGSetKSP(damg, CreateJacobian1, ComputeJacobian1, ComputeFBM_RHS);
+  ot::DAMGSetKSP(damg, CreateDirichletJacobian, ComputeDirichletJacobian, ComputeFBM_RHS);
 
   ot::DAMGSolve(damg);
 
   destroyLmatType2(LaplacianType2Stencil);
   destroyMmatType2(MassType2Stencil);
   destroyShFnMat(ShapeFnStencil);
+
+  DestroyDirichletJacContexts(damg);
 
   DAMGDestroy(damg);
 

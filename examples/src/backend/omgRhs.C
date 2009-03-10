@@ -46,22 +46,96 @@ namespace ot {
   }\
 }
 
-PetscErrorCode ComputeFBM_RHS(ot::DAMG damg,Vec in) {
+PetscErrorCode ComputeFBM_RHS(ot::DAMG damg, Vec in) {
   PetscFunctionBegin;
 
-  Vec tmp;
-  VecDuplicate(in, &tmp);
+  Vec deltaRhs;
+  Vec dirichletVals;
+  Vec bcCorrections;
+  VecDuplicate(in, &deltaRhs);
+  VecDuplicate(in, &dirichletVals);
+  VecDuplicate(in, &bcCorrections);
 
   ComputeFBM_RHS_Part1(damg, in);
+  ComputeFBM_RHS_Part2(damg, deltaRhs);
+  ComputeFBM_RHS_Part3(damg, dirichletVals);
 
-  ComputeFBM_RHS_Part2(damg, tmp);
+  Mat tmpMat;
+  CreateTmpDirichletJacobian(damg, &tmpMat);
+  MatMult(tmpMat, dirichletVals, bcCorrections);
+  MatDestroy(tmpMat);
 
   PetscReal fbmR = 0;
-  PetscOptionsGetReal(0,"-fbmR",&fbmR,0);
+  PetscOptionsGetReal(0, "-fbmR", &fbmR, 0);
 
-  VecAXPY(in, 2.0*fbmR, tmp);
+  VecAXPY(in, 2.0*fbmR, deltaRhs);
+  VecAXPY(in, 1.0, dirichletVals);
+  VecAXPY(in, -1.0, bcCorrections);
 
-  VecDestroy(tmp);
+  VecDestroy(deltaRhs);
+  VecDestroy(dirichletVals);
+  VecDestroy(bcCorrections);
+
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode ComputeFBM_RHS_Part3(ot::DAMG damg, Vec in) {
+  PetscFunctionBegin;	 	 
+
+  ot::DA* da = damg->da;
+  PetscScalar *inarray;
+
+  DirichletJacData* data = (static_cast<DirichletJacData*>(damg->user));
+  unsigned char* bdyArr = data->bdyArr;
+
+  VecZeroEntries(in);
+  da->vecGetBuffer(in,inarray,false,false,false,1);
+
+  unsigned int maxD;
+  unsigned int balOctmaxD;
+
+  if(da->iAmActive()) {
+    maxD = da->getMaxDepth();
+    balOctmaxD = maxD - 1;
+    for(da->init<ot::DA_FLAGS::ALL>();
+        da->curr() < da->end<ot::DA_FLAGS::ALL>();
+        da->next<ot::DA_FLAGS::ALL>())  
+    {
+      Point pt;
+      pt = da->getCurrentOffset();
+      unsigned int idx = da->curr();
+      unsigned levelhere = (da->getLevel(idx) - 1);
+      double hxOct = (double)((double)(1u << (balOctmaxD - levelhere))/(double)(1u << balOctmaxD));
+      double x = (double)(pt.xint())/((double)(1u << (maxD-1)));
+      double y = (double)(pt.yint())/((double)(1u << (maxD-1)));
+      double z = (double)(pt.zint())/((double)(1u << (maxD-1)));
+      unsigned int indices[8];
+      da->getNodeIndices(indices); 
+      unsigned char hnMask = da->getHangingNodeIndex(idx);
+      for(unsigned int j = 0; j < 8; j++) {
+        if(!(hnMask & (1 << j))) {
+          if((bdyArr[indices[j]])) {
+            double xPt = x; 
+            double yPt = y;
+            double zPt = z;
+            if(j%2) {
+              xPt += hxOct;
+            }
+            if((j/2)%2) {
+              yPt += hxOct;
+            }
+            if(j > 3) {
+              zPt += hxOct;
+            }
+            inarray[indices[j]] = (square(xPt - 0.5)) + (square(yPt - 0.5)) 
+              + (square(zPt - 0.5)) - (square(fbmR));
+          }//end if bdy
+        }//end if hanging
+      }//end for j
+    }//end for ALL
+  }//end if active
+
+  da->vecRestoreBuffer(in,inarray,false,false,false,1);
 
   PetscFunctionReturn(0);
 }
@@ -73,6 +147,9 @@ PetscErrorCode ComputeFBM_RHS_Part2(ot::DAMG damg, Vec in) {
   PetscFunctionBegin;
 
   ot::DA* da = damg->da;
+
+  DirichletJacData* data = (static_cast<DirichletJacData*>(damg->user));
+  unsigned char* bdyArr = data->bdyArr;
 
   MPI_Comm commAll = da->getComm();
 
@@ -256,18 +333,20 @@ PetscErrorCode ComputeFBM_RHS_Part2(ot::DAMG damg, Vec in) {
             ( currOct.isAncestor(recvList[ptsCtr].node) || 
               ( currOct == (recvList[ptsCtr].node) ) ) ) {
           for(unsigned int j = 0; j < 8; j++) {
-            double xLoc = (((2.0/hxOct)*(recvList[ptsCtr].values[0] - x)) - 1.0);
-            double yLoc = (((2.0/hxOct)*(recvList[ptsCtr].values[1] - y)) - 1.0);
-            double zLoc = (((2.0/hxOct)*(recvList[ptsCtr].values[2] - z)) - 1.0);
-            double ShFnVal = ( ot::ShapeFnCoeffs[childNum][elemType][j][0] + 
-                (ot::ShapeFnCoeffs[childNum][elemType][j][1]*xLoc) +
-                (ot::ShapeFnCoeffs[childNum][elemType][j][2]*yLoc) +
-                (ot::ShapeFnCoeffs[childNum][elemType][j][3]*zLoc) +
-                (ot::ShapeFnCoeffs[childNum][elemType][j][4]*xLoc*yLoc) +
-                (ot::ShapeFnCoeffs[childNum][elemType][j][5]*yLoc*zLoc) +
-                (ot::ShapeFnCoeffs[childNum][elemType][j][6]*zLoc*xLoc) +
-                (ot::ShapeFnCoeffs[childNum][elemType][j][7]*xLoc*yLoc*zLoc) );
-            inarray[indices[j]] += ((recvList[ptsCtr].values[3])*ShFnVal);
+            if(!(bdyArr[indices[j]])) {
+              double xLoc = (((2.0/hxOct)*(recvList[ptsCtr].values[0] - x)) - 1.0);
+              double yLoc = (((2.0/hxOct)*(recvList[ptsCtr].values[1] - y)) - 1.0);
+              double zLoc = (((2.0/hxOct)*(recvList[ptsCtr].values[2] - z)) - 1.0);
+              double ShFnVal = ( ot::ShapeFnCoeffs[childNum][elemType][j][0] + 
+                  (ot::ShapeFnCoeffs[childNum][elemType][j][1]*xLoc) +
+                  (ot::ShapeFnCoeffs[childNum][elemType][j][2]*yLoc) +
+                  (ot::ShapeFnCoeffs[childNum][elemType][j][3]*zLoc) +
+                  (ot::ShapeFnCoeffs[childNum][elemType][j][4]*xLoc*yLoc) +
+                  (ot::ShapeFnCoeffs[childNum][elemType][j][5]*yLoc*zLoc) +
+                  (ot::ShapeFnCoeffs[childNum][elemType][j][6]*zLoc*xLoc) +
+                  (ot::ShapeFnCoeffs[childNum][elemType][j][7]*xLoc*yLoc*zLoc) );
+              inarray[indices[j]] += ((recvList[ptsCtr].values[3])*ShFnVal);
+            }//end if bdy
           }//end for j
           ptsCtr++;
         }
@@ -289,6 +368,9 @@ PetscErrorCode ComputeFBM_RHS_Part1(ot::DAMG damg, Vec in) {
 
   ot::DA* da = damg->da;
   PetscScalar *inarray;
+
+  DirichletJacData* data = (static_cast<DirichletJacData*>(damg->user));
+  unsigned char* bdyArr = data->bdyArr;
 
   VecZeroEntries(in);
   da->vecGetBuffer(in,inarray,false,false,false,1);
@@ -370,38 +452,41 @@ PetscErrorCode ComputeFBM_RHS_Part1(ot::DAMG damg, Vec in) {
       unsigned char elemType = 0;
       GET_ETYPE_BLOCK(elemType,hnMask,childNum)
         for(unsigned int j = 0; j < 8; j++) {
-          double integral = 0.0;
-          //Quadrature Rule
-          for(int m = 0; m < numGaussPts; m++) {
-            for(int n = 0; n < numGaussPts; n++) {
-              for(int p = 0; p < numGaussPts; p++) {
-                double xPt = ( (hxOct*(1.0 +gPts[numGaussPts-2][m])*0.5) + x );
-                double yPt = ( (hxOct*(1.0 + gPts[numGaussPts-2][n])*0.5) + y );
-                double zPt = ( (hxOct*(1.0 + gPts[numGaussPts-2][p])*0.5) + z );
-                double rhsVal = 0.0;
-                if(!( (x >= (0.5 - fbmR)) && (x <= (0.5 + fbmR)) &&
-                      (y >= (0.5 - fbmR)) && (y <= (0.5 + fbmR)) &&
-                      (z >= (0.5 - fbmR)) && (z <= (0.5 + fbmR))  ) ) {
-                  rhsVal = -6.0 -(square(fbmR)) + (square(x - 0.5)) + (square(y - 0.5)) + (square(z - 0.5));
+          if(!(bdyArr[indices[j]])) {
+            double integral = 0.0;
+            //Quadrature Rule
+            for(int m = 0; m < numGaussPts; m++) {
+              for(int n = 0; n < numGaussPts; n++) {
+                for(int p = 0; p < numGaussPts; p++) {
+                  double xPt = ( (hxOct*(1.0 + gPts[numGaussPts-2][m])*0.5) + x );
+                  double yPt = ( (hxOct*(1.0 + gPts[numGaussPts-2][n])*0.5) + y );
+                  double zPt = ( (hxOct*(1.0 + gPts[numGaussPts-2][p])*0.5) + z );
+                  double rhsVal = 0.0;
+                  if(!( (xPt >= (0.5 - fbmR)) && (xPt <= (0.5 + fbmR)) &&
+                        (yPt >= (0.5 - fbmR)) && (yPt <= (0.5 + fbmR)) &&
+                        (zPt >= (0.5 - fbmR)) && (zPt <= (0.5 + fbmR))  ) ) {
+                    rhsVal = -6.0 -(square(fbmR)) + (square(xPt - 0.5)) +
+                      (square(yPt - 0.5)) + (square(zPt - 0.5));
+                  }
+                  double ShFnVal = ( ot::ShapeFnCoeffs[childNum][elemType][j][0] + 
+                      (ot::ShapeFnCoeffs[childNum][elemType][j][1]*gPts[numGaussPts-2][m]) +
+                      (ot::ShapeFnCoeffs[childNum][elemType][j][2]*gPts[numGaussPts-2][n]) +
+                      (ot::ShapeFnCoeffs[childNum][elemType][j][3]*gPts[numGaussPts-2][p]) +
+                      (ot::ShapeFnCoeffs[childNum][elemType][j][4]*gPts[numGaussPts-2][m]*
+                       gPts[numGaussPts-2][n]) +
+                      (ot::ShapeFnCoeffs[childNum][elemType][j][5]*gPts[numGaussPts-2][n]*
+                       gPts[numGaussPts-2][p]) +
+                      (ot::ShapeFnCoeffs[childNum][elemType][j][6]*gPts[numGaussPts-2][p]*
+                       gPts[numGaussPts-2][m]) +
+                      (ot::ShapeFnCoeffs[childNum][elemType][j][7]*gPts[numGaussPts-2][m]*
+                       gPts[numGaussPts-2][n]*gPts[numGaussPts-2][p]) );
+                  integral += (wts[numGaussPts-2][m]*wts[numGaussPts-2][n]
+                      *wts[numGaussPts-2][p]*rhsVal*ShFnVal);
                 }
-                double ShFnVal = ( ot::ShapeFnCoeffs[childNum][elemType][j][0] + 
-                    (ot::ShapeFnCoeffs[childNum][elemType][j][1]*gPts[numGaussPts-2][m]) +
-                    (ot::ShapeFnCoeffs[childNum][elemType][j][2]*gPts[numGaussPts-2][n]) +
-                    (ot::ShapeFnCoeffs[childNum][elemType][j][3]*gPts[numGaussPts-2][p]) +
-                    (ot::ShapeFnCoeffs[childNum][elemType][j][4]*gPts[numGaussPts-2][m]*
-                     gPts[numGaussPts-2][n]) +
-                    (ot::ShapeFnCoeffs[childNum][elemType][j][5]*gPts[numGaussPts-2][n]*
-                     gPts[numGaussPts-2][p]) +
-                    (ot::ShapeFnCoeffs[childNum][elemType][j][6]*gPts[numGaussPts-2][p]*
-                     gPts[numGaussPts-2][m]) +
-                    (ot::ShapeFnCoeffs[childNum][elemType][j][7]*gPts[numGaussPts-2][m]*
-                     gPts[numGaussPts-2][n]*gPts[numGaussPts-2][p]) );
-                integral += (wts[numGaussPts-2][m]*wts[numGaussPts-2][n]
-                    *wts[numGaussPts-2][p]*rhsVal*ShFnVal);
               }
             }
-          }
-          inarray[indices[j]] += (fac*integral);
+            inarray[indices[j]] += (fac*integral);
+          }//end if bdy
         }//end for j
     }//end for i
   }//end if active
