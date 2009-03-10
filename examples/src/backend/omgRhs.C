@@ -88,6 +88,9 @@ PetscErrorCode ComputeFBM_RHS_Part3(ot::DAMG damg, Vec in) {
   DirichletJacData* data = (static_cast<DirichletJacData*>(damg->user));
   unsigned char* bdyArr = data->bdyArr;
 
+  PetscReal fbmR = 0;
+  PetscOptionsGetReal(0, "-fbmR", &fbmR, 0);
+
   VecZeroEntries(in);
   da->vecGetBuffer(in,inarray,false,false,false,1);
 
