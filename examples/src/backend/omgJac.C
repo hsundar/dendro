@@ -12,7 +12,6 @@
 #include "omgJac.h"
 #include "odaJac.h"
 
-
 #ifdef PETSC_USE_LOG
 extern int Jac2MultEvent;
 extern int Jac2DiagEvent;
@@ -25,12 +24,633 @@ extern int Jac3FinestMultEvent;
 extern int Jac3FinestDiagEvent;
 #endif
 
-
 extern double***** LaplacianType1Stencil; 
 extern double***** MassType1Stencil; 
 
 extern double**** LaplacianType2Stencil; 
 extern double**** MassType2Stencil; 
+
+PetscErrorCode CreateTmpDirichletJacobian(ot::DAMG damg, Mat *jac) {
+  PetscFunctionBegin;
+  ot::DA* da = damg->da;
+  //The size this processor owns ( without ghosts).
+  unsigned int  m,n;
+  m=n=da->getNodeSize();
+
+  MatCreateShell(damg->comm, m ,n, PETSC_DETERMINE, PETSC_DETERMINE, damg, jac);
+  MatShellSetOperation(*jac ,MATOP_MULT, (void (*)(void)) TmpDirichletJacobianMatMult);
+  MatShellSetOperation(*jac ,MATOP_DESTROY, (void (*)(void)) DirichletJacobianMatDestroy);
+
+  PetscFunctionReturn(0);
+}//end fn.
+
+PetscErrorCode CreateDirichletJacobian(ot::DAMG damg, Mat *jac) {
+  PetscFunctionBegin;
+  int totalLevels;
+  PetscTruth flg;
+  PetscInt buildFullCoarseMat;
+  PetscInt buildFullMatAll;
+  PetscOptionsGetInt(PETSC_NULL,"-buildFullMatAll",&buildFullMatAll,&flg);
+  PetscOptionsGetInt(PETSC_NULL,"-buildFullCoarseMat",&buildFullCoarseMat,&flg);
+  if(buildFullMatAll) {
+    buildFullCoarseMat = 1;
+  }
+  totalLevels = damg->totalLevels;
+  ot::DA* da = damg->da;
+  int myRank;
+  MPI_Comm_rank(da->getComm(),&myRank);
+  //The size this processor owns ( without ghosts).
+  unsigned int  m,n;
+  m=n=da->getNodeSize();
+  if(totalLevels == damg->nlevels) {
+    //This is the coarsest.
+    if( (!myRank) && buildFullCoarseMat ) {
+      std::cout<<"Building Full Coarse Mat."<<std::endl;
+    }
+    char matType[30];
+    if(buildFullCoarseMat) {
+      if(!(da->computedLocalToGlobal())) {
+        da->computeLocalToGlobalMappings();
+      }
+      PetscTruth typeFound;
+      PetscOptionsGetString(PETSC_NULL,"-fullJacMatType",matType,30,&typeFound);
+      if(!typeFound) {
+        std::cout<<"I need a MatType for the full Jacobian matrix!"<<std::endl;
+        assert(false);
+      } 
+    }
+    bool requirePrivateMats = (da->getNpesActive() != da->getNpesAll());    
+    if(requirePrivateMats ) {
+      DirichletJacData *data = (static_cast<DirichletJacData*>(damg->user));
+      if(da->iAmActive()) {
+        if(buildFullCoarseMat) {
+          da->createActiveMatrix(data->Jmat_private, matType, 1);
+        } else {
+          MatCreateShell(da->getCommActive(), m, n, PETSC_DETERMINE,
+              PETSC_DETERMINE, damg, &(data->Jmat_private));
+          MatShellSetOperation(data->Jmat_private, MATOP_MULT,
+              (void (*)(void)) DirichletJacobianMatMult);
+          MatShellSetOperation(data->Jmat_private, MATOP_GET_DIAGONAL,
+              (void (*)(void)) DirichletJacobianMatGetDiagonal);
+          MatShellSetOperation(data->Jmat_private, MATOP_DESTROY,
+              (void (*)(void)) DirichletJacobianMatDestroy);
+        }
+        MatGetVecs(data->Jmat_private, &(data->inTmp), &(data->outTmp));
+      } else {
+        data->Jmat_private = NULL;
+        data->inTmp = NULL;
+        data->outTmp = NULL;
+      }
+      MatCreateShell(damg->comm, m ,n, PETSC_DETERMINE, PETSC_DETERMINE, damg, jac);
+      MatShellSetOperation(*jac ,MATOP_DESTROY, (void (*)(void)) DirichletJacobianMatDestroy);
+      MatShellSetOperation(*jac ,MATOP_MULT, (void(*)(void)) DirichletJacobianShellMatMult);
+    } else {
+      if(buildFullCoarseMat) {
+        da->createMatrix(*jac, matType, 1);
+      } else {
+        MatCreateShell(damg->comm, m ,n, PETSC_DETERMINE, PETSC_DETERMINE, damg, jac);
+        MatShellSetOperation(*jac ,MATOP_MULT, (void (*)(void)) DirichletJacobianMatMult);
+        MatShellSetOperation(*jac ,MATOP_GET_DIAGONAL, (void (*)(void)) DirichletJacobianMatGetDiagonal);
+        MatShellSetOperation(*jac ,MATOP_DESTROY, (void (*)(void)) DirichletJacobianMatDestroy);
+      }
+    }
+    if((!myRank) && buildFullCoarseMat) {
+      std::cout<<"Finished Building Full Coarse Mat."<<std::endl;
+    }
+  } else {
+    //This is some finer level.
+    if(buildFullMatAll) {
+      if(!myRank) {
+        std::cout<<"Building Full Mat for level: "<<(damg->nlevels)<<std::endl;
+      }
+      if(!(da->computedLocalToGlobal())) {
+        da->computeLocalToGlobalMappings();
+      }
+      char matType[30];
+      PetscTruth typeFound;
+      PetscOptionsGetString(PETSC_NULL,"-fullJacMatType",matType,30,&typeFound);
+      if(!typeFound) {
+        std::cout<<"I need a MatType for the full Jacobian matrix!"<<std::endl;
+        assert(false);
+      } 
+      da->createMatrix(*jac, matType, 1);
+      if(!myRank) {
+        std::cout<<"Finished Building Full Mat for level: "<<(damg->nlevels)<<std::endl;
+      }
+    } else {
+      MatCreateShell(damg->comm, m ,n, PETSC_DETERMINE, PETSC_DETERMINE, damg, jac);
+      MatShellSetOperation(*jac ,MATOP_MULT, (void (*)(void)) DirichletJacobianMatMult);
+      MatShellSetOperation(*jac ,MATOP_GET_DIAGONAL, (void (*)(void)) DirichletJacobianMatGetDiagonal);
+      MatShellSetOperation(*jac ,MATOP_DESTROY, (void (*)(void)) DirichletJacobianMatDestroy);
+    }
+  }
+
+  PetscFunctionReturn(0);
+}//end fn.
+
+PetscErrorCode ComputeDirichletJacobian(ot::DAMG damg, Mat J, Mat B) {
+  //For matShells nothing to be done here.
+  PetscFunctionBegin;
+
+  PetscTruth isshell;
+  PetscTypeCompare((PetscObject)B, MATSHELL, &isshell);
+
+  DirichletJacData *data = (static_cast<DirichletJacData*>(damg->user));
+
+  assert(B == J);
+
+  if(isshell) {
+    if( data->Jmat_private == NULL ) {
+      PetscFunctionReturn(0);
+    } else {
+      J = data->Jmat_private;
+      B = data->Jmat_private;
+    }
+  }
+
+  //B and J are the same.
+
+  PetscTypeCompare((PetscObject)B, MATSHELL, &isshell);
+  if(isshell) {
+    //Nothing to be done here.
+    PetscFunctionReturn(0);
+  }
+
+  ot::DA* da = damg->da;
+
+  MatZeroEntries(B);
+
+  std::vector<ot::MatRecord> records;
+
+  unsigned int maxD;
+  double hFac;
+  if(da->iAmActive()) {
+    maxD = da->getMaxDepth();
+    hFac = 1.0/((double)(1u << (maxD-1)));
+  }
+
+  unsigned char* bdyArr = data->bdyArr;
+
+  if(da->iAmActive()) {
+    for(da->init<ot::DA_FLAGS::WRITABLE>();
+        da->curr() < da->end<ot::DA_FLAGS::WRITABLE>();
+        da->next<ot::DA_FLAGS::WRITABLE>()) {
+      unsigned int idx = da->curr();
+      unsigned int lev = da->getLevel(idx);
+      double h = hFac*(1u << (maxD - lev));
+      double fac1 = h/2.0;
+      double fac2 = h*h*h/8.0;
+      unsigned int indices[8];
+      da->getNodeIndices(indices);
+      unsigned char childNum = da->getChildNumber();
+      unsigned char hnMask = da->getHangingNodeIndex(idx);
+      unsigned char elemType = 0;
+      GET_ETYPE_BLOCK(elemType,hnMask,childNum)
+        for(int k = 0; k < 8; k++) {
+          if(!(bdyArr[indices[k]])) {
+            for(int j = 0; j < 8; j++) {
+              if(!(bdyArr[indices[j]])) {
+                ot::MatRecord currRec;
+                currRec.rowIdx = indices[k];
+                currRec.colIdx = indices[j];
+                currRec.rowDim = 0;
+                currRec.colDim = 0;
+                currRec.val = ((fac1*(LaplacianType2Stencil[childNum][elemType][k][j])) +
+                    (fac2*(MassType2Stencil[childNum][elemType][k][j])));
+                records.push_back(currRec);
+              }
+            } /*end for j*/
+          }
+        } /*end for k*/
+      if(records.size() > 1000) {
+        /*records will be cleared inside the function*/
+        da->setValuesInMatrix(B, records, 1, ADD_VALUES);
+      }
+    } /*end writable*/
+  } /*end if active*/
+  da->setValuesInMatrix(B, records, 1, ADD_VALUES);
+  MatAssemblyBegin(B, MAT_FLUSH_ASSEMBLY);
+  MatAssemblyEnd(B, MAT_FLUSH_ASSEMBLY);
+
+  if(da->iAmActive()) {
+    for(da->init<ot::DA_FLAGS::WRITABLE>();
+        da->curr() < da->end<ot::DA_FLAGS::WRITABLE>();
+        da->next<ot::DA_FLAGS::WRITABLE>()) {
+      unsigned int indices[8];
+      da->getNodeIndices(indices);
+      for(int k = 0; k < 8; k++) {
+        if(bdyArr[indices[k]]) {
+          ot::MatRecord currRec;
+          currRec.rowIdx = indices[k];
+          currRec.colIdx = indices[k];
+          currRec.rowDim = 0;
+          currRec.colDim = 0;
+          currRec.val = 1.0;
+          records.push_back(currRec);
+        }
+      } /*end for k*/
+      if(records.size() > 1000) {
+        /*records will be cleared inside the function*/
+        da->setValuesInMatrix(B, records, 1, INSERT_VALUES);
+      }
+    } /*end writable*/
+  } /*end if active*/
+  da->setValuesInMatrix(B, records, 1, INSERT_VALUES);
+  MatAssemblyBegin(B, MAT_FINAL_ASSEMBLY);
+  MatAssemblyEnd(B, MAT_FINAL_ASSEMBLY);
+
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode DirichletJacobianMatDestroy(Mat J) {
+  PetscFunctionBegin;
+  //Nothing to be done here. 
+  PetscFunctionReturn(0);
+}
+
+void SetDirichletJacContexts(ot::DAMG* damg) {
+  int       nlevels = damg[0]->nlevels; //number of multigrid levels
+  for(int i = 0; i < nlevels; i++) {
+    DirichletJacData* ctx= new DirichletJacData;
+    ctx->bdyArr = NULL;
+    ctx->Jmat_private = NULL;
+    ctx->inTmp = NULL;
+    ctx->outTmp = NULL;
+
+    std::vector<unsigned char> tmpBdyFlags;
+    std::vector<unsigned char> tmpBdyFlagsAux;
+    unsigned char* bdyArrAux = NULL;
+
+    //This will create a nodal, non-ghosted, 1 dof array
+    assignBoundaryFlags(damg[i]->da, tmpBdyFlags);
+    ((damg[i])->da)->vecGetBuffer<unsigned char>(tmpBdyFlags, ctx->bdyArr, false, false, true, 1);
+    if(damg[i]->da->iAmActive()) {
+      ((damg[i])->da)->ReadFromGhostsBegin<unsigned char>(ctx->bdyArr, 1);
+    }
+
+    if(damg[i]->da_aux) {
+      assignBoundaryFlags( damg[i]->da_aux, tmpBdyFlagsAux);
+      ((damg[i])->da_aux)->vecGetBuffer<unsigned char>(tmpBdyFlagsAux, bdyArrAux,
+        false, false, true, 1);
+      if(damg[i]->da_aux->iAmActive()) {
+        ((damg[i])->da_aux)->ReadFromGhostsBegin<unsigned char>(bdyArrAux, 1);
+      }
+    }
+
+    tmpBdyFlags.clear();
+    tmpBdyFlagsAux.clear();
+
+    if(damg[i]->da->iAmActive()) {
+      ((damg[i])->da)->ReadFromGhostsEnd<unsigned char>(ctx->bdyArr);
+    }
+
+    if((damg[i])->da_aux) {
+      if(damg[i]->da_aux->iAmActive()) {
+        ((damg[i])->da_aux)->ReadFromGhostsEnd<unsigned char>(bdyArrAux);
+      }
+    }
+
+    for(int loopCtr = 0; loopCtr < 2; loopCtr++) {
+      ot::DA* da = NULL;
+      unsigned char* suppressedDOFptr = NULL;
+      unsigned char* bdyArrPtr = NULL;
+      if(loopCtr == 0) {
+        da = damg[i]->da;
+        suppressedDOFptr = damg[i]->suppressedDOF;
+        bdyArrPtr = ctx->bdyArr;
+      } else {
+        da = damg[i]->da_aux;
+        suppressedDOFptr = damg[i]->suppressedDOFaux;
+        bdyArrPtr = bdyArrAux;
+      }
+      if(da) {
+        if(da->iAmActive()) {
+          for(da->init<ot::DA_FLAGS::ALL>(); 
+              da->curr() < da->end<ot::DA_FLAGS::ALL>();
+              da->next<ot::DA_FLAGS::ALL>()) {
+            unsigned int indices[8];
+            da->getNodeIndices(indices);
+            for(unsigned int k = 0; k < 8; k++) {
+              suppressedDOFptr[indices[k]] = bdyArrPtr[indices[k]];
+            }
+          }
+        }
+      }
+    }
+
+    if(bdyArrAux) {
+      delete [] bdyArrAux;
+      bdyArrAux = NULL;
+    }
+
+    (damg[i])->user = ctx;
+  }//end for i
+
+}//end fn.
+
+void DestroyDirichletJacContexts(ot::DAMG* damg) {
+  int nlevels = damg[0]->nlevels; //number of multigrid levels
+  for(int i = 0; i < nlevels; i++) {
+    DirichletJacData* ctx = (static_cast<DirichletJacData*>(damg[i]->user));
+    if(ctx->bdyArr) {
+      delete [] (ctx->bdyArr);
+      ctx->bdyArr = NULL;
+    }
+    if(ctx->Jmat_private) {
+      MatDestroy(ctx->Jmat_private);
+      ctx->Jmat_private = NULL;
+    }
+    if(ctx->inTmp) {
+      VecDestroy(ctx->inTmp);
+      ctx->inTmp = NULL;
+    }
+    if(ctx->outTmp) {
+      VecDestroy(ctx->outTmp);
+      ctx->outTmp = NULL;
+    }
+    delete ctx;
+    ctx = NULL;
+  }
+}//end fn.
+
+PetscErrorCode DirichletJacobianShellMatMult(Mat J, Vec in, Vec out) {
+  PetscFunctionBegin;
+
+  ot::DAMG damg;
+
+  MatShellGetContext(J, (void**)(&damg));
+
+  DirichletJacData* ctx = static_cast<DirichletJacData*>(damg->user);
+
+  if(damg->da->iAmActive()) {      
+    PetscScalar* inArray;
+    PetscScalar* outArray;
+
+    VecGetArray(in, &inArray);
+    VecGetArray(out, &outArray);
+
+    VecPlaceArray(ctx->inTmp, inArray);
+    VecPlaceArray(ctx->outTmp, outArray);
+
+    MatMult(ctx->Jmat_private, ctx->inTmp, ctx->outTmp);
+
+    VecResetArray(ctx->inTmp);
+    VecResetArray(ctx->outTmp);
+
+    VecRestoreArray(in, &inArray);
+    VecRestoreArray(out, &outArray);
+  }
+
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode TmpDirichletJacobianMatMult(Mat J, Vec in, Vec out) {
+  PetscFunctionBegin;
+
+  ot::DAMG damg;
+  iC(MatShellGetContext(J, (void**)(&damg)));
+
+  DirichletJacData *data = (static_cast<DirichletJacData*>(damg->user));
+
+  unsigned char* bdyArr = data->bdyArr;
+
+  ot::DA* da = damg->da;
+
+  iC(VecZeroEntries(out));
+
+  unsigned int maxD;
+  double hFac;
+  if(da->iAmActive()) {
+    maxD = da->getMaxDepth();
+    hFac = 1.0/((double)(1u << (maxD-1)));
+  }
+
+  PetscScalar *outArr=NULL;
+  PetscScalar *inArr=NULL;
+
+  /*Nodal,Non-Ghosted,Read,1 dof*/
+  da->vecGetBuffer(in,inArr,false,false,true,1);
+
+  /*Nodal,Non-Ghosted,Write,1 dof*/
+  da->vecGetBuffer(out,outArr,false,false,false,1);
+
+  if(da->iAmActive()) {
+
+    da->ReadFromGhostsBegin<PetscScalar>(inArr,1);
+
+    for(da->init<ot::DA_FLAGS::INDEPENDENT>();
+        da->curr() < da->end<ot::DA_FLAGS::INDEPENDENT>();
+        da->next<ot::DA_FLAGS::INDEPENDENT>() ) {
+      unsigned int idx = da->curr();
+      unsigned int lev = da->getLevel(idx);
+      double h = hFac*(1u << (maxD - lev));
+      double fac1 = h/2.0;
+      double fac2 = h*h*h/8.0;
+      unsigned int indices[8];
+      da->getNodeIndices(indices);
+      unsigned char childNum = da->getChildNumber();
+      unsigned char hnMask = da->getHangingNodeIndex(idx);
+      unsigned char elemType = 0;
+      GET_ETYPE_BLOCK(elemType,hnMask,childNum)
+        for(int k = 0; k < 8; k++) {
+          if(!bdyArr[indices[k]]) {
+            for(int j = 0; j < 8; j++) {
+              outArr[indices[k]] +=  (((fac1*(LaplacianType2Stencil[childNum][elemType][k][j])) +
+                    (fac2*(MassType2Stencil[childNum][elemType][k][j])))*inArr[indices[j]]);
+            }/*end for j*/
+          }
+        }/*end for k*/
+    } /*end independent*/
+
+    da->ReadFromGhostsEnd<PetscScalar>(inArr);
+
+    for(da->init<ot::DA_FLAGS::DEPENDENT>();
+        da->curr() < da->end<ot::DA_FLAGS::DEPENDENT>();
+        da->next<ot::DA_FLAGS::DEPENDENT>() ) {
+      unsigned int idx = da->curr();
+      unsigned int lev = da->getLevel(idx);
+      double h = hFac*(1u << (maxD - lev));
+      double fac1 = h/2.0;
+      double fac2 = h*h*h/8.0;
+      unsigned int indices[8];
+      da->getNodeIndices(indices);
+      unsigned char childNum = da->getChildNumber();
+      unsigned char hnMask = da->getHangingNodeIndex(idx);
+      unsigned char elemType = 0;
+      GET_ETYPE_BLOCK(elemType,hnMask,childNum)
+        for(int k = 0; k < 8; k++) {
+          if(!bdyArr[indices[k]]) {
+            for(int j = 0; j < 8; j++) {
+              outArr[indices[k]] +=  (((fac1*(LaplacianType2Stencil[childNum][elemType][k][j])) +
+                    (fac2*(MassType2Stencil[childNum][elemType][k][j])))*inArr[indices[j]]);
+            }/*end for j*/
+          }
+        }/*end for k*/
+    } /*end loop for dependent elems*/
+
+  } /*end if active*/
+
+  da->vecRestoreBuffer(in,inArr,false,false,true,1);
+
+  da->vecRestoreBuffer(out,outArr,false,false,false,1);
+
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode DirichletJacobianMatMult(Mat J, Vec in, Vec out) {
+  PetscFunctionBegin;
+
+  ot::DAMG damg;
+  iC(MatShellGetContext(J, (void**)(&damg)));
+
+  DirichletJacData *data = (static_cast<DirichletJacData*>(damg->user));
+
+  unsigned char* bdyArr = data->bdyArr;
+
+  ot::DA* da = damg->da;
+
+  iC(VecZeroEntries(out));
+
+  unsigned int maxD;
+  double hFac;
+  if(da->iAmActive()) {
+    maxD = da->getMaxDepth();
+    hFac = 1.0/((double)(1u << (maxD-1)));
+  }
+
+  PetscScalar *outArr=NULL;
+  PetscScalar *inArr=NULL;
+
+  /*Nodal,Non-Ghosted,Read,1 dof*/
+  da->vecGetBuffer(in,inArr,false,false,true,1);
+
+  /*Nodal,Non-Ghosted,Write,1 dof*/
+  da->vecGetBuffer(out,outArr,false,false,false,1);
+
+  if(da->iAmActive()) {
+
+    da->ReadFromGhostsBegin<PetscScalar>(inArr,1);
+
+    for(da->init<ot::DA_FLAGS::INDEPENDENT>();
+        da->curr() < da->end<ot::DA_FLAGS::INDEPENDENT>();
+        da->next<ot::DA_FLAGS::INDEPENDENT>() ) {
+      unsigned int idx = da->curr();
+      unsigned int lev = da->getLevel(idx);
+      double h = hFac*(1u << (maxD - lev));
+      double fac1 = h/2.0;
+      double fac2 = h*h*h/8.0;
+      unsigned int indices[8];
+      da->getNodeIndices(indices);
+      unsigned char childNum = da->getChildNumber();
+      unsigned char hnMask = da->getHangingNodeIndex(idx);
+      unsigned char elemType = 0;
+      GET_ETYPE_BLOCK(elemType,hnMask,childNum)
+        for(int k = 0; k < 8; k++) {
+          if(bdyArr[indices[k]]) {
+            outArr[indices[k]] =  inArr[indices[k]];
+          } else {
+            for(int j = 0; j < 8; j++) {
+              if(!bdyArr[indices[j]]) {
+                outArr[indices[k]] +=  (((fac1*(LaplacianType2Stencil[childNum][elemType][k][j])) +
+                      (fac2*(MassType2Stencil[childNum][elemType][k][j])))*inArr[indices[j]]);
+              }
+            }/*end for j*/
+          }
+        }/*end for k*/
+    } /*end independent*/
+
+    da->ReadFromGhostsEnd<PetscScalar>(inArr);
+
+    for(da->init<ot::DA_FLAGS::DEPENDENT>();
+        da->curr() < da->end<ot::DA_FLAGS::DEPENDENT>();
+        da->next<ot::DA_FLAGS::DEPENDENT>() ) {
+      unsigned int idx = da->curr();
+      unsigned int lev = da->getLevel(idx);
+      double h = hFac*(1u << (maxD - lev));
+      double fac1 = h/2.0;
+      double fac2 = h*h*h/8.0;
+      unsigned int indices[8];
+      da->getNodeIndices(indices);
+      unsigned char childNum = da->getChildNumber();
+      unsigned char hnMask = da->getHangingNodeIndex(idx);
+      unsigned char elemType = 0;
+      GET_ETYPE_BLOCK(elemType,hnMask,childNum)
+        for(int k = 0; k < 8; k++) {
+          if(bdyArr[indices[k]]) {
+            outArr[indices[k]] =  inArr[indices[k]];
+          } else {
+            for(int j = 0; j < 8; j++) {
+              if(!bdyArr[indices[j]]) {
+                outArr[indices[k]] +=  (((fac1*(LaplacianType2Stencil[childNum][elemType][k][j])) +
+                      (fac2*(MassType2Stencil[childNum][elemType][k][j])))*inArr[indices[j]]);
+              }
+            }/*end for j*/
+          }
+        }/*end for k*/
+    } /*end loop for dependent elems*/
+
+  } /*end if active*/
+
+  da->vecRestoreBuffer(in,inArr,false,false,true,1);
+
+  da->vecRestoreBuffer(out,outArr,false,false,false,1);
+
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode DirichletJacobianMatGetDiagonal(Mat J, Vec diag) {
+  PetscFunctionBegin;
+
+  ot::DAMG damg;
+  iC(MatShellGetContext(J, (void**)(&damg)));
+
+  DirichletJacData *data = (static_cast<DirichletJacData*>(damg->user));
+
+  ot::DA* da = damg->da;
+
+  iC(VecZeroEntries(diag));
+
+  unsigned char* bdyArr = data->bdyArr;
+
+  PetscScalar *diagArr;
+  /*Nodal,Non-Ghosted,Write,1 dof*/
+  da->vecGetBuffer(diag, diagArr, false, false, false, 1);
+
+  unsigned int maxD;
+  double hFac;
+  if(da->iAmActive()) {
+    maxD = (da->getMaxDepth());
+    hFac = 1.0/((double)(1u << (maxD-1)));
+    /*Loop through All Elements including ghosted*/
+    for(da->init<ot::DA_FLAGS::ALL>();
+        da->curr() < da->end<ot::DA_FLAGS::ALL>();
+        da->next<ot::DA_FLAGS::ALL>()) {
+      unsigned int idx = da->curr();
+      unsigned int lev = da->getLevel(idx);
+      double h = hFac*(1u << (maxD - lev));
+      double fac1 = h/2.0;
+      double fac2 = h*h*h/8.0;
+      unsigned int indices[8];
+      da->getNodeIndices(indices);
+      unsigned char childNum = da->getChildNumber();
+      unsigned char hnMask = da->getHangingNodeIndex(idx);
+      unsigned char elemType = 0;
+      GET_ETYPE_BLOCK(elemType,hnMask,childNum)
+        for(int k = 0; k < 8; k++) {
+          if(bdyArr[indices[k]]) {
+            diagArr[indices[k]] = 1.0;
+          } else {
+            diagArr[indices[k]] +=  ((fac1*(LaplacianType2Stencil[childNum][elemType][k][k])) +
+                (fac2*(MassType2Stencil[childNum][elemType][k][k])));
+          } /* end if bdy */
+        } /*end k*/
+    } /*end ALL loop*/
+  } /*end if active*/
+
+  da->vecRestoreBuffer(diag, diagArr, false, false, false, 1);
+
+  PetscFunctionReturn(0);
+}
 
 PetscErrorCode Jacobian2ShellMatMult(Mat J, Vec in, Vec out) {
   PetscFunctionBegin;
@@ -94,6 +714,18 @@ PetscErrorCode Jacobian3ShellMatMult(Mat J, Vec in, Vec out) {
   PetscFunctionReturn(0);
 }
 
+void getActiveStateAndActiveCommForKSP_Shell_DirichletJac(Mat mat,
+    bool & activeState, MPI_Comm & activeComm) {
+  PetscTruth isshell;
+  PetscTypeCompare((PetscObject)mat, MATSHELL, &isshell);
+  assert(isshell);
+  ot::DAMG damg;
+  MatShellGetContext(mat, (void**)(&damg));
+  ot::DA* da = damg->da;
+  activeState = da->iAmActive();
+  activeComm = da->getCommActive();
+}
+
 void getActiveStateAndActiveCommForKSP_Shell_Jac1(Mat mat,
     bool & activeState, MPI_Comm & activeComm) {
   PetscTruth isshell;
@@ -118,12 +750,25 @@ void getActiveStateAndActiveCommForKSP_Shell_Jac2or3(Mat mat,
   activeComm = da->getCommActive();
 }
 
+void getPrivateMatricesForKSP_Shell_DirichletJac(Mat mat,
+    Mat *AmatPrivate, Mat *PmatPrivate, MatStructure* pFlag) {
+  PetscTruth isshell;
+  PetscTypeCompare((PetscObject)mat, MATSHELL, &isshell);
+  assert(isshell);
+  ot::DAMG damg;
+  MatShellGetContext(mat, (void**)(&damg));
+  DirichletJacData* data = (static_cast<DirichletJacData*>(damg->user));
+  *AmatPrivate = data->Jmat_private;
+  *PmatPrivate = data->Jmat_private;
+  *pFlag = DIFFERENT_NONZERO_PATTERN;
+}
+
 void getPrivateMatricesForKSP_Shell_Jac1(Mat mat,
     Mat *AmatPrivate, Mat *PmatPrivate, MatStructure* pFlag) {
   PetscTruth isshell;
   PetscTypeCompare((PetscObject)mat, MATSHELL, &isshell);
   assert(isshell);
-  Jac1MFreeData *data;
+  Jac1MFreeData* data;
   MatShellGetContext(mat, (void**)(&data));
   *AmatPrivate = data->Jmat_private;
   *PmatPrivate = data->Jmat_private;
@@ -137,7 +782,7 @@ void getPrivateMatricesForKSP_Shell_Jac2(Mat mat,
   assert(isshell);
   ot::DAMG damg;
   MatShellGetContext(mat, (void**)(&damg));
-  Jac2MFreeData *data = (static_cast<Jac2MFreeData*>(damg->user));
+  Jac2MFreeData* data = (static_cast<Jac2MFreeData*>(damg->user));
   *AmatPrivate = data->Jmat_private;
   *PmatPrivate = data->Jmat_private;
   *pFlag = DIFFERENT_NONZERO_PATTERN;

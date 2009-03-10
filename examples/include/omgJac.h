@@ -32,6 +32,16 @@ struct Jac3MFreeData {
   Vec outTmp;
 };
 
+struct DirichletJacData {
+  unsigned char* bdyArr;
+  Mat Jmat_private;
+  Vec inTmp;
+  Vec outTmp;
+};
+
+void SetDirichletJacContexts(ot::DAMG* damg);
+void DestroyDirichletJacContexts(ot::DAMG* damg);
+
 void SetUserContexts(ot::DAMG* damg);
 void SetUserContextsCoarsestToFinest(ot::DAMG* damg);
 
@@ -39,9 +49,20 @@ void SetCoarseToFineFromPts(ot::DAMG* damg,
     const std::vector<double>& pts,
     const std::vector<double> & lapJump);
 
-void SetUserContextsFromPts(ot::DAMG* damg, const std::vector<double>& pts, const std::vector<double> & lapJump);
+void SetUserContextsFromPts(ot::DAMG* damg, const std::vector<double>& pts,
+    const std::vector<double> & lapJump);
 
 void DestroyUserContexts(ot::DAMG* damg);
+
+PetscErrorCode CreateTmpDirichletJacobian(ot::DAMG damg,Mat *B);
+PetscErrorCode CreateDirichletJacobian(ot::DAMG damg,Mat *B);
+PetscErrorCode ComputeDirichletJacobian(ot::DAMG damg,Mat J, Mat B);
+
+PetscErrorCode TmpDirichletJacobianMatMult(Mat, Vec, Vec);
+PetscErrorCode DirichletJacobianMatMult(Mat, Vec, Vec);
+PetscErrorCode DirichletJacobianShellMatMult(Mat, Vec, Vec);
+PetscErrorCode DirichletJacobianMatGetDiagonal(Mat, Vec);
+PetscErrorCode DirichletJacobianMatDestroy(Mat);
 
 PetscErrorCode CreateJacobian1(ot::DAMG damg,Mat *B);
 PetscErrorCode ComputeJacobian1(ot::DAMG damg,Mat J, Mat B);
@@ -74,6 +95,7 @@ PetscErrorCode ComputeRHS9(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeFBM_RHS(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeFBM_RHS_Part1(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeFBM_RHS_Part2(ot::DAMG damg, Vec in);
+PetscErrorCode ComputeFBM_RHS_Part3(ot::DAMG damg, Vec in);
 PetscErrorCode SetSolution5(ot::DA* da, Vec in);
 
 double ComputeError5(ot::DA* da, Vec in);
@@ -87,11 +109,17 @@ PetscErrorCode Jacobian3ShellMatMult(Mat, Vec, Vec);
 PetscErrorCode Jacobian3MatGetDiagonal(Mat, Vec);
 PetscErrorCode Jacobian3MatDestroy(Mat);
 
+void getActiveStateAndActiveCommForKSP_Shell_DirichletJac(Mat mat,
+    bool & activeState, MPI_Comm & activeComm);
+
 void getActiveStateAndActiveCommForKSP_Shell_Jac1(Mat mat,
     bool & activeState, MPI_Comm & activeComm);
 
 void getActiveStateAndActiveCommForKSP_Shell_Jac2or3(Mat mat,
     bool & activeState, MPI_Comm & activeComm);
+
+void getPrivateMatricesForKSP_Shell_DirichletJac(Mat mat,
+    Mat *AmatPrivate, Mat *PmatPrivate, MatStructure* pFlag);
 
 void getPrivateMatricesForKSP_Shell_Jac1(Mat mat,
     Mat *AmatPrivate, Mat *PmatPrivate, MatStructure* pFlag);
