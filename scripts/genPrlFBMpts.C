@@ -47,16 +47,20 @@ int main(int argc, char **argv) {
   double ang2End = static_cast<double>(jIdx + 1)*__PI__/static_cast<double>(rootP);
 
   //The gather is for testing only
+  double* allAng1Start = new double[npes];
   double* allAng2Start = new double[npes];
 
+  MPI_Gather(&ang1Start, 1, MPI_DOUBLE, allAng1Start, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Gather(&ang2Start, 1, MPI_DOUBLE, allAng2Start, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
   if(!rank) {
     for(int i = 0; i < npes; i++) {
-      std::cout<<"ang2start["<<i<<"] = "<<allAng2Start[i]<<std::endl;
+      std::cout<<"ang1Start["<<i<<"] = "<<allAng1Start[i]<<std::endl;
+      std::cout<<"ang2Start["<<i<<"] = "<<allAng2Start[i]<<std::endl;
     }
   }
 
+  delete [] allAng1Start;
   delete [] allAng2Start;
 
   double angInc1 = (ang1End - ang1Start)/static_cast<double>(numAng1);
