@@ -299,7 +299,7 @@ PetscErrorCode ComputeFBM_RHS(ot::DAMG damg, Vec in) {
   PetscReal fbmR = 0;
   PetscOptionsGetReal(0, "-fbmR", &fbmR, 0);
 
-  VecAXPY(in, 2.0*fbmR, deltaRhs);
+  VecAXPY(in, -2.0*fbmR, deltaRhs);
   VecAXPY(in, 1.0, dirichletVals);
   VecAXPY(in, -1.0, bcCorrections);
 
