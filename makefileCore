@@ -19,7 +19,7 @@ EXEC_TESTS = bin/createCoarser bin/chkNl bin/chkMl bin/dumpMesh\
             bin/downSample \
              bin/checkResults bin/checkSV bin/chkCoarsen \
 	     bin/justCoarsen bin/testNodeAndVals bin/testPetscInt \
-	     bin/tstFBM bin/tstDirichlet
+	     bin/tstFBM bin/tstDirichlet bin/tstFBM2
 
 EXEC_UTIL = bin/gen2spheres bin/genPrlFBMpts
 
@@ -168,6 +168,9 @@ bin/checkError : ./examples/src/drivers/checkError.o ./examples/src/backend/omgJ
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
 	
 bin/tstFBM : ./examples/src/drivers/tstFBM.o ./examples/src/backend/omgJac.o ./examples/src/backend/matProp.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/handleType2Stencils.o ./examples/src/backend/handleType1Stencils.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
+	
+bin/tstFBM2 : ./examples/src/drivers/tstFBM2.o ./examples/src/backend/omgJac.o ./examples/src/backend/matProp.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/handleType2Stencils.o ./examples/src/backend/handleType1Stencils.o $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS)
 	
 bin/tstDirichlet : ./examples/src/drivers/tstDirichlet.o ./examples/src/backend/omgJac.o ./examples/src/backend/matProp.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/handleType2Stencils.o ./examples/src/backend/handleType1Stencils.o $(ARCHIVES)

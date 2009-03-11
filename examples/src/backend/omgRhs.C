@@ -123,6 +123,66 @@ double ComputeFBMerror(ot::DAMG damg, Vec in)
   }//end if-else active
 }//end fn.
 
+PetscErrorCode EnforceZeroFBM2(ot::DAMG damg, Vec tmp) {
+  PetscFunctionBegin;	 	 
+
+  PetscScalar *inarray;
+
+  ot::DA* da = damg->da;
+  da->vecGetBuffer(tmp, inarray, false, false, false, 1);
+
+  PetscReal gamma = 0;
+  PetscOptionsGetReal(0, "-gamma", &gamma, 0);
+
+  unsigned int maxD;
+  unsigned int balOctmaxD;
+
+  if(da->iAmActive()) {
+    maxD = da->getMaxDepth();
+    balOctmaxD = maxD - 1;
+    for(da->init<ot::DA_FLAGS::ALL>(); 
+        da->curr() < da->end<ot::DA_FLAGS::ALL>();
+        da->next<ot::DA_FLAGS::ALL>())  
+    {
+      Point pt;
+      pt = da->getCurrentOffset();
+      unsigned levelhere = da->getLevel(da->curr()) - 1;
+      double hxOct = (double)((double)(1u << (balOctmaxD - levelhere))/(double)(1u << balOctmaxD));
+      double x = (double)(pt.xint())/((double)(1u << (maxD-1)));
+      double y = (double)(pt.yint())/((double)(1u << (maxD-1)));
+      double z = (double)(pt.zint())/((double)(1u << (maxD-1)));
+
+      unsigned int indices[8];
+      da->getNodeIndices(indices); 
+      double coord[8][3] = {
+        {0.0,0.0,0.0},
+        {1.0,0.0,0.0},
+        {0.0,1.0,0.0},
+        {1.0,1.0,0.0},
+        {0.0,0.0,1.0},
+        {1.0,0.0,1.0},
+        {0.0,1.0,1.0},
+        {1.0,1.0,1.0}
+      };
+      unsigned char hn = da->getHangingNodeIndex(da->curr());
+
+      for(int i = 0; i < 8; i++)
+      {
+        if (!(hn & (1 << i))){
+          double xPt;
+          xPt = x + (coord[i][0]*hxOct);
+          if( xPt >= (0.9*gamma) ) {
+            inarray[indices[i]] = 0.0;
+          }
+        }
+      }
+    }
+  }
+
+  da->vecRestoreBuffer(tmp, inarray, false, false, false, 1); 
+
+  PetscFunctionReturn(0);
+}
 
 PetscErrorCode EnforceZeroFBM(ot::DAMG damg, Vec tmp) {
   PetscFunctionBegin;	 	 
@@ -186,6 +246,68 @@ PetscErrorCode EnforceZeroFBM(ot::DAMG damg, Vec tmp) {
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode SetSolutionFBM2(ot::DAMG damg, Vec tmp) {
+  PetscFunctionBegin;	 	 
+
+  PetscScalar *inarray;
+  VecZeroEntries(tmp);
+
+  ot::DA* da = damg->da;
+  da->vecGetBuffer(tmp, inarray, false, false, false, 1);
+
+  PetscReal gamma = 0;
+  PetscOptionsGetReal(0, "-gamma", &gamma, 0);
+
+  unsigned int maxD;
+  unsigned int balOctmaxD;
+
+  if(da->iAmActive()) {
+    maxD = da->getMaxDepth();
+    balOctmaxD = maxD - 1;
+    for(da->init<ot::DA_FLAGS::ALL>(); 
+        da->curr() < da->end<ot::DA_FLAGS::ALL>();
+        da->next<ot::DA_FLAGS::ALL>())  
+    {
+      Point pt;
+      pt = da->getCurrentOffset();
+      unsigned levelhere = da->getLevel(da->curr()) - 1;
+      double hxOct = (double)((double)(1u << (balOctmaxD - levelhere))/(double)(1u << balOctmaxD));
+      double x = (double)(pt.xint())/((double)(1u << (maxD-1)));
+      double y = (double)(pt.yint())/((double)(1u << (maxD-1)));
+      double z = (double)(pt.zint())/((double)(1u << (maxD-1)));
+
+      unsigned int indices[8];
+      da->getNodeIndices(indices); 
+      double coord[8][3] = {
+        {0.0,0.0,0.0},
+        {1.0,0.0,0.0},
+        {0.0,1.0,0.0},
+        {1.0,1.0,0.0},
+        {0.0,0.0,1.0},
+        {1.0,0.0,1.0},
+        {0.0,1.0,1.0},
+        {1.0,1.0,1.0}
+      };
+      unsigned char hn = da->getHangingNodeIndex(da->curr());
+
+      for(int i = 0; i < 8; i++)
+      {
+        if (!(hn & (1 << i))){
+          double xPt;
+          xPt = x + (coord[i][0]*hxOct);
+          if( xPt < (0.9*gamma) ) {
+            double solVal = gamma - xPt;
+            inarray[indices[i]] = solVal;
+          }
+        }
+      }
+    }
+  }
+
+  da->vecRestoreBuffer(tmp, inarray, false, false, false, 1); 
+
+  PetscFunctionReturn(0);
+}
 
 PetscErrorCode SetSolutionFBM(ot::DAMG damg, Vec tmp) {
   PetscFunctionBegin;	 	 
@@ -279,6 +401,342 @@ PetscErrorCode ComputeTestFBM_RHS(ot::DAMG damg, Vec in) {
   if(!rank) {
     std::cout<<"Done building RHS"<<std::endl;
   }
+
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode ComputeFBM2_RHS(ot::DAMG damg, Vec in) {
+  PetscFunctionBegin;
+
+  Vec deltaRhs;
+  Vec dirichletVals;
+  Vec bcCorrections;
+  VecDuplicate(in, &deltaRhs);
+  VecDuplicate(in, &dirichletVals);
+  VecDuplicate(in, &bcCorrections);
+
+  VecZeroEntries(in);
+  ComputeFBM2_RHS_Part1(damg, deltaRhs);
+  ComputeFBM2_RHS_Part2(damg, dirichletVals);
+
+  Mat tmpMat;
+  CreateTmpDirichletLaplacian(damg, &tmpMat);
+  MatMult(tmpMat, dirichletVals, bcCorrections);
+  MatDestroy(tmpMat);
+
+  PetscReal gamma = 0;
+  PetscOptionsGetReal(0, "-gamma", &gamma, 0);
+
+  VecAXPY(in, -1.0, deltaRhs);
+  VecAXPY(in, 1.0, dirichletVals);
+  VecAXPY(in, -1.0, bcCorrections);
+
+  VecDestroy(deltaRhs);
+  VecDestroy(dirichletVals);
+  VecDestroy(bcCorrections);
+
+  int rank;
+  MPI_Comm_rank(damg->comm, &rank);
+  if(!rank) {
+    std::cout<<"Done building RHS"<<std::endl;
+  }
+
+  PetscFunctionReturn(0);
+}
+
+//Force is a sum of delta functions.
+PetscErrorCode ComputeFBM2_RHS_Part1(ot::DAMG damg, Vec in) {
+  PetscFunctionBegin;
+
+  ot::DA* da = damg->da;
+
+  DirichletJacData* data = (static_cast<DirichletJacData*>(damg->user));
+  unsigned char* bdyArr = data->bdyArr;
+
+  MPI_Comm commAll = da->getComm();
+
+  int rankAll = da->getRankAll();
+  int npesAll = da->getNpesAll();
+
+  unsigned int dim = da->getDimension();
+  unsigned int maxDepth = da->getMaxDepth();
+  int npesActive = da->getNpesActive();
+
+  if( npesActive < npesAll ) {
+    unsigned int tmpArr[3];
+    tmpArr[0] = dim;
+    tmpArr[1] = maxDepth;
+    tmpArr[2] = npesActive;
+
+    par::Mpi_Bcast<unsigned int>(tmpArr, 3, 0, commAll);
+
+    dim = tmpArr[0];
+    maxDepth = tmpArr[1];
+    npesActive = static_cast<int>(tmpArr[2]);
+  }
+
+  unsigned int balOctMaxD = (maxDepth - 1);
+
+  PetscReal gamma = 0;
+  PetscOptionsGetReal(0, "-gamma", &gamma, 0);
+
+  PetscInt Nsample = 100;
+  PetscOptionsGetInt(0, "-Nsample", &Nsample, 0);
+
+  double hSample = 1.0/static_cast<double>(Nsample);
+  std::vector<double> pts;
+  if(!rank) {
+    for(double z = 0; z < 1.0; z += hSample) {
+      for(double y = 0; y < 1.0; y += hSample) {
+        pts.push_back(gamma);
+        pts.push_back(y);
+        pts.push_back(z);
+      }
+    }
+  }
+
+  unsigned int numLocalDelta = pts.size()/3; 
+
+  std::vector<ot::NodeAndValues<double, 4> > tnAndVal(numLocalDelta);
+
+  for(unsigned int i = 0; i < numLocalDelta; i++) {
+    double x = pts[3*i];
+    double y = pts[(3*i) + 1];
+    double z = pts[(3*i) + 2];
+
+    unsigned int xint = static_cast<unsigned int>(x*static_cast<double>(1u << balOctMaxD));
+    unsigned int yint = static_cast<unsigned int>(y*static_cast<double>(1u << balOctMaxD));
+    unsigned int zint = static_cast<unsigned int>(z*static_cast<double>(1u << balOctMaxD));
+
+    tnAndVal[i].node = ot::TreeNode(xint, yint, zint, maxDepth, dim, maxDepth);
+
+    tnAndVal[i].values[0] = x;
+    tnAndVal[i].values[1] = y;
+    tnAndVal[i].values[2] = z;
+    tnAndVal[i].values[3] = square(hSample);
+  }//end for i
+
+  pts.clear();
+
+  std::vector<ot::TreeNode> minBlocks = da->getMinAllBlocks();
+
+  if(npesActive < npesAll) {
+    bool* activeStates = new bool[npesAll];
+
+    activeStates[0] = true;
+    for(int i = 1; i < npesActive; i++) {
+      activeStates[i] = false;
+    }
+    for(int i = npesActive; i < npesAll; i++) {
+      activeStates[i] = true;
+    }
+
+    MPI_Comm tmpComm;
+
+    par::splitComm2way(activeStates, &tmpComm, commAll);
+
+    if(rankAll == 0) {
+      par::Mpi_Bcast<ot::TreeNode>(&(*(minBlocks.begin())) , npesActive, 0, tmpComm);
+    }
+    if(rankAll >= npesActive) {
+      minBlocks.resize(npesActive);
+      par::Mpi_Bcast<ot::TreeNode>(&(*(minBlocks.begin())) , npesActive, 0, tmpComm);
+    }
+
+    delete [] activeStates;
+  }
+
+  unsigned int* part = new unsigned int[tnAndVal.size()];
+
+  int *sendCnt = new int[npesAll];
+  for(int i = 0; i < npesAll; i++) {
+    sendCnt[i] = 0;
+  }
+
+  for(int i = 0; i < tnAndVal.size(); i++) {
+    seq::maxLowerBound<ot::TreeNode>(minBlocks, tnAndVal[i].node, part[i], NULL, NULL);
+    sendCnt[part[i]]++; 
+  }
+
+  int *recvCnt = new int[npesAll];
+
+  par::Mpi_Alltoall<int>( sendCnt, recvCnt, 1, commAll);
+
+  int *sendOffsets = new int[npesAll];
+  int *recvOffsets = new int[npesAll];
+
+  sendOffsets[0] = 0;
+  recvOffsets[0] = 0;
+  for(int i = 1; i < npesAll; i++) {
+    sendOffsets[i] = sendOffsets[i - 1] + sendCnt[i - 1];
+    recvOffsets[i] = recvOffsets[i - 1] + recvCnt[i - 1];
+  }
+
+  //We can simply communicate the doubles instead, but then we will need to
+  //recreate octants from doubles to do further processing.
+  std::vector<ot::NodeAndValues<double, 4> > sendList(sendOffsets[npesAll - 1] + sendCnt[npesAll - 1]);
+  std::vector<ot::NodeAndValues<double, 4> > recvList(recvOffsets[npesAll - 1] + recvCnt[npesAll - 1]);
+
+  int* tmpSendCnt = new int[npesAll];
+  for(int i = 0; i < npesAll; i++) {
+    tmpSendCnt[i] = 0;
+  }
+
+  for(int i = 0; i < tnAndVal.size(); i++) {
+    sendList[sendOffsets[part[i]] + tmpSendCnt[part[i]]] = tnAndVal[i];
+    tmpSendCnt[part[i]]++;
+  }
+  delete [] tmpSendCnt;
+  tnAndVal.clear();
+
+  par::Mpi_Alltoallv_sparse<ot::NodeAndValues<double, 4> >( &(*(sendList.begin())), sendCnt,
+      sendOffsets, &(*(recvList.begin())), recvCnt, recvOffsets, commAll);
+
+  sendList.clear();
+
+  delete [] part;
+  delete [] sendCnt;
+  delete [] recvCnt;
+  delete [] sendOffsets;
+  delete [] recvOffsets;
+
+  sort(recvList.begin(), recvList.end());
+
+  //Now the points are sorted and aligned with the DA partition
+
+  //In PETSc's debug mode they use an Allreduce where all processors (active
+  //and inactive) participate. Hence, VecZeroEntries must be called by active
+  //and inactive processors.
+  VecZeroEntries(in);
+
+  if(!(da->iAmActive())) {
+    assert(recvList.empty());
+  } else {
+    PetscScalar *inarray;
+    da->vecGetBuffer(in, inarray, false, false, false, 1);
+
+    unsigned int ptsCtr = 0;
+
+    for(da->init<ot::DA_FLAGS::WRITABLE>();
+        da->curr() < da->end<ot::DA_FLAGS::WRITABLE>();
+        da->next<ot::DA_FLAGS::WRITABLE>())  
+    {
+      Point pt;
+      pt = da->getCurrentOffset();
+      unsigned int idx = da->curr();
+      unsigned levelhere = da->getLevel(idx);
+      unsigned int xint = pt.xint();
+      unsigned int yint = pt.yint();
+      unsigned int zint = pt.zint();
+      ot::TreeNode currOct(xint, yint, zint, levelhere, dim, maxDepth);
+      while( (ptsCtr < recvList.size()) && 
+          (recvList[ptsCtr].node < currOct) ) {
+        ptsCtr++;
+      }
+      double hxOct = (double)((double)(1u << (maxDepth - levelhere))/(double)(1u << balOctMaxD));
+      double x = static_cast<double>(xint)/((double)(1u << balOctMaxD));
+      double y = static_cast<double>(yint)/((double)(1u << balOctMaxD));
+      double z = static_cast<double>(zint)/((double)(1u << balOctMaxD));
+      unsigned int indices[8];
+      da->getNodeIndices(indices); 
+      unsigned char childNum = da->getChildNumber();
+      unsigned char hnMask = da->getHangingNodeIndex(idx);
+      unsigned char elemType = 0;
+      GET_ETYPE_BLOCK(elemType,hnMask,childNum)
+        while( (ptsCtr < recvList.size()) && 
+            ( currOct.isAncestor(recvList[ptsCtr].node) || 
+              ( currOct == (recvList[ptsCtr].node) ) ) ) {
+          for(unsigned int j = 0; j < 8; j++) {
+            if(!(bdyArr[indices[j]])) {
+              double xLoc = (((2.0/hxOct)*(recvList[ptsCtr].values[0] - x)) - 1.0);
+              double yLoc = (((2.0/hxOct)*(recvList[ptsCtr].values[1] - y)) - 1.0);
+              double zLoc = (((2.0/hxOct)*(recvList[ptsCtr].values[2] - z)) - 1.0);
+              double ShFnVal = ( ot::ShapeFnCoeffs[childNum][elemType][j][0] + 
+                  (ot::ShapeFnCoeffs[childNum][elemType][j][1]*xLoc) +
+                  (ot::ShapeFnCoeffs[childNum][elemType][j][2]*yLoc) +
+                  (ot::ShapeFnCoeffs[childNum][elemType][j][3]*zLoc) +
+                  (ot::ShapeFnCoeffs[childNum][elemType][j][4]*xLoc*yLoc) +
+                  (ot::ShapeFnCoeffs[childNum][elemType][j][5]*yLoc*zLoc) +
+                  (ot::ShapeFnCoeffs[childNum][elemType][j][6]*zLoc*xLoc) +
+                  (ot::ShapeFnCoeffs[childNum][elemType][j][7]*xLoc*yLoc*zLoc) );
+              inarray[indices[j]] += ((recvList[ptsCtr].values[3])*ShFnVal);
+            }//end if bdy
+          }//end for j
+          ptsCtr++;
+        }
+    }//end for i
+
+    da->WriteToGhostsBegin<PetscScalar>(inarray, 1);
+    da->WriteToGhostsEnd<PetscScalar>(inarray, 1);
+
+    da->vecRestoreBuffer(in, inarray, false, false, false, 1);
+
+  }//end if active
+
+  PetscFunctionReturn(0);
+
+}//end fn.
+
+PetscErrorCode ComputeFBM2_RHS_Part2(ot::DAMG damg, Vec in) {
+  PetscFunctionBegin;	 	 
+
+  ot::DA* da = damg->da;
+  PetscScalar *inarray;
+
+  DirichletJacData* data = (static_cast<DirichletJacData*>(damg->user));
+  unsigned char* bdyArr = data->bdyArr;
+
+  PetscReal gamma = 0;
+  PetscOptionsGetReal(0, "-gamma", &gamma, 0);
+
+  VecZeroEntries(in);
+  da->vecGetBuffer(in, inarray, false, false, false, 1);
+
+  unsigned int maxD;
+  unsigned int balOctmaxD;
+
+  if(da->iAmActive()) {
+    maxD = da->getMaxDepth();
+    balOctmaxD = maxD - 1;
+    for(da->init<ot::DA_FLAGS::ALL>();
+        da->curr() < da->end<ot::DA_FLAGS::ALL>();
+        da->next<ot::DA_FLAGS::ALL>())  
+    {
+      Point pt;
+      pt = da->getCurrentOffset();
+      unsigned int idx = da->curr();
+      unsigned levelhere = (da->getLevel(idx) - 1);
+      double hxOct = (double)((double)(1u << (balOctmaxD - levelhere))/(double)(1u << balOctmaxD));
+      double x = (double)(pt.xint())/((double)(1u << (maxD-1)));
+      double y = (double)(pt.yint())/((double)(1u << (maxD-1)));
+      double z = (double)(pt.zint())/((double)(1u << (maxD-1)));
+      double coord[8][3] = {
+        {0.0,0.0,0.0},
+        {1.0,0.0,0.0},
+        {0.0,1.0,0.0},
+        {1.0,1.0,0.0},
+        {0.0,0.0,1.0},
+        {1.0,0.0,1.0},
+        {0.0,1.0,1.0},
+        {1.0,1.0,1.0}
+      };
+      unsigned int indices[8];
+      da->getNodeIndices(indices); 
+      unsigned char hnMask = da->getHangingNodeIndex(idx);
+      for(unsigned int j = 0; j < 8; j++) {
+        if(!(hnMask & (1 << j))) {
+          if(bdyArr[indices[j]]) {
+            double xPt = x + (coord[j][0]*hxOct);
+            if(xPt < gamma) {
+              inarray[indices[j]] = gamma - xPt;
+            }
+          }//end if bdy
+        }//end if hanging
+      }//end for j
+    }//end for ALL
+  }//end if active
+
+  da->vecRestoreBuffer(in,inarray,false,false,false,1);
 
   PetscFunctionReturn(0);
 }

@@ -1,5 +1,7 @@
 
  -gamma 0.9
+ -maxDepth 30
+ -Nsample 100
 
  -numGaussPts 3
  -numRefinements 0

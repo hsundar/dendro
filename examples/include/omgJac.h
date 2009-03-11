@@ -54,6 +54,16 @@ void SetUserContextsFromPts(ot::DAMG* damg, const std::vector<double>& pts,
 
 void DestroyUserContexts(ot::DAMG* damg);
 
+PetscErrorCode CreateTmpDirichletLaplacian(ot::DAMG damg,Mat *B);
+PetscErrorCode CreateDirichletLaplacian(ot::DAMG damg,Mat *B);
+PetscErrorCode ComputeDirichletLaplacian(ot::DAMG damg,Mat J, Mat B);
+
+PetscErrorCode TmpDirichletLaplacianMatMult(Mat, Vec, Vec);
+PetscErrorCode DirichletLaplacianMatMult(Mat, Vec, Vec);
+PetscErrorCode DirichletLaplacianShellMatMult(Mat, Vec, Vec);
+PetscErrorCode DirichletLaplacianMatGetDiagonal(Mat, Vec);
+PetscErrorCode DirichletLaplacianMatDestroy(Mat);
+
 PetscErrorCode CreateTmpDirichletJacobian(ot::DAMG damg,Mat *B);
 PetscErrorCode CreateDirichletJacobian(ot::DAMG damg,Mat *B);
 PetscErrorCode ComputeDirichletJacobian(ot::DAMG damg,Mat J, Mat B);
@@ -93,6 +103,11 @@ PetscErrorCode ComputeRHS7(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeRHS8(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeRHS9(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeTestFBM_RHS(ot::DAMG damg, Vec in);
+PetscErrorCode ComputeFBM2_RHS(ot::DAMG damg, Vec in);
+PetscErrorCode ComputeFBM2_RHS_Part1(ot::DAMG damg, Vec in);
+PetscErrorCode ComputeFBM2_RHS_Part2(ot::DAMG damg, Vec in);
+PetscErrorCode SetSolutionFBM2(ot::DAMG damg, Vec in);
+PetscErrorCode EnforceZeroFBM2(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeFBM_RHS(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeFBM_RHS_Part1(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeFBM_RHS_Part2(ot::DAMG damg, Vec in);

@@ -1,12 +1,12 @@
 
- -fbmR 0
+ -fbmR 0.1
 
- -numGaussPts 4
+ -numGaussPts 3
  -numRefinements 0
- -regLev 5
+ %-regLev 5
 
  -fullJacMatType aij
- -nlevels 15
+ -nlevels 20
  -buildFullCoarseMat 1
  -buildFullMatAll 0
 
