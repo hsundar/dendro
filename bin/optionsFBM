@@ -1,7 +1,8 @@
 
- -fbmR 0.15
+ -fbmR 0.01
 
  -numGaussPts 4
+ -numRefinements 1
 
  -fullJacMatType aij
  -nlevels 15

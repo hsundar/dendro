@@ -82,6 +82,15 @@ int main(int argc, char ** argv ) {
   ot::balanceOctree(linOct, balOct, dim, maxDepth, incCorner, MPI_COMM_WORLD, NULL, NULL);
   linOct.clear();
 
+  PetscInt       numRefinements = 0;
+
+  PetscOptionsGetInt(0,"-numRefinements",&numRefinements,0);
+  for(int i = 0; i < numRefinements; i++) {
+    std::vector<ot::TreeNode> tmpOct = balOct;
+    balOct.clear();
+    ot::refineOctree(tmpOct, balOct); 
+  }
+
   //Solve ...
 
   ot::DAMG        *damg;    
