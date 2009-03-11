@@ -242,24 +242,25 @@ PetscErrorCode ComputeFBM_RHS_Part3(ot::DAMG damg, Vec in) {
       double x = (double)(pt.xint())/((double)(1u << (maxD-1)));
       double y = (double)(pt.yint())/((double)(1u << (maxD-1)));
       double z = (double)(pt.zint())/((double)(1u << (maxD-1)));
-      unsigned int indices[8];
+      double coord[8][3] = {
+        {0.0,0.0,0.0},
+        {1.0,0.0,0.0},
+        {0.0,1.0,0.0},
+        {1.0,1.0,0.0},
+        {0.0,0.0,1.0},
+        {1.0,0.0,1.0},
+        {0.0,1.0,1.0},
+        {1.0,1.0,1.0}
+      };
+       unsigned int indices[8];
       da->getNodeIndices(indices); 
       unsigned char hnMask = da->getHangingNodeIndex(idx);
       for(unsigned int j = 0; j < 8; j++) {
         if(!(hnMask & (1 << j))) {
-          if((bdyArr[indices[j]])) {
-            double xPt = x; 
-            double yPt = y;
-            double zPt = z;
-            if(j%2) {
-              xPt += hxOct;
-            }
-            if((j/2)%2) {
-              yPt += hxOct;
-            }
-            if(j > 3) {
-              zPt += hxOct;
-            }
+          if(bdyArr[indices[j]]) {
+          double xPt = x + (coord[j][0]*hxOct);
+          double yPt = y + (coord[j][1]*hxOct);
+          double zPt = z + (coord[j][2]*hxOct); 
             inarray[indices[j]] = (square(xPt - 0.5)) + (square(yPt - 0.5)) 
               + (square(zPt - 0.5)) - (square(fbmR));
           }//end if bdy
