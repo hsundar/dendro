@@ -485,7 +485,7 @@ PetscErrorCode ComputeFBM2_RHS_Part1(ot::DAMG damg, Vec in) {
 
   double hSample = 1.0/static_cast<double>(Nsample);
   std::vector<double> pts;
-  if(!rank) {
+  if(!rankAll) {
     for(double z = 0; z < 1.0; z += hSample) {
       for(double y = 0; y < 1.0; y += hSample) {
         pts.push_back(gamma);
