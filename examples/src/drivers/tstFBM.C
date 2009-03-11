@@ -107,7 +107,7 @@ int main(int argc, char ** argv ) {
 
   MPI_Barrier(MPI_COMM_WORLD);
   double setupStartTime = MPI_Wtime();
-  
+
   // Note: The user context for all levels will be set separately later.
   ot::DAMGCreateAndSetDA(PETSC_COMM_WORLD, nlevels, NULL, &damg,
       balOct, dof, mgLoadFac, compressLut, incCorner);
@@ -141,9 +141,9 @@ int main(int argc, char ** argv ) {
 
   MPI_Barrier(MPI_COMM_WORLD);
   double solveStartTime = MPI_Wtime();
-  
+
   ot::DAMGSolve(damg);
-  
+
   MPI_Barrier(MPI_COMM_WORLD);
   double solveEndTime = MPI_Wtime();
 
@@ -157,15 +157,12 @@ int main(int argc, char ** argv ) {
   PetscReal maxNormErr;
   VecNorm(solTrue, NORM_INFINITY, &maxNormErr);
 
-  double l2err = ComputeFBMerror(damg[nlevels - 1], DAMGGetx(damg));
-
   VecDestroy(solTrue);
 
   if(!rank) {
     std::cout<<" Total Setup Time: "<<(setupEndTime - setupStartTime)<<std::endl;
     std::cout<<" Total Solve Time: "<<(solveEndTime - solveStartTime)<<std::endl;
     std::cout<<" maxNormErr (Pointwise): "<<maxNormErr<<std::endl;
-    std::cout<<" l2err: "<<l2err<<std::endl;
   }
 
   destroyLmatType2(LaplacianType2Stencil);
