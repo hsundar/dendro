@@ -83,27 +83,35 @@ double ComputeFBMerror(ot::DAMG damg, Vec in)
       unsigned char elemType = 0;
       GET_ETYPE_BLOCK(elemType,hnMask,childNum)
         double integral = 0.0;
-      //Quadrature Rule
-      for(int m = 0; m < 3; m++) {
-        for(int n = 0; n < 3; n++) {
-          for(int p = 0; p < 3; p++) {
-            double xPt = ( (hxOct*(1.0 +gPts[m])*0.5) + x );
-            double yPt = ( (hxOct*(1.0 + gPts[n])*0.5) + y );
-            double zPt = ( (hxOct*(1.0 + gPts[p])*0.5) + z );
-            double fnVal = 0.0; 
-            double uhval= 0.0; 
-            double distSqr = (square(xPt - 0.5)) + (square(yPt - 0.5)) + (square(zPt - 0.5));
-            if( distSqr > square(1.5*fbmR) ) {
+      bool inBox = false;
+      double deltaX = fabs((x + 0.5*hxOct) - 0.5);
+      double deltaY = fabs((y + 0.5*hxOct) - 0.5);
+      double deltaZ = fabs((z + 0.5*hxOct) - 0.5);
+      if( (deltaX < ((0.5*hxOct) + 1.5*fbmR)) &&
+          (deltaY < ((0.5*hxOct) + 1.5*fbmR)) &&
+          (deltaZ < ((0.5*hxOct) + 1.5*fbmR)) ) {
+        inBox = true;
+      }
+      if( !inBox ) {
+        //Quadrature Rule
+        for(int m = 0; m < 3; m++) {
+          for(int n = 0; n < 3; n++) {
+            for(int p = 0; p < 3; p++) {
+              double xPt = ( (hxOct*(1.0 +gPts[m])*0.5) + x );
+              double yPt = ( (hxOct*(1.0 + gPts[n])*0.5) + y );
+              double zPt = ( (hxOct*(1.0 + gPts[p])*0.5) + z );
+              double fnVal = 0.0; 
+              double uhval= 0.0; 
               fnVal = (square(xPt - 0.5)) + (square(yPt - 0.5)) 
                 + (square(zPt - 0.5)) - (square(fbmR));
               for(unsigned int j = 0; j < 8; j++) {
                 uhval += (inarray[indices[j]]*ShapeFnStencil[childNum][elemType][j][m][n][p]);
               }
-            }
-            integral += (wts[m]*wts[n]*wts[p]*(fnVal - uhval)*(fnVal - uhval));
-          }// end for p
-        } // end for n
-      }//end for m
+              integral += (wts[m]*wts[n]*wts[p]*(fnVal - uhval)*(fnVal - uhval));
+            }// end for p
+          } // end for n
+        }//end for m
+      }
       error += integral*fac;
     }//end for i
     da->vecRestoreBuffer(in, inarray, false, false, true, 1);
