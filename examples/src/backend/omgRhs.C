@@ -252,6 +252,31 @@ PetscErrorCode SetSolutionFBM(ot::DAMG damg, Vec tmp) {
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode ComputeTestFBM_RHS(ot::DAMG damg, Vec in) {
+  PetscFunctionBegin;
+
+  Vec dirichletVals;
+  Vec bcCorrections;
+  VecDuplicate(in, &dirichletVals);
+  VecDuplicate(in, &bcCorrections);
+
+  ComputeFBM_RHS_Part1(damg, in);
+  ComputeFBM_RHS_Part3(damg, dirichletVals);
+
+  Mat tmpMat;
+  CreateTmpDirichletJacobian(damg, &tmpMat);
+  MatMult(tmpMat, dirichletVals, bcCorrections);
+  MatDestroy(tmpMat);
+
+  VecAXPY(in, 1.0, dirichletVals);
+  VecAXPY(in, -1.0, bcCorrections);
+
+  VecDestroy(dirichletVals);
+  VecDestroy(bcCorrections);
+
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode ComputeFBM_RHS(ot::DAMG damg, Vec in) {
   PetscFunctionBegin;
 
@@ -673,7 +698,7 @@ PetscErrorCode ComputeFBM_RHS_Part1(ot::DAMG damg, Vec in) {
                   double zPt = ( (hxOct*(1.0 + gPts[numGaussPts-2][p])*0.5) + z );
                   double distSqr = (square(xPt - 0.5)) + (square(yPt - 0.5)) + (square(zPt - 0.5));
                   double rhsVal = 0.0;
-                  if( distSqr > (square(fbmR)) ) {
+                  if( distSqr >= (square(fbmR)) ) {
                     rhsVal = -6.0 -(square(fbmR)) + (square(xPt - 0.5)) +
                       (square(yPt - 0.5)) + (square(zPt - 0.5));
                   }

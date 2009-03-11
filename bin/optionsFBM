@@ -3,6 +3,7 @@
 
  -numGaussPts 4
  -numRefinements 0
+ -regLev 5
 
  -fullJacMatType aij
  -nlevels 15

@@ -92,6 +92,7 @@ PetscErrorCode ComputeRHS6(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeRHS7(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeRHS8(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeRHS9(ot::DAMG damg, Vec in);
+PetscErrorCode ComputeTestFBM_RHS(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeFBM_RHS(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeFBM_RHS_Part1(ot::DAMG damg, Vec in);
 PetscErrorCode ComputeFBM_RHS_Part2(ot::DAMG damg, Vec in);
