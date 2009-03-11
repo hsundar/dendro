@@ -148,12 +148,15 @@ int main(int argc, char ** argv ) {
   PetscReal maxNormErr;
   VecNorm(solTrue, NORM_INFINITY, &maxNormErr);
 
+  double l2err = ComputerFBMerror(damg[nlevels - 1], DAMGGetx(damg));
+
   VecDestroy(solTrue);
 
   if(!rank) {
     std::cout<<" Total Setup Time: "<<(setupEndTime - setupStartTime)<<std::endl;
     std::cout<<" Total Solve Time: "<<(solveEndTime - solveStartTime)<<std::endl;
     std::cout<<" maxNormErr (Pointwise): "<<maxNormErr<<std::endl;
+    std::cout<<" l2err: "<<l2err<<std::endl;
   }
 
   destroyLmatType2(LaplacianType2Stencil);

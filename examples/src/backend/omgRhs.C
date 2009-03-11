@@ -46,6 +46,73 @@ namespace ot {
   }\
 }
 
+double ComputeFBMerror(ot::DAMG damg, Vec in)
+{
+  ot::DA* da = damg->da;
+
+  if(da->iAmActive()) {
+    double wts[3] = { (8.0/9.0), (5.0/9.0), (5.0/9.0) };
+    double gPts[3] = { 0.0, sqrt((3.0/5.0)), -sqrt((3.0/5.0)) };
+    unsigned int maxD = da->getMaxDepth();
+    unsigned int balOctmaxD = (maxD - 1);
+    double error = 0.0;
+    PetscScalar *inarray;
+    da->vecGetBuffer(in, inarray, false, false, true, 1);
+    da->ReadFromGhostsBegin<PetscScalar>(inarray, 1);
+    da->ReadFromGhostsEnd<PetscScalar>(inarray);
+    for(da->init<ot::DA_FLAGS::WRITABLE>();
+        da->curr() < da->end<ot::DA_FLAGS::WRITABLE>();
+        da->next<ot::DA_FLAGS::WRITABLE>())  
+    {
+      Point pt;
+      pt = da->getCurrentOffset();
+      unsigned int idx = da->curr();
+      unsigned int levelhere = (da->getLevel(idx) - 1);
+      double hxOct = (double)((double)(1u << (balOctmaxD - levelhere))/(double)(1u << balOctmaxD));
+      double x = (double)(pt.xint())/((double)(1u << (maxD-1)));
+      double y = (double)(pt.yint())/((double)(1u << (maxD-1)));
+      double z = (double)(pt.zint())/((double)(1u << (maxD-1)));
+      double fac = ((hxOct*hxOct*hxOct)/8.0);
+      unsigned int indices[8];
+      da->getNodeIndices(indices); 
+      unsigned char childNum = da->getChildNumber();
+      unsigned char hnMask = da->getHangingNodeIndex(idx);
+      unsigned char elemType = 0;
+      GET_ETYPE_BLOCK(elemType,hnMask,childNum)
+        double integral = 0.0;
+      //Quadrature Rule
+      for(int m = 0; m < 3; m++) {
+        for(int n = 0; n < 3; n++) {
+          for(int p = 0; p < 3; p++) {
+            double xPt = ( (hxOct*(1.0 +gPts[m])*0.5) + x );
+            double yPt = ( (hxOct*(1.0 + gPts[n])*0.5) + y );
+            double zPt = ( (hxOct*(1.0 + gPts[p])*0.5) + z );
+            double fnVal = 0.0; 
+            double uhval= 0.0; 
+            double distSqr = (square(xPt - 0.5)) + (square(yPt - 0.5)) + (square(zPt - 0.5));
+            if( distSqr > square(1.5*fbmR) ) {
+              fnVal = (square(xPt - 0.5)) + (square(yPt - 0.5)) 
+                + (square(zPt - 0.5)) - (square(fbmR));
+              for(unsigned int j = 0; j < 8; j++) {
+                uhval += (inarray[indices[j]]*ShapeFnStencil[childNum][elemType][j][m][n][p]);
+              }
+            }
+            integral += (wts[m]*wts[n]*wts[p]*(fnVal - uhval)*(fnVal - uhval));
+          }// end for p
+        } // end for n
+      }//end for m
+      error += integral*fac;
+    }//end for i
+    da->vecRestoreBuffer(in, inarray, false, false, true, 1);
+    double totalError = 0.0;
+    par::Mpi_Reduce<double>(&error, &totalError, 1, MPI_SUM, 0, da->getCommActive());
+    return(sqrt(totalError));
+  } else {
+    return(0.0);
+  }//end if-else active
+}//end fn.
+
+
 PetscErrorCode EnforceZeroFBM(ot::DAMG damg, Vec tmp) {
   PetscFunctionBegin;	 	 
 
@@ -95,7 +162,6 @@ PetscErrorCode EnforceZeroFBM(ot::DAMG damg, Vec tmp) {
           yPt = y + (coord[i][1]*hxOct);
           zPt = z + (coord[i][2]*hxOct); 
           double distSqr = (square(xPt - 0.5)) + (square(yPt - 0.5)) + (square(zPt - 0.5));
-
           if( distSqr <= square(1.5*fbmR) ) {
             inarray[indices[i]] = 0.0;
           }
@@ -160,7 +226,6 @@ PetscErrorCode SetSolutionFBM(ot::DAMG damg, Vec tmp) {
           yPt = y + (coord[i][1]*hxOct);
           zPt = z + (coord[i][2]*hxOct); 
           double distSqr = (square(xPt - 0.5)) + (square(yPt - 0.5)) + (square(zPt - 0.5));
-
           if( distSqr > square(1.5*fbmR) ) {
             double solVal = (square(xPt - 0.5)) + (square(yPt - 0.5)) 
               + (square(zPt - 0.5)) - (square(fbmR));
@@ -252,15 +317,15 @@ PetscErrorCode ComputeFBM_RHS_Part3(ot::DAMG damg, Vec in) {
         {0.0,1.0,1.0},
         {1.0,1.0,1.0}
       };
-       unsigned int indices[8];
+      unsigned int indices[8];
       da->getNodeIndices(indices); 
       unsigned char hnMask = da->getHangingNodeIndex(idx);
       for(unsigned int j = 0; j < 8; j++) {
         if(!(hnMask & (1 << j))) {
           if(bdyArr[indices[j]]) {
-          double xPt = x + (coord[j][0]*hxOct);
-          double yPt = y + (coord[j][1]*hxOct);
-          double zPt = z + (coord[j][2]*hxOct); 
+            double xPt = x + (coord[j][0]*hxOct);
+            double yPt = y + (coord[j][1]*hxOct);
+            double zPt = z + (coord[j][2]*hxOct); 
             inarray[indices[j]] = (square(xPt - 0.5)) + (square(yPt - 0.5)) 
               + (square(zPt - 0.5)) - (square(fbmR));
           }//end if bdy
