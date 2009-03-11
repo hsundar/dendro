@@ -53,7 +53,7 @@ int main(int argc, char ** argv ) {
   double mgLoadFac = 2.0;
   bool incCorner = 1;  
 
-  PetscInitialize(&argc,&argv,"optionsFBM",help);
+  PetscInitialize(&argc, &argv,"optionsFBM",help);
   ot::RegisterEvents();
 
   ot::DAMG_Initialize(MPI_COMM_WORLD);
@@ -61,16 +61,34 @@ int main(int argc, char ** argv ) {
   MPI_Comm_size(MPI_COMM_WORLD,&npes);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
-  double gSize[3];
-  gSize[0] = 1.0;
-  gSize[1] = 1.0;
-  gSize[2] = 1.0;
-
-  PetscInt regLev = 4;
-  PetscOptionsGetInt(0, "-regLev", &regLev, 0);
-
   std::vector<ot::TreeNode> balOct;
-  createRegularOctree(balOct, regLev, dim, maxDepth, MPI_COMM_WORLD);
+  if(argc > 1) {
+
+    char pFile[256];
+    sprintf(pFile, "%s%d_%d.pts", argv[1], rank, npes);
+
+    std::vector<double> pts;
+    ot::readPtsFromFile(pFile, pts);
+
+    double gSize[3];
+    gSize[0] = 1.0;
+    gSize[1] = 1.0;
+    gSize[2] = 1.0;
+
+    std::vector<ot::TreeNode> linOct;
+    ot::points2Octree(pts, gSize, linOct, dim, maxDepth, maxNumPts, MPI_COMM_WORLD);
+    pts.clear();
+
+    ot::balanceOctree(linOct, balOct, dim, maxDepth, incCorner, MPI_COMM_WORLD, NULL, NULL);
+    linOct.clear();
+
+  } else {
+
+    PetscInt regLev = 4;
+    PetscOptionsGetInt(0, "-regLev", &regLev, 0);
+    createRegularOctree(balOct, regLev, dim, maxDepth, MPI_COMM_WORLD);
+
+  }
 
   PetscInt       numRefinements = 0;
 
@@ -97,7 +115,7 @@ int main(int argc, char ** argv ) {
 
   MPI_Barrier(MPI_COMM_WORLD);
   double setupStartTime = MPI_Wtime();
-  
+
   // Note: The user context for all levels will be set separately later.
   ot::DAMGCreateAndSetDA(PETSC_COMM_WORLD, nlevels, NULL, &damg,
       balOct, dof, mgLoadFac, compressLut, incCorner);
@@ -131,9 +149,9 @@ int main(int argc, char ** argv ) {
 
   MPI_Barrier(MPI_COMM_WORLD);
   double solveStartTime = MPI_Wtime();
-  
+
   ot::DAMGSolve(damg);
-  
+
   MPI_Barrier(MPI_COMM_WORLD);
   double solveEndTime = MPI_Wtime();
 
