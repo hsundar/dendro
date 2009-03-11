@@ -50,6 +50,9 @@ double ComputeFBMerror(ot::DAMG damg, Vec in)
 {
   ot::DA* da = damg->da;
 
+  PetscReal fbmR = 0;
+  PetscOptionsGetReal(0, "-fbmR", &fbmR, 0);
+
   if(da->iAmActive()) {
     double wts[3] = { (8.0/9.0), (5.0/9.0), (5.0/9.0) };
     double gPts[3] = { 0.0, sqrt((3.0/5.0)), -sqrt((3.0/5.0)) };
