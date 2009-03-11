@@ -274,6 +274,12 @@ PetscErrorCode ComputeTestFBM_RHS(ot::DAMG damg, Vec in) {
   VecDestroy(dirichletVals);
   VecDestroy(bcCorrections);
 
+  int rank;
+  MPI_Comm_rank(damg->comm, &rank);
+  if(!rank) {
+    std::cout<<"Done building RHS"<<std::endl;
+  }
+
   PetscFunctionReturn(0);
 }
 
@@ -306,6 +312,12 @@ PetscErrorCode ComputeFBM_RHS(ot::DAMG damg, Vec in) {
   VecDestroy(deltaRhs);
   VecDestroy(dirichletVals);
   VecDestroy(bcCorrections);
+
+  int rank;
+  MPI_Comm_rank(damg->comm, &rank);
+  if(!rank) {
+    std::cout<<"Done building RHS"<<std::endl;
+  }
 
   PetscFunctionReturn(0);
 }
