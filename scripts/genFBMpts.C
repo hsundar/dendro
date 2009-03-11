@@ -19,13 +19,16 @@ void writePtsToFile( const double* pts, const unsigned int ptsLen, char* filenam
 
 int main(int argc, char **argv) {
   if (argc < 4) {
-    std::cerr << "<exe> angInc1 angInc2 fbmR" << std::endl;
+    std::cerr << "<exe> numAng1 numAng2 fbmR" << std::endl;
     return -1;
   }
 
-  double angInc1 = atof(argv[1]);
-  double angInc2 = atof(argv[2]);
+  int numAng1 = atoi(argv[1]);
+  int numAng2 = atoi(argv[2]);
   double fbmR = atof(argv[3]);
+
+  double angInc1 = 2*__PI__/static_cast<double>(numAng1);
+  double angInc2 = __PI__/static_cast<double>(numAng2);
 
   std::vector<double> outPts;
 
