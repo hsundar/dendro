@@ -100,7 +100,7 @@ PetscErrorCode SetSolutionFBM(ot::DAMG damg, Vec in);
 PetscErrorCode EnforceZeroFBM(ot::DAMG damg, Vec in);
 PetscErrorCode SetSolution5(ot::DA* da, Vec in);
 
-double ComputerFBMerror(ot::DAMG damg, Vec in);
+double ComputeFBMerror(ot::DAMG damg, Vec in);
 
 double ComputeError5(ot::DA* da, Vec in);
 double TestError5(ot::DA* da);

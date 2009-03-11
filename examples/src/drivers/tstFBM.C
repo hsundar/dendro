@@ -148,7 +148,7 @@ int main(int argc, char ** argv ) {
   PetscReal maxNormErr;
   VecNorm(solTrue, NORM_INFINITY, &maxNormErr);
 
-  double l2err = ComputerFBMerror(damg[nlevels - 1], DAMGGetx(damg));
+  double l2err = ComputeFBMerror(damg[nlevels - 1], DAMGGetx(damg));
 
   VecDestroy(solTrue);
 
