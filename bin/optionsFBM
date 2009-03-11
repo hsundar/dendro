@@ -1,8 +1,10 @@
- 
+
+ -fbmR 0.15
+
  -numGaussPts 4
 
  -fullJacMatType aij
- -nlevels 20
+ -nlevels 15
  -buildFullCoarseMat 1
  -buildFullMatAll 0
 
@@ -21,8 +23,8 @@
  
  -ksp_type cg
  -ksp_converged_reason
- -ksp_max_it 10
- -ksp_rtol 1e-8
+ -ksp_max_it 20
+ -ksp_rtol 1e-12
  %-ksp_atol 1e-30
  
 %Options for the Standard MG scheme
