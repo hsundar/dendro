@@ -2,7 +2,7 @@
  -fbmR 0
 
  -numGaussPts 4
- -numRefinements 1
+ -numRefinements 0
  -regLev 5
 
  -fullJacMatType aij
