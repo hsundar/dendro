@@ -224,6 +224,24 @@ namespace ot {
       unsigned int dof, std::vector<double>& pts);
 
   /**
+    @brief Interpolates the function and (optionally) its gradient at the specified points
+    @param da The octree mesh
+    @param in input values (nodal, non-ghosted vector) 
+    @param out output values
+    @param gradOut Pass NULL if gradient is not required, otherwise
+    pass the address of the desired Vec object. gradOut will be stored
+    such that all the components of a node are contiguous. gradOut will be multidimensional
+    with dof_of_gradOut = dof_of_in*3. The first 3 components of gradOut correspond to
+    the gradient of the first component of in, the next 3 correspond to
+    the gradient of the next component of in and so on.
+    @param dof Degrees of freedom per node
+    @param pts Points to evaluate the field 
+    @author Rahul Sampath
+    */
+  void interpolateData(ot::DA* da, Vec in, Vec out, Vec* gradOut,
+      unsigned int dof, std::vector<double>& pts);
+
+  /**
     @author Rahul Sampath
     @return the minimum level in the octree
     */
