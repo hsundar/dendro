@@ -10,6 +10,7 @@
 
 #include "mpi.h"
 #include <vector>
+#include "petscvec.h"
 
 #ifdef __DEBUG__
 #ifndef __DEBUG_DA__

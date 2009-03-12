@@ -149,19 +149,19 @@ bin/downSample : ./examples/src/drivers/downSample.o $(ARCHIVES)
 bin/createCoarser : ./examples/src/drivers/createCoarser.o $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
 
-bin/newElasMesh : ./examples/src/drivers/newElasMesh.o ./examples/src/backend/elasticityJac.o ./examples/src/backend/elasticityRhs.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/vecMass.o ./examples/src/backend/handleType2Stencils.o  $(ARCHIVES)
+bin/newElasMesh : ./examples/src/drivers/newElasMesh.o ./examples/src/backend/elasticityJac.o ./examples/src/backend/elasticityRhs.o ./examples/src/backend/omgJac.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/vecMass.o ./examples/src/backend/handleType2Stencils.o  $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
 
-bin/pts2Mesh : ./examples/src/drivers/pts2Mesh.o ./examples/src/backend/elasticityJac.o ./examples/src/backend/elasticityRhs.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/vecMass.o ./examples/src/backend/handleType2Stencils.o  $(ARCHIVES)
+bin/pts2Mesh : ./examples/src/drivers/pts2Mesh.o ./examples/src/backend/elasticityJac.o ./examples/src/backend/elasticityRhs.o ./examples/src/backend/omgJac.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/vecMass.o ./examples/src/backend/handleType2Stencils.o  $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
 
-bin/newElasSolver : ./examples/src/drivers/newElasSolver.o ./examples/src/backend/elasticityJac.o ./examples/src/backend/elasticityRhs.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/vecMass.o ./examples/src/backend/handleType2Stencils.o  $(ARCHIVES)
+bin/newElasSolver : ./examples/src/drivers/newElasSolver.o ./examples/src/backend/elasticityJac.o ./examples/src/backend/elasticityRhs.o ./examples/src/backend/omgJac.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/vecMass.o ./examples/src/backend/handleType2Stencils.o  $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
 
-bin/testElasMatVec : ./examples/src/drivers/testElasMatVec.o ./examples/src/backend/elasticityJac.o ./examples/src/backend/elasticityRhs.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/vecMass.o ./examples/src/backend/handleType2Stencils.o  $(ARCHIVES)
+bin/testElasMatVec : ./examples/src/drivers/testElasMatVec.o ./examples/src/backend/elasticityJac.o ./examples/src/backend/elasticityRhs.o ./examples/src/backend/omgJac.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/vecMass.o ./examples/src/backend/handleType2Stencils.o  $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
 
-bin/elasticitySolver : ./examples/src/drivers/elasticitySolver.o ./examples/src/backend/elasticityJac.o ./examples/src/backend/elasticityRhs.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/vecMass.o ./examples/src/backend/handleType2Stencils.o  $(ARCHIVES)
+bin/elasticitySolver : ./examples/src/drivers/elasticitySolver.o ./examples/src/backend/elasticityJac.o ./examples/src/backend/elasticityRhs.o ./examples/src/backend/omgJac.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/vecMass.o ./examples/src/backend/handleType2Stencils.o  $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
 
 bin/checkError : ./examples/src/drivers/checkError.o ./examples/src/backend/omgJac.o ./examples/src/backend/matProp.o ./examples/src/backend/odaJac.o ./examples/src/backend/omgRhs.o ./examples/src/backend/handleType2Stencils.o ./examples/src/backend/handleType1Stencils.o $(ARCHIVES)
