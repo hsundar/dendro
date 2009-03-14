@@ -3754,14 +3754,14 @@ namespace ot {
 
       dac->createVector<T>(cVec, false, false, dof);
 
-      for(int i = 0; i < cVec.size(); i++) {
-        (*setZero)(cVec[i]);
-      }
-
       T* cArr = NULL;
       T* fArr = NULL;
       dac->vecGetBuffer<T>(cVec, cArr, false, false, false, dof);
       daf->vecGetBuffer<T>(fVec, fArr, false, false, true, dof);
+
+      for(int i = 0; i < (dof*(dac->getLocalBufferSize())); i++) {
+        (*setZero)(cArr[i]);
+      }
 
       daf->ReadFromGhostsBegin<T>(fArr, dof);
       daf->ReadFromGhostsEnd<T>(fArr);
