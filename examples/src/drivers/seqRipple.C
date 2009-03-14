@@ -5,6 +5,7 @@
 #include "TreeNode.h"
 #include <iostream>
 #include <cstdlib>
+#include <cstring>
 #include "externVars.h"
 
 int main(int argc, char ** argv ) {	

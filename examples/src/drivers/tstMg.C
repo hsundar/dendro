@@ -9,6 +9,7 @@
 #include "omgJac.h"
 #include "handleStencils.h"
 #include <cstdlib>
+#include <cstring>
 #include "colors.h"
 #include "externVars.h"
 #include "dendro.h"

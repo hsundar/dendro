@@ -11,6 +11,7 @@ Nearest Common Ancestor, adding positive boundaries, marking hanging nodes
 #include "TreeNode.h"
 #include "parUtils.h"
 #include "seqUtils.h"
+#include <cstring>
 
 #ifdef __DEBUG__
 #ifndef __DEBUG_OCT__

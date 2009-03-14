@@ -8,6 +8,7 @@
 #include "testUtils.h"
 #include "parUtils.h"
 #include "seqUtils.h"
+#include <cstring>
 
 namespace ot {
   namespace test {

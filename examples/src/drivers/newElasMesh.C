@@ -16,6 +16,7 @@
 #include "elasticityJac.h"
 #include "omgJac.h"
 #include <cstdlib>
+#include <cstring>
 #include "colors.h"
 #include "externVars.h"
 #include "dendro.h"

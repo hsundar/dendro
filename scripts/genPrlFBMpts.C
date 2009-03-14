@@ -5,6 +5,8 @@
 #include <vector>
 #include <cassert>
 #include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #define __PI__ 3.14159265
 

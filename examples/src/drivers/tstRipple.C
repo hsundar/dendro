@@ -6,6 +6,7 @@
 #include "parUtils.h"
 #include "TreeNode.h"
 #include <cstdlib>
+#include <cstring>
 #include "externVars.h"
 #include "dendro.h"
 

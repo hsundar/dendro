@@ -16,6 +16,7 @@
 #include "omgJac.h"
 #include "colors.h"
 #include <cstdlib>
+#include <cstring>
 #include "externVars.h"
 #include "dendro.h"
 
