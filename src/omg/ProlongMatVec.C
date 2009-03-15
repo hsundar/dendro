@@ -188,7 +188,7 @@ PetscErrorCode prolongMatVecType1(Mat R, Vec c, Vec f) {
   std::vector<ot::FineTouchedStatus >* fineTouchedFlags = data->fineTouchedFlags;
   ot::FineTouchedStatus* fineTouchedFlagsArr;
 
-  dac->vecGetBuffer(c,carr,false,false,true,dof);//Read-only
+  dac->vecGetBuffer(c, carr, false, false, true, dof);//Read-only
   daf->vecGetBuffer<ot::FineTouchedStatus >(*fineTouchedFlags,
       fineTouchedFlagsArr, false, false, true, 1);//read-only 
 
@@ -201,7 +201,7 @@ PetscErrorCode prolongMatVecType1(Mat R, Vec c, Vec f) {
   }
 
   VecZeroEntries(f);
-  daf->vecGetBuffer(f,farr,false,false,false,dof);//Writable
+  daf->vecGetBuffer(f, farr, false, false, false, dof);//Writable
 
   //Note: If Coarse is Independent, then the corresponding Fine is also independent.
   //Hence, overlapping comm with comp is possible.		

@@ -418,6 +418,7 @@ PetscErrorCode dummyRestrictMatVecType1(TransferOpData *data) {
   std::vector<ot::FineTouchedDummyStatus > fineTouchedDummyFlags;
 
   daf->createVector<ot::FineTouchedDummyStatus >(fineTouchedDummyFlags, false, false, 1);
+  //The constructor takes care of zeroing out the memory
   daf->vecGetBuffer<ot::FineTouchedDummyStatus >(fineTouchedDummyFlags,
       fineTouchedDummyFlagsArr, false, false, false, 1);//writable 
 
@@ -509,25 +510,26 @@ PetscErrorCode restrictMatVecType1(Mat R, Vec f, Vec c) {
 
   unsigned int fopCnt = (fop*cSz)/(100*dof);
 
-  //unsigned int fopCnt = data->minIndependentSize;
-
   std::vector<ot::FineTouchedStatus >* fineTouchedFlags = data->fineTouchedFlags;
   ot::FineTouchedStatus* fineTouchedFlagsArr;
 
   PetscScalar *farr = NULL;
   PetscScalar *carr = NULL;
 
-  daf->vecGetBuffer(f,farr,false,false,true,dof);//Read-only
+  daf->vecGetBuffer(f, farr, false, false, true, dof);//Read-only
   daf->vecGetBuffer<ot::FineTouchedStatus >(*fineTouchedFlags, 
       fineTouchedFlagsArr, false, false, true, 1);//read-only 
 
   if(daf->iAmActive()) {
     daf->ReadFromGhostsBegin<PetscScalar>(farr, dof);
+    //This communication can be avoided if we store it
     daf->ReadFromGhostsBegin<ot::FineTouchedStatus>(fineTouchedFlagsArr, 1);
   }
 
-  VecZeroEntries(c);
-  dac->vecGetBuffer(c,carr,false,false,false,dof);//Writable
+  dac->vecGetBuffer(c, carr, false, false, false, dof);//Writable
+  for(int i = 0; i < (dof*(dac->getLocalBufferSize())); i++) {
+    carr[i] = 0;
+  }
 
   if(dac->iAmActive()) {
     //Note: If Coarse is Independent, then the corresponding Fine is also independent.
@@ -593,8 +595,8 @@ PetscErrorCode restrictMatVecType1(Mat R, Vec f, Vec c) {
     dac->WriteToGhostsEnd<PetscScalar>(carr, dof);
   }
 
-  daf->vecRestoreBuffer(f,farr,false,false,true,dof);//Read-only
-  dac->vecRestoreBuffer(c,carr,false,false,false,dof);//Writable  
+  daf->vecRestoreBuffer(f, farr, false, false, true, dof);//Read-only
+  dac->vecRestoreBuffer(c, carr, false, false, false, dof);//Writable  
   daf->vecRestoreBuffer<ot::FineTouchedStatus >(*fineTouchedFlags, 
       fineTouchedFlagsArr, false, false, true, 1);//read-only 
 
