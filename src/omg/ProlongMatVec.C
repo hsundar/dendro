@@ -180,8 +180,6 @@ PetscErrorCode prolongMatVecType1(Mat R, Vec c, Vec f) {
 
   unsigned int fopCnt = (fop*cSz)/(100*dof);
 
-  //unsigned int fopCnt = data->minIndependentSize;
-
   PetscScalar *farr = NULL;
   PetscScalar *carr = NULL;
 
@@ -274,8 +272,8 @@ PetscErrorCode prolongMatVecType1(Mat R, Vec c, Vec f) {
     daf->WriteToGhostsEnd<PetscScalar>(farr, dof);
   }
 
-  daf->vecRestoreBuffer(f,farr,false,false,false,dof);//Writable 
-  dac->vecRestoreBuffer(c,carr,false,false,true,dof);//Read-only
+  daf->vecRestoreBuffer(f, farr, false, false, false, dof);//Writable 
+  dac->vecRestoreBuffer(c, carr, false, false, true, dof);//Read-only
   daf->vecRestoreBuffer<ot::FineTouchedStatus >(*fineTouchedFlags, fineTouchedFlagsArr, false, false, true, 1);//read-only 
 
 #ifdef PETSC_USE_LOG
