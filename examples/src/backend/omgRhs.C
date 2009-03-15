@@ -529,14 +529,13 @@ PetscErrorCode ComputeFBM2_RHS_Part1(ot::DAMG damg, Vec in) {
 
   //Now the points are sorted and aligned with the DA partition
 
+  VecZeroEntries(in);
+
   if(!(da->iAmActive())) {
     assert(recvList.empty());
   } else {
     PetscScalar *inarray;
     da->vecGetBuffer(in, inarray, false, false, false, 1);
-    for(int i = 0; i < da->getLocalBufferSize(); i++) {
-      inarray[i] = 0;
-    }
 
     unsigned int ptsCtr = 0;
 
@@ -918,14 +917,13 @@ PetscErrorCode ComputeFBM_RHS_Part2(ot::DAMG damg, Vec in) {
 
   //Now the points are sorted and aligned with the DA partition
 
+  VecZeroEntries(in);
+
   if(!(da->iAmActive())) {
     assert(recvList.empty());
   } else {
     PetscScalar *inarray;
     da->vecGetBuffer(in, inarray, false, false, false, 1);
-    for(int i = 0; i < da->getLocalBufferSize(); i++) {
-      inarray[i] = 0;
-    }
 
     unsigned int ptsCtr = 0;
 
@@ -2059,14 +2057,13 @@ PetscErrorCode ComputeRHS9(ot::DAMG damg, Vec in) {
 
   //Now the points are sorted and aligned with the DA partition
 
+  VecZeroEntries(in);
+
   if(!(da->iAmActive())) {
     assert(recvList.empty());
   } else {
     PetscScalar *inarray;
     da->vecGetBuffer(in, inarray, false, false, false, 1);
-    for(int i = 0; i < da->getLocalBufferSize(); i++) {
-      inarray[i] = 0;
-    }
 
     unsigned int ptsCtr = 0;
 

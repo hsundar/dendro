@@ -1753,10 +1753,8 @@ PetscErrorCode Jacobian2MatGetDiagonal(Mat J, Vec diag) {
     da->ReadFromGhostsEnd<PetscScalar>(inArr);\
   }\
   /*Nodal,Non-Ghosted,Write,1 dof*/\
+  VecZeroEntries(out);\
   da->vecGetBuffer(out,outArr,false,false,false,1);\
-  for(int i = 0; i < da->getLocalBufferSize(); i++) {\
-    outArr[i] = 0;\
-  }\
   if(da->iAmActive()) {\
     for(da->init<ot::DA_FLAGS::WRITABLE>();\
         da->curr() < da->end<ot::DA_FLAGS::WRITABLE>();\
@@ -2094,11 +2092,9 @@ PetscErrorCode Jacobian3MatGetDiagonal(Mat J, Vec diag) {
       daf->vecGetBuffer<double>(*(data->matPropFine),matPropArr,true,true,true,2);
     }
     PetscScalar *diagArr = NULL;
+    VecZeroEntries(diag);
     /*Nodal,Non-Ghosted,Write,1 dof*/
     da->vecGetBuffer(diag,diagArr,false,false,false,1);
-    for(int i = 0; i < da->getLocalBufferSize(); i++) {
-      diagArr[i] = 0;
-    }
     unsigned int maxD;
     double hFac;
     unsigned int type1Cnt = 0; /*Coarse and Fine are not the same */
@@ -2285,11 +2281,9 @@ PetscErrorCode Jacobian3MatMult(Mat J, Vec in, Vec out)
     if(da->iAmActive()) {
       da->ReadFromGhostsBegin<PetscScalar>(inArr, 1);
     }
+    VecZeroEntries(out);
     /*Nodal,Non-Ghosted,Write,1 dof*/
     da->vecGetBuffer(out, outArr, false, false, false, 1);
-    for(int i = 0; i < da->getLocalBufferSize(); i++) {
-      outArr[i] = 0;
-    }
     unsigned int maxD;
     double hFac;
     unsigned int type1Cnt = 0; /*Coarse and Fine are not the same */
