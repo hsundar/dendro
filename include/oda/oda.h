@@ -967,6 +967,10 @@ namespace ot {
           quick local access. In addition, this operation is 
           required to use the oda based indexing. vecRestoreBuffer() must be
           called when the buffer is no longer needed.
+          If isReadOnly is true, this involves a simple copy of local values from in.
+          The ghosts will have junk value in this case. If isReadOnly is false,
+          the buffer will be zeroed out first and then the local values from in
+          will be copied. The ghosts will have 0 values in this case.
           */
         int vecGetBuffer(Vec in, PetscScalar* &out, bool isElemental,
             bool isGhosted, bool isReadOnly, unsigned int dof=1); 
@@ -989,6 +993,7 @@ namespace ot {
           for quick local access. In addition, this operation is 
           required to use the oda based indexing. vecRestoreBuffer() must be 
           called when the buffer is no longer needed.
+          T must have a default constructor, which should zero out the object.
           */
         template < typename T >
           int vecGetBuffer(std::vector<T> &in, T* &out, bool isElemental,
