@@ -43,7 +43,7 @@ Other Links
 - <A href="http://www.cc.gatech.edu/csela/dendro/Manual.pdf"> Dendro Manual </A>
 - <A href="http://www.cc.gatech.edu/csela/dendro/FAQ.html"> FAQ </A> 
 
-To contact us please send an email to dendro.maintenance@gmail.com.
+To contact us please send an email to dendro.maintenance@gmail.com. Please join the google group: <A href="http://groups.google.com/group/dendro-users"> Dendro-Users </A>. We will post updates about Dendro to this group. 
 
 */
 

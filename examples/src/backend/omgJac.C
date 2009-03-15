@@ -1735,7 +1735,6 @@ PetscErrorCode Jacobian2MatGetDiagonal(Mat J, Vec diag) {
 
 #define JAC_TYPE2_MULT_DEBUG_BLOCK {\
   ot::DA* da = damg->da;\
-  iC(VecZeroEntries(out));\
   unsigned int maxD;\
   double hFac;\
   if(da->iAmActive()) {\
@@ -1755,6 +1754,9 @@ PetscErrorCode Jacobian2MatGetDiagonal(Mat J, Vec diag) {
   }\
   /*Nodal,Non-Ghosted,Write,1 dof*/\
   da->vecGetBuffer(out,outArr,false,false,false,1);\
+  for(int i = 0; i < da->getLocalBufferSize(); i++) {\
+    outArr[i] = 0;\
+  }\
   if(da->iAmActive()) {\
     for(da->init<ot::DA_FLAGS::WRITABLE>();\
         da->curr() < da->end<ot::DA_FLAGS::WRITABLE>();\
@@ -2083,7 +2085,6 @@ PetscErrorCode Jacobian3MatGetDiagonal(Mat J, Vec diag) {
     ot::DA* da = damg->da;
     ot::DA* daf = data->daf;
     assert(da->iAmActive() == daf->iAmActive());
-    iC(VecZeroEntries(diag));
     double *matPropArr = NULL;
     if(data->changedPartition) {
       /*Elem,Non-Ghost,Read-only,1 dof*/
@@ -2095,6 +2096,9 @@ PetscErrorCode Jacobian3MatGetDiagonal(Mat J, Vec diag) {
     PetscScalar *diagArr = NULL;
     /*Nodal,Non-Ghosted,Write,1 dof*/
     da->vecGetBuffer(diag,diagArr,false,false,false,1);
+    for(int i = 0; i < da->getLocalBufferSize(); i++) {
+      diagArr[i] = 0;
+    }
     unsigned int maxD;
     double hFac;
     unsigned int type1Cnt = 0; /*Coarse and Fine are not the same */
@@ -2281,9 +2285,11 @@ PetscErrorCode Jacobian3MatMult(Mat J, Vec in, Vec out)
     if(da->iAmActive()) {
       da->ReadFromGhostsBegin<PetscScalar>(inArr, 1);
     }
-    iC(VecZeroEntries(out));
     /*Nodal,Non-Ghosted,Write,1 dof*/
     da->vecGetBuffer(out, outArr, false, false, false, 1);
+    for(int i = 0; i < da->getLocalBufferSize(); i++) {
+      outArr[i] = 0;
+    }
     unsigned int maxD;
     double hFac;
     unsigned int type1Cnt = 0; /*Coarse and Fine are not the same */

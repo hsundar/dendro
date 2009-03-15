@@ -529,16 +529,14 @@ PetscErrorCode ComputeFBM2_RHS_Part1(ot::DAMG damg, Vec in) {
 
   //Now the points are sorted and aligned with the DA partition
 
-  //In PETSc's debug mode they use an Allreduce where all processors (active
-  //and inactive) participate. Hence, VecZeroEntries must be called by active
-  //and inactive processors.
-  VecZeroEntries(in);
-
   if(!(da->iAmActive())) {
     assert(recvList.empty());
   } else {
     PetscScalar *inarray;
     da->vecGetBuffer(in, inarray, false, false, false, 1);
+    for(int i = 0; i < da->getLocalBufferSize(); i++) {
+      inarray[i] = 0;
+    }
 
     unsigned int ptsCtr = 0;
 
@@ -589,7 +587,7 @@ PetscErrorCode ComputeFBM2_RHS_Part1(ot::DAMG damg, Vec in) {
           }//end for j
           ptsCtr++;
         }
-    }//end for i
+    }//end for WRITABLE
 
     da->WriteToGhostsBegin<PetscScalar>(inarray, 1);
     da->WriteToGhostsEnd<PetscScalar>(inarray, 1);
@@ -920,16 +918,14 @@ PetscErrorCode ComputeFBM_RHS_Part2(ot::DAMG damg, Vec in) {
 
   //Now the points are sorted and aligned with the DA partition
 
-  //In PETSc's debug mode they use an Allreduce where all processors (active
-  //and inactive) participate. Hence, VecZeroEntries must be called by active
-  //and inactive processors.
-  VecZeroEntries(in);
-
   if(!(da->iAmActive())) {
     assert(recvList.empty());
   } else {
     PetscScalar *inarray;
     da->vecGetBuffer(in, inarray, false, false, false, 1);
+    for(int i = 0; i < da->getLocalBufferSize(); i++) {
+      inarray[i] = 0;
+    }
 
     unsigned int ptsCtr = 0;
 
@@ -2063,16 +2059,14 @@ PetscErrorCode ComputeRHS9(ot::DAMG damg, Vec in) {
 
   //Now the points are sorted and aligned with the DA partition
 
-  //In PETSc's debug mode they use an Allreduce where all processors (active
-  //and inactive) participate. Hence, VecZeroEntries must be called by active
-  //and inactive processors.
-  VecZeroEntries(in);
-
   if(!(da->iAmActive())) {
     assert(recvList.empty());
   } else {
     PetscScalar *inarray;
     da->vecGetBuffer(in, inarray, false, false, false, 1);
+    for(int i = 0; i < da->getLocalBufferSize(); i++) {
+      inarray[i] = 0;
+    }
 
     unsigned int ptsCtr = 0;
 
