@@ -526,10 +526,8 @@ PetscErrorCode restrictMatVecType1(Mat R, Vec f, Vec c) {
     daf->ReadFromGhostsBegin<ot::FineTouchedStatus>(fineTouchedFlagsArr, 1);
   }
 
+  VecZeroEntries(c);
   dac->vecGetBuffer(c, carr, false, false, false, dof);//Writable
-  for(int i = 0; i < (dof*(dac->getLocalBufferSize())); i++) {
-    carr[i] = 0;
-  }
 
   if(dac->iAmActive()) {
     //Note: If Coarse is Independent, then the corresponding Fine is also independent.
