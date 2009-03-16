@@ -24,7 +24,7 @@ namespace binOp {
   unsigned int binLength(unsigned int num) {
     unsigned int len = 1;
     while(num > 1) {
-      num = (num>>1);
+      num = (num >> 1);
       len++;
     }
     return len;
@@ -32,7 +32,7 @@ namespace binOp {
 
   int toBin(unsigned int num, unsigned int binLen,  std::vector<bool>& numBin) {
     numBin = std::vector<bool>(binLen);
-    for(unsigned int i=0;i<binLen;i++) {
+    for(unsigned int i = 0; i < binLen; i++) {
       numBin[i]=0;
     }//end for
     unsigned int pos = binLen -1;
@@ -60,12 +60,13 @@ namespace binOp {
   // compute the next highest power of 2 of 32-bit v
   int getNextHighestPowerOfTwo(unsigned int n) {
     unsigned int v = n;
+    assert(v > 0);
     v--;
-    v |= v >> 1;
-    v |= v >> 2;
-    v |= v >> 4;
-    v |= v >> 8;
-    v |= v >> 16;
+    v |= (v >> 1);
+    v |= (v >> 2);
+    v |= (v >> 4);
+    v |= (v >> 8);
+    v |= (v >> 16);
     v++;
     return v;
   }
@@ -73,14 +74,15 @@ namespace binOp {
   // compute the prev highest power of 2 of 32-bit v
   int getPrevHighestPowerOfTwo(unsigned int n) {
     unsigned int v = n;
+    assert(v > 0);
     v--;
-    v |= v >> 1;
-    v |= v >> 2;
-    v |= v >> 4;
-    v |= v >> 8;
-    v |= v >> 16;
+    v |= (v >> 1);
+    v |= (v >> 2);
+    v |= (v >> 4);
+    v |= (v >> 8);
+    v |= (v >> 16);
     v++;
-    return  v >> 1;
+    return  (v >> 1);
   }
 
 }//end namespace
