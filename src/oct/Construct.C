@@ -60,6 +60,8 @@ namespace ot {
     par::sampleSort<ot::NodeAndValues<double, 1> >(tmpList, tnAndValsList, comm);
     tmpList.clear();
 
+    par::partitionW<ot::NodeAndValues<double, 1> >(tnAndValsList, NULL, comm);
+
     DendroIntL inSz = tnAndValsList.size();
     DendroIntL globInSize;
     par::Mpi_Allreduce<DendroIntL>(&inSz, &globInSize, 1, MPI_SUM, comm);
