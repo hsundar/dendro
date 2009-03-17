@@ -445,7 +445,7 @@ namespace ot {
       MatSetType(M,mtype);
 
       if(isAij || isAijSeq || isAijPrl || isSuperLU || isSuperLU_Dist) {
-        if(m_iNpesAll > 1) {
+        if(m_iNpesActive > 1) {
           MatMPIAIJSetPreallocation(M, 53*dof , PETSC_NULL, 53*dof , PETSC_NULL);
         }else {
           MatSeqAIJSetPreallocation(M, 53*dof , PETSC_NULL);
@@ -507,10 +507,10 @@ namespace ot {
       // now create the PETSc Vector
       VecCreate(m_mpiCommActive, &arr);
       VecSetSizes(arr, sz, PETSC_DECIDE);
-      if (m_iNpesAll > 1) {
-        VecSetType(arr,VECMPI);
+      if (m_iNpesActive > 1) {
+        VecSetType(arr, VECMPI);
       } else {
-        VecSetType(arr,VECSEQ);
+        VecSetType(arr, VECSEQ);
       }    
     }//end if active
 
