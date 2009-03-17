@@ -206,7 +206,8 @@ namespace ot {
   bool isRegularGrid(ot::DA* da);
 
   /**
-    @brief Interpolates the function and (optionally) its gradient at the specified points
+    @brief Interpolates the function and (optionally) its gradient at the specified points.
+    The pts must be within the domain and they should not lie on the positive boundaries.
     @param da The octree mesh
     @param in input values (nodal, non-ghosted vector) 
     @param out output values
@@ -226,6 +227,7 @@ namespace ot {
 
   /**
     @brief Interpolates the function and (optionally) its gradient at the specified points
+    The pts must be within the domain and they should not lie on the positive boundaries.
     @param da The octree mesh
     @param in input values (nodal, non-ghosted vector) 
     @param out output values
