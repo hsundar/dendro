@@ -144,6 +144,8 @@ namespace ot {
 
     PetscScalar* inArr;
     da->vecGetBuffer(in, inArr, false, false, true, dof);
+    da->ReadFromGhostsBegin<PetscScalar>(inArr, dof);
+    da->ReadFromGhostsEnd<PetscScalar>(inArr);
 
     if(da->iAmActive()) {
       //interpolate at the received points
@@ -432,6 +434,9 @@ namespace ot {
 
     double* inArr;
     da->vecGetBuffer<double>(in, inArr, false, false, true, dof);
+
+    da->ReadFromGhostsBegin<double>(inArr, dof);
+    da->ReadFromGhostsEnd<double>(inArr);
 
     if(da->iAmActive()) {
       //interpolate at the received points
