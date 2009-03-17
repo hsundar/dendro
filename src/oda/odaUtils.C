@@ -147,6 +147,7 @@ namespace ot {
 
     if(da->iAmActive()) {
       //interpolate at the received points
+      //The pts must be inside the domain and not on the positive boundaries
       unsigned int ptsCtr = 0;
       double hxFac = (1.0/static_cast<double>(1u << balOctMaxD));
       for(da->init<ot::DA_FLAGS::WRITABLE>();
@@ -434,6 +435,7 @@ namespace ot {
 
     if(da->iAmActive()) {
       //interpolate at the received points
+      //The pts must be inside the domain and not on the positive boundaries
       unsigned int ptsCtr = 0;
       double hxFac = (1.0/static_cast<double>(1u << balOctMaxD));
       for(da->init<ot::DA_FLAGS::WRITABLE>();
