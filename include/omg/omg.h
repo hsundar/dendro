@@ -447,7 +447,6 @@ namespace ot {
     KSP            ksp;  /**< The solver */           
     PetscErrorCode (*initialguess)(_p_DAMG*, Vec); /**< Function handle to compute the initial guess vector */
     PetscErrorCode (*rhs)(_p_DAMG*,Vec); /**< Function handle to compute the RHS vector */
-    PetscTruth     matricesset;  /**< true if user had called stsDMMGSetKSP() and the matrices have been computed */
   };//end struct definition
 
   /** The multigrid object */

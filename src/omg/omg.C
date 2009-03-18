@@ -771,7 +771,7 @@ namespace ot {
       PetscErrorCode (*compJac)(DAMG,Mat,Mat), PetscErrorCode (*rhs)(DAMG,Vec) )	
   {
     PetscErrorCode ierr;
-    int       i,nlevels = damg[0]->nlevels;
+    int  nlevels = damg[0]->nlevels;
 
     //Galerkin coarsening is NOT an option.
     PROF_MG_SET_KSP_BEGIN
@@ -784,7 +784,7 @@ namespace ot {
 
     if (!damg[0]->ksp) {
       /* create solvers for each level if they don't already exist*/
-      for (i = 0; i < nlevels; i++) {
+      for (int i = 0; i < nlevels; i++) {
         if (!damg[i]->B) {		
           ierr = (*crjac)(damg[i],&(damg[i]->B));CHKERRQ(ierr);
         }
@@ -996,12 +996,32 @@ namespace ot {
     MPI_Barrier(damg[0]->comm);
 #endif
 
-    for (i = 0; i < nlevels; i++) {
+    //Evaluate Matrix at each level
+    for (int i = 0; i < nlevels; i++) {
       if(compJac) {
         ierr = (*compJac)(damg[i],damg[i]->J,damg[i]->B); CHKERRQ(ierr);
       }
-      damg[i]->matricesset = PETSC_TRUE;
     }
+
+    //Set operators at each level.   
+    for(int level = 0; level < nlevels; level++) {
+      KSPSetOperators(damg[level]->ksp, damg[level]->J,
+          damg[level]->B, SAME_NONZERO_PATTERN);
+
+      PC pc;
+      KSPGetPC(damg[level]->ksp, &pc);
+
+      PetscTruth ismg;
+      PetscTypeCompare((PetscObject)pc, PCMG, &ismg);
+
+      if(ismg) {
+        for(int i = 0; i <= level; i++) {
+          KSP lksp;
+          PCMGGetSmoother(pc, i, &lksp);
+          KSPSetOperators(lksp, damg[i]->J, damg[i]->B, SAME_NONZERO_PATTERN);
+        }//end for i
+      }
+    }//end for level
 
 #ifdef __DEBUG_MG__
     MPI_Barrier(damg[0]->comm);
@@ -1126,12 +1146,6 @@ namespace ot {
 
     if (damg[level]->rhs) {
       ierr = (*damg[level]->rhs)(damg[level],damg[level]->b);CHKERRQ(ierr); 
-    }
-
-    if (damg[level]->matricesset) {
-      ierr = KSPSetOperators(damg[level]->ksp, damg[level]->J,
-          damg[level]->B, SAME_NONZERO_PATTERN);CHKERRQ(ierr);
-      damg[level]->matricesset = PETSC_FALSE;
     }
 
     ierr = KSPSolve(damg[level]->ksp, damg[level]->b, damg[level]->x);CHKERRQ(ierr);
@@ -1799,8 +1813,6 @@ namespace ot {
       // KSP only 
       tmpDAMG[i]->ksp = NULL;             
       tmpDAMG[i]->rhs = NULL;
-      // User had called stsDMMGSetKSP() and the matrices have been computed 
-      tmpDAMG[i]->matricesset = PETSC_FALSE;
     }//end for i  
     *damg = tmpDAMG;
 
