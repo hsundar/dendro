@@ -67,6 +67,7 @@ namespace ot {
     par::Mpi_Allreduce<DendroIntL>(&inSz, &globInSize, 1, MPI_SUM, comm);
 
     assert( globInSize >= (10*npes) );
+    assert(inSz >= 10);
 
     int npesCurr = npes;
     MPI_Comm commCurr = comm;
@@ -558,7 +559,9 @@ namespace ot {
         if(rank >= splittingSize) {
           repeatLoop = false;
         }
-      }//end if splitting comm
+      } else {
+        par::partitionW<ot::NodeAndValues<double, 1> >(tnAndValsList, NULL, commCurr);
+      } //end if splitting comm
 
     }//end while
 
