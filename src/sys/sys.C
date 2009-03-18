@@ -109,6 +109,10 @@ namespace ot {
     PetscLogEventRegister("DA-Final",PETSC_VIEWER_COOKIE,&daFinalEvent);
     PetscLogEventRegister("DAMG-Init",PETSC_VIEWER_COOKIE,&damgInitEvent);
     PetscLogEventRegister("DAMG-Final",PETSC_VIEWER_COOKIE,&damgFinalEvent);
+    
+    PetscLogEventRegister("PC-KSP-Shell-Setup",PETSC_VIEWER_COOKIE,&pcKspShellSetupEvent);
+    PetscLogEventRegister("PC-KSP-Shell-Apply",PETSC_VIEWER_COOKIE,&pcKspShellApplyEvent);
+    PetscLogEventRegister("PC-KSP-Shell-Destroy",PETSC_VIEWER_COOKIE,&pcKspShellDestroyEvent);
 
     PetscLogEventRegister("Bal-Comm",PETSC_VIEWER_COOKIE,&balCommEvent);
     PetscLogEventRegister("Bal-SplitComm",PETSC_VIEWER_COOKIE,&balSplitCommEvent);
@@ -226,6 +230,10 @@ namespace ot {
     PetscLogEventRegister(&writeToGhostElemsEndEvent,"W-Gh-E-End",PETSC_VIEWER_COOKIE);
     PetscLogEventRegister(&damgInitEvent,"DAMG-Init",PETSC_VIEWER_COOKIE);
     PetscLogEventRegister(&damgFinalEvent,"DAMG-Final",PETSC_VIEWER_COOKIE);
+
+    PetscLogEventRegister(&pcKspShellSetupEvent,"PC-KSP-Shell-Setup",PETSC_VIEWER_COOKIE);
+    PetscLogEventRegister(&pcKspShellApplyEvent,"PC-KSP-Shell-Apply",PETSC_VIEWER_COOKIE,);
+    PetscLogEventRegister(&pcKspShellDestroyEvent,"PC-KSP-Shell-Destroy",PETSC_VIEWER_COOKIE,);
 
     PetscLogEventRegister(&balCommEvent,"Bal-Comm",PETSC_VIEWER_COOKIE);
     PetscLogEventRegister(&balSplitCommEvent,"Bal-SplitComm",PETSC_VIEWER_COOKIE);

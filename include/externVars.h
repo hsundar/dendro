@@ -111,6 +111,9 @@ namespace ot {
 
   /** @name Variables to profile the functions in the omg module */
   //@{
+  int pcKspShellSetupEvent;
+  int pcKspShellDestroyEvent;
+  int pcKspShellApplyEvent;
   int setDaEvent;
   int setUpEvent;
   int createRp1Event;

@@ -8,7 +8,7 @@
  *
  * Defines the basic MG class, which provides an octree based Multigrid
  * compatible with PETSc.
- **/ 
+**/ 
 
 #ifndef __OCT_MG_H__
 #define __OCT_MG_H__
@@ -22,6 +22,9 @@
 #include "petscsys.h"
 
 namespace ot {
+  extern int pcKspShellSetupEvent;
+  extern int pcKspShellDestroyEvent;
+  extern int pcKspShellApplyEvent;
   extern int setDaEvent;
   extern int setUpEvent;
   extern int createRp1Event;
@@ -33,7 +36,7 @@ namespace ot {
   extern int scatterEvent;
   extern int damgInitEvent;
   extern int damgFinalEvent;
-  
+
   extern int setDAstage1Event;
   extern int setDAstage2Event;
   extern int setDAstage3Event;
@@ -59,6 +62,24 @@ namespace ot {
 
 #define PROF_SET_DA_STAGE6_BEGIN PetscLogEventBegin(setDAstage6Event,0,0,0,0);
 #define PROF_SET_DA_STAGE6_END PetscLogEventEnd(setDAstage6Event,0,0,0,0); 
+
+#define PROF_PC_KSP_SHELL_SETUP_BEGIN  PetscFunctionBegin; \
+  PetscLogEventBegin(pcKspShellSetupEvent,0,0,0,0);
+
+#define PROF_PC_KSP_SHELL_SETUP_END PetscLogEventEnd(pcKspShellSetupEvent,0,0,0,0); \
+  PetscFunctionReturn(0);
+
+#define PROF_PC_KSP_SHELL_DESTROY_BEGIN  PetscFunctionBegin; \
+  PetscLogEventBegin(pcKspShellDestroyEvent,0,0,0,0);
+
+#define PROF_PC_KSP_SHELL_DESTROY_END PetscLogEventEnd(pcKspShellDestroyEvent,0,0,0,0); \
+  PetscFunctionReturn(0);
+
+#define PROF_PC_KSP_SHELL_APPLY_BEGIN  PetscFunctionBegin; \
+  PetscLogEventBegin(pcKspShellApplyEvent,0,0,0,0);
+
+#define PROF_PC_KSP_SHELL_APPLY_END PetscLogEventEnd(pcKspShellApplyEvent,0,0,0,0); \
+  PetscFunctionReturn(0);
 
 #define PROF_MG_INIT_BEGIN  PetscFunctionBegin; \
   PetscLogEventBegin(damgInitEvent,0,0,0,0);
@@ -145,6 +166,18 @@ namespace ot {
 #define PROF_SET_DA_STAGE6_BEGIN 
 #define PROF_SET_DA_STAGE6_END 
 
+#define PROF_PC_KSP_SHELL_SETUP_BEGIN PetscFunctionBegin; 
+
+#define PROF_PC_KSP_SHELL_SETUP_END PetscFunctionReturn(0);
+
+#define PROF_PC_KSP_SHELL_DESTROY_BEGIN PetscFunctionBegin; 
+
+#define PROF_PC_KSP_SHELL_DESTROY_END PetscFunctionReturn(0);
+
+#define PROF_PC_KSP_SHELL_APPLY_BEGIN PetscFunctionBegin; 
+
+#define PROF_PC_KSP_SHELL_APPLY_END PetscFunctionReturn(0);
+
 #define PROF_MG_INIT_BEGIN PetscFunctionBegin; 
 
 #define PROF_MG_INIT_END PetscFunctionReturn(0);
@@ -229,51 +262,51 @@ namespace ot {
       /** @name Constructors */
       //@{
       FineTouchedStatus() {
-	for(int i=0;i<8;i++) {
-	  flags[i] = 0;
-	}
+        for(int i=0;i<8;i++) {
+          flags[i] = 0;
+        }
       }    
 
       FineTouchedStatus(const FineTouchedStatus & other) {
-	for(int i=0; i<8; i++) {
-	  this->flags[i] = other.flags[i];
-	}
+        for(int i=0; i<8; i++) {
+          this->flags[i] = other.flags[i];
+        }
       }
       //@}
 
       /** @name Overloaded Operators */
       //@{
       FineTouchedStatus & operator = (FineTouchedStatus const  & other) {
-	if(this == (&other)) {return *this;}	
-	for(int i=0; i<8; i++) {
-	  this->flags[i] = other.flags[i];
-	}
-	return *this;
+        if(this == (&other)) {return *this;}	
+        for(int i=0; i<8; i++) {
+          this->flags[i] = other.flags[i];
+        }
+        return *this;
       }//end fn.
 
       FineTouchedStatus & operator +=(FineTouchedStatus const & other) {
-	//Self-Assignment not a problem!
-	for(int i=0; i<8; i++) {
-	  this->flags[i] |= other.flags[i];
-	}
-	return *this;
+        //Self-Assignment not a problem!
+        for(int i=0; i<8; i++) {
+          this->flags[i] |= other.flags[i];
+        }
+        return *this;
       }//end fn.
 
       bool  operator == ( FineTouchedStatus const  &other) const {
-	for(int i = 0; i < 8; i++ ) {
-	  if(this->flags[i] != other.flags[i]) {
-	    return false;
-	  }
-	}
-	return true;
+        for(int i = 0; i < 8; i++ ) {
+          if(this->flags[i] != other.flags[i]) {
+            return false;
+          }
+        }
+        return true;
       }
 
       bool  operator != ( FineTouchedStatus const  &other) const {
-	return (!((*this) == other));
+        return (!((*this) == other));
       }
 
       const FineTouchedStatus operator + (FineTouchedStatus const &other) const {
-	return ((FineTouchedStatus(*this)) += other);
+        return ((FineTouchedStatus(*this)) += other);
       }
       //@}
 
@@ -291,51 +324,51 @@ namespace ot {
       /** @name Constructors */
       //@{
       FineTouchedDummyStatus() {
-	for(int i=0;i<16;i++) {
-	  flags[i] = 0;
-	}
+        for(int i=0;i<16;i++) {
+          flags[i] = 0;
+        }
       }    
 
       FineTouchedDummyStatus(const FineTouchedDummyStatus & other) {
-	for(int i=0; i<16; i++) {
-	  this->flags[i] = other.flags[i];
-	}
+        for(int i=0; i<16; i++) {
+          this->flags[i] = other.flags[i];
+        }
       }
       //@}
 
       /** @name Overloaded operators */
       //@{
       FineTouchedDummyStatus & operator = (FineTouchedDummyStatus const  & other) {
-	if(this == (&other)) {return *this;}	
-	for(int i=0; i<16; i++) {
-	  this->flags[i] = other.flags[i];
-	}
-	return *this;
+        if(this == (&other)) {return *this;}	
+        for(int i=0; i<16; i++) {
+          this->flags[i] = other.flags[i];
+        }
+        return *this;
       }//end fn.
 
       FineTouchedDummyStatus & operator +=(FineTouchedDummyStatus const & other) {
-	//Self-Assignment not a problem!
-	for(int i=0; i<16; i++) {
-	  this->flags[i] |= other.flags[i];
-	}
-	return *this;
+        //Self-Assignment not a problem!
+        for(int i=0; i<16; i++) {
+          this->flags[i] |= other.flags[i];
+        }
+        return *this;
       }//end fn.
 
       bool  operator == ( FineTouchedDummyStatus const  &other) const {
-	for(int i = 0; i < 16; i++ ) {
-	  if(this->flags[i] != other.flags[i]) {
-	    return false;
-	  }
-	}
-	return true;
+        for(int i = 0; i < 16; i++ ) {
+          if(this->flags[i] != other.flags[i]) {
+            return false;
+          }
+        }
+        return true;
       }
 
       bool  operator != ( FineTouchedDummyStatus const  &other) const {
-	return (!((*this) == other));
+        return (!((*this) == other));
       }
 
       const FineTouchedDummyStatus operator + (FineTouchedDummyStatus const &other) const {
-	return ((FineTouchedDummyStatus(*this)) += other);
+        return ((FineTouchedDummyStatus(*this)) += other);
       }
       //@}
 
@@ -354,9 +387,9 @@ namespace ot {
     ot::DA* dac; /**< Coarse mesh */
     ot::DA* daf; /**< Fine mesh */
     unsigned int minIndependentSize; /**< Min (across processors) number of independent
-				       elements on the coarse grid. This us used for
-				       overlapping communication and computation inside
-				       the R and P matvecs.  */
+                                       elements on the coarse grid. This us used for
+                                       overlapping communication and computation inside
+                                       the R and P matvecs.  */
     unsigned char* suppressedDOFc; /**< Dirichlet nodes on the coarse mesh */
     unsigned char* suppressedDOFf; /**< Dirichlet nodes on the fine mesh */
     std::vector<ot::FineTouchedStatus >* fineTouchedFlags; /**< The masks used for Restriction/Prolongation */
@@ -387,7 +420,7 @@ namespace ot {
 
     ot::DA* da; /**< octree mesh used for smoothing at this level */
     ot::DA* da_aux;  /**< Pseudo-mesh used in inter-grid transfers (Scatters). This is not used for smoothing. 
-		       This is NULL, if the immediate coarser grid shares the same partition. */
+                       This is NULL, if the immediate coarser grid shares the same partition. */
 
     unsigned int dof; /**< the number of degrees of freedom per node */
 
@@ -643,40 +676,40 @@ namespace par {
   template <>
     class Mpi_datatype< ot::FineTouchedStatus > {
       public: 
-	static MPI_Datatype value()
-	{
-	  static bool  first = true;
-	  static MPI_Datatype datatype;
+        static MPI_Datatype value()
+        {
+          static bool  first = true;
+          static MPI_Datatype datatype;
 
-	  if (first)
-	  {
-	    first = false;
-	    MPI_Type_contiguous(sizeof(ot::FineTouchedStatus), MPI_BYTE, &datatype);
-	    MPI_Type_commit(&datatype);
-	  }
+          if (first)
+          {
+            first = false;
+            MPI_Type_contiguous(sizeof(ot::FineTouchedStatus), MPI_BYTE, &datatype);
+            MPI_Type_commit(&datatype);
+          }
 
-	  return datatype;
-	}
+          return datatype;
+        }
     };
 
   //Used only with WriteToGhosts
   template <>
     class Mpi_datatype< ot::FineTouchedDummyStatus > {
       public: 
-	static MPI_Datatype value()
-	{
-	  static bool  first = true;
-	  static MPI_Datatype datatype;
+        static MPI_Datatype value()
+        {
+          static bool  first = true;
+          static MPI_Datatype datatype;
 
-	  if (first)
-	  {
-	    first = false;
-	    MPI_Type_contiguous(sizeof(ot::FineTouchedDummyStatus), MPI_BYTE, &datatype);
-	    MPI_Type_commit(&datatype);
-	  }
+          if (first)
+          {
+            first = false;
+            MPI_Type_contiguous(sizeof(ot::FineTouchedDummyStatus), MPI_BYTE, &datatype);
+            MPI_Type_commit(&datatype);
+          }
 
-	  return datatype;
-	}
+          return datatype;
+        }
     };
 
 }//end namespace par

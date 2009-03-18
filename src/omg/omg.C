@@ -2549,9 +2549,9 @@ Type2: Use Aux. Coarse and Fine are not aligned.
 
   PetscErrorCode PC_KSP_Shell_SetUp(void* ctx) {
 
-    PetscFunctionBegin;
+    PROF_PC_KSP_SHELL_SETUP_BEGIN
 
-    PC_KSP_Shell* data = static_cast<PC_KSP_Shell*>(ctx); 
+      PC_KSP_Shell* data = static_cast<PC_KSP_Shell*>(ctx); 
 
     MPI_Comm commActive = data->commActive;
     bool iAmActive = data->iAmActive;
@@ -2576,7 +2576,7 @@ Type2: Use Aux. Coarse and Fine are not aligned.
 
       if(getPrivateMatricesForKSP_Shell) {
         (*getPrivateMatricesForKSP_Shell)(Amat, &Amat_private,
-                                          &Pmat_private, &pFlag);
+            &Pmat_private, &pFlag);
       } else {
         SETERRQ(PETSC_ERR_USER,
             " Expected function to be set:\
@@ -2662,14 +2662,15 @@ Type2: Use Aux. Coarse and Fine are not aligned.
       data->ksp_private = NULL;
     }//end if active
 
-    PetscFunctionReturn(0);
+    PROF_PC_KSP_SHELL_SETUP_END
+
   }
 
   PetscErrorCode PC_KSP_Shell_Destroy(void* ctx) {
 
-    PetscFunctionBegin;
+    PROF_PC_KSP_SHELL_DESTROY_BEGIN
 
-    PC_KSP_Shell* data = static_cast<PC_KSP_Shell*>(ctx); 
+      PC_KSP_Shell* data = static_cast<PC_KSP_Shell*>(ctx); 
 
     if(data) {
       if(data->ksp_private) {
@@ -2691,14 +2692,14 @@ Type2: Use Aux. Coarse and Fine are not aligned.
       data = NULL;
     }
 
-    PetscFunctionReturn(0);
+    PROF_PC_KSP_SHELL_DESTROY_END
   }
 
   PetscErrorCode PC_KSP_Shell_Apply(void* ctx, Vec rhs, Vec sol) {
 
-    PetscFunctionBegin;
+    PROF_PC_KSP_SHELL_APPLY_BEGIN
 
-    PC_KSP_Shell* data = static_cast<PC_KSP_Shell*>(ctx); 
+      PC_KSP_Shell* data = static_cast<PC_KSP_Shell*>(ctx); 
 
     if(data->iAmActive) {      
       PetscScalar* rhsArray;
@@ -2721,7 +2722,7 @@ Type2: Use Aux. Coarse and Fine are not aligned.
       VecRestoreArray(sol, &solArray);
     }
 
-    PetscFunctionReturn(0);
+    PROF_PC_KSP_SHELL_APPLY_END
   }
 
   int scatterValues(Vec in, Vec out, PetscInt inSz, PetscInt outSz,
