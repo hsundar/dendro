@@ -60,17 +60,38 @@ namespace ot {
     par::sampleSort<ot::NodeAndValues<double, 1> >(tmpList, tnAndValsList, comm);
     tmpList.clear();
 
-    par::partitionW<ot::NodeAndValues<double, 1> >(tnAndValsList, NULL, comm);
-
     DendroIntL inSz = tnAndValsList.size();
     DendroIntL globInSize;
     par::Mpi_Allreduce<DendroIntL>(&inSz, &globInSize, 1, MPI_SUM, comm);
 
-    assert( globInSize >= (10*npes) );
-    assert(inSz >= 10);
-
     int npesCurr = npes;
     MPI_Comm commCurr = comm;
+    if(globInSize < (10*npes)) {
+      int splittingSize = (globInSize/10); 
+      if(splittingSize == 0) {
+        splittingSize = 1; 
+      }
+
+      unsigned int avgLoad = (globInSize/splittingSize);
+      int leftOvers = (globInSize - (splittingSize*avgLoad));
+
+      if(rank >= splittingSize) {
+        par::scatterValues<ot::NodeAndValues<double, 1> >(tnAndValsList, tmpList, 0, commCurr);
+      }else if(rank < leftOvers) {
+        par::scatterValues<ot::NodeAndValues<double, 1> >(tnAndValsList, tmpList, (avgLoad + 1), commCurr);
+      }else {
+        par::scatterValues<ot::NodeAndValues<double, 1> >(tnAndValsList, tmpList, avgLoad, commCurr);
+      }
+      tnAndValsList = tmpList;
+      tmpList.clear();
+
+      MPI_Comm newComm;
+      par::splitCommUsingSplittingRank(splittingSize, &newComm, commCurr);
+      commCurr = newComm;
+      npesCurr = splittingSize;
+    } else {
+      par::partitionW<ot::NodeAndValues<double, 1> >(tnAndValsList, NULL, comm);
+    }
 
     bool repeatLoop = true;
     while(repeatLoop) {
