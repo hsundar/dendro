@@ -19,7 +19,7 @@ EXEC_TESTS = bin/createCoarser bin/chkNl bin/chkMl bin/dumpMesh\
             bin/downSample \
              bin/checkResults bin/checkSV bin/chkCoarsen \
 	     bin/justCoarsen bin/testNodeAndVals bin/testPetscInt \
-	     bin/tstFBM bin/tstDirichlet bin/tstFBM2
+	     bin/tstFBM bin/tstDirichlet bin/tstFBM2 
 
 EXEC_UTIL = bin/gen2spheres bin/genPrlFBMpts
 

@@ -98,6 +98,10 @@ namespace ot {
       par::partitionW<ot::NodeAndValues<double, 1> >(tnAndValsList, NULL, comm);
     }
 
+    if(globInSize < 10) {
+      repeatLoop = false; 
+    }
+
     while(repeatLoop) {
 
       inSz = tnAndValsList.size();
@@ -549,11 +553,16 @@ namespace ot {
       par::Mpi_Allreduce<DendroIntL>(&outSz, &globOutSize, 1, MPI_SUM, commCurr);
 
       if(!rank) {
-        std::cout<<"globInSize: "<<globInSize<<" globOutSize: "<<globOutSize<<" npesCurr: "<<npesCurr<<std::endl;
+        std::cout<<"globInSize: "<<globInSize<<" globOutSize: "
+          <<globOutSize<<" npesCurr: "<<npesCurr<<std::endl;
       }
 
       if(globOutSize == globInSize) {
         repeatLoop = false;
+      }
+
+      if(globOutSize < 10) {
+        repeatLoop = false; 
       }
 
       //prepare for next iteration...
