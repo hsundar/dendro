@@ -64,6 +64,7 @@ namespace ot {
     DendroIntL globInSize;
     par::Mpi_Allreduce<DendroIntL>(&inSz, &globInSize, 1, MPI_SUM, comm);
 
+    bool repeatLoop = true;
     int npesCurr = npes;
     MPI_Comm commCurr = comm;
     if(globInSize < (10*npes)) {
@@ -89,11 +90,14 @@ namespace ot {
       par::splitCommUsingSplittingRank(splittingSize, &newComm, commCurr);
       commCurr = newComm;
       npesCurr = splittingSize;
+
+      if(rank >= splittingSize) {
+        repeatLoop = false;
+      }
     } else {
       par::partitionW<ot::NodeAndValues<double, 1> >(tnAndValsList, NULL, comm);
     }
 
-    bool repeatLoop = true;
     while(repeatLoop) {
 
       inSz = tnAndValsList.size();
