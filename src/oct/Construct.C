@@ -32,6 +32,12 @@ namespace ot {
     MPI_Comm_rank(comm, &rank);
     MPI_Comm_size(comm, &npes);
 
+    const int MIN_GRAIN_SIZE = 12;
+
+    if(!rank) {
+      std::cout<<"Min grain size: "<<MIN_GRAIN_SIZE<<std::endl;
+    }
+
     bool isNvalid = binOp::isPowerOfTwo(N);
 
     assert(isNvalid);
@@ -67,8 +73,8 @@ namespace ot {
     bool repeatLoop = true;
     int npesCurr = npes;
     MPI_Comm commCurr = comm;
-    if(globInSize < (20*npes)) {
-      int splittingSize = (globInSize/20); 
+    if(globInSize < (MIN_GRAIN_SIZE*npes)) {
+      int splittingSize = (globInSize/MIN_GRAIN_SIZE); 
       if(splittingSize == 0) {
         splittingSize = 1; 
       }
@@ -98,7 +104,7 @@ namespace ot {
       par::partitionW<ot::NodeAndValues<double, 1> >(tnAndValsList, NULL, comm);
     }
 
-    if(globInSize < 20) {
+    if(globInSize < MIN_GRAIN_SIZE) {
       repeatLoop = false; 
     }
 
@@ -108,7 +114,7 @@ namespace ot {
 
       inSz = tnAndValsList.size();
 
-      assert(inSz >= 20);
+      assert(inSz >= MIN_GRAIN_SIZE);
 
       MPI_Request requests[4];
 
@@ -186,6 +192,14 @@ namespace ot {
             break;
           }
         }//end for i
+      }
+
+      //TESTING
+      if(loopCtr == 2) {
+        if( (rank == 102) || (rank == 101) || (rank == 103) ) {
+          std::cout<<"On "<<rank<<", inSz: "<<inSz<<" myFirstFC: "<<myFirstFC<<" myLastFC: "
+            <<myLastFC<<" idxPrev: "<<idxOfPrevFC<<" idxNext: "<<idxOfNextFC<<std::endl;
+        }
       }
 
       //Process upto myFirstFC (exclusive)
@@ -570,7 +584,7 @@ namespace ot {
         repeatLoop = false;
       }
 
-      if(globOutSize < 20) {
+      if(globOutSize < MIN_GRAIN_SIZE) {
         repeatLoop = false; 
       }
 
@@ -579,8 +593,8 @@ namespace ot {
       tnAndValsList = tmpList;
       tmpList.clear();
 
-      if(globInSize < (20*npesCurr)) {
-        int splittingSize = (globInSize/20); 
+      if(globInSize < (MIN_GRAIN_SIZE*npesCurr)) {
+        int splittingSize = (globInSize/MIN_GRAIN_SIZE); 
         if(splittingSize == 0) {
           splittingSize = 1; 
         }
