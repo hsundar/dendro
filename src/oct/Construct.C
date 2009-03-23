@@ -67,8 +67,8 @@ namespace ot {
     bool repeatLoop = true;
     int npesCurr = npes;
     MPI_Comm commCurr = comm;
-    if(globInSize < (10*npes)) {
-      int splittingSize = (globInSize/10); 
+    if(globInSize < (20*npes)) {
+      int splittingSize = (globInSize/20); 
       if(splittingSize == 0) {
         splittingSize = 1; 
       }
@@ -98,15 +98,17 @@ namespace ot {
       par::partitionW<ot::NodeAndValues<double, 1> >(tnAndValsList, NULL, comm);
     }
 
-    if(globInSize < 10) {
+    if(globInSize < 20) {
       repeatLoop = false; 
     }
 
+    int loopCtr = 0;
     while(repeatLoop) {
+      loopCtr++;
 
       inSz = tnAndValsList.size();
 
-      assert(inSz >= 10);
+      assert(inSz >= 20);
 
       MPI_Request requests[4];
 
@@ -551,16 +553,24 @@ namespace ot {
       DendroIntL globOutSize;
       par::Mpi_Allreduce<DendroIntL>(&outSz, &globOutSize, 1, MPI_SUM, commCurr);
 
+      //TESTING
       if(!rank) {
         std::cout<<"globInSize: "<<globInSize<<" globOutSize: "
           <<globOutSize<<" npesCurr: "<<npesCurr<<std::endl;
+      }
+     
+      if(loopCtr == 2) {
+        if(inSz != outSz) {
+          std::cout<<"local Size Changed in RG2O. Rank = "<<rank
+            <<" inSz: "<<inSz<<" outSz: "<<outSz<<std::endl;
+        }
       }
 
       if(globOutSize == globInSize) {
         repeatLoop = false;
       }
 
-      if(globOutSize < 10) {
+      if(globOutSize < 20) {
         repeatLoop = false; 
       }
 
@@ -569,8 +579,8 @@ namespace ot {
       tnAndValsList = tmpList;
       tmpList.clear();
 
-      if(globInSize < (10*npesCurr)) {
-        int splittingSize = (globInSize/10); 
+      if(globInSize < (20*npesCurr)) {
+        int splittingSize = (globInSize/20); 
         if(splittingSize == 0) {
           splittingSize = 1; 
         }
