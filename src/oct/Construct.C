@@ -454,12 +454,6 @@ namespace ot {
       DendroIntL globOutSize;
       par::Mpi_Allreduce<DendroIntL>(&outSz, &globOutSize, 1, MPI_SUM, commCurr);
 
-      //TESTING
-      if(!rank) {
-        std::cout<<"In RG2O: globInSize: "<<globInSize<<" globOutSize: "
-          <<globOutSize<<" npesCurr: "<<npesCurr<<std::endl;
-      }
-
       if(globOutSize == globInSize) {
         repeatLoop = false;
       }
