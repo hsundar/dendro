@@ -30,7 +30,7 @@ noRandom=0
 
 prefixPath=/ronaldo/opt/openmpi/1.1.1
 
-cd ${HOME}/otk
+cd ${DENDRO_DIR}
 
 mpirun -prefix $prefixPath -hostfile ${tmpfile} -nooversubscribe -np ${numprocs} ./tstMinvSkew $regLev ${skew} $consistentRhs  ${noRandom} $maxD ${dim} ${incCor} ${compressLut} ${mgLoadFac} >& MinvSkew.${regLev}.${skew}.${noRandom}.txt
 

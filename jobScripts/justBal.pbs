@@ -12,7 +12,7 @@ incCor=1
 
 prefixPath=/opt/openmpi/1.2.4
 
-cd ${HOME}/otk
+cd ${DENDRO_DIR}
 
 mpirun -prefix $prefixPath -nooversubscribe -np ${numprocs}  ./justBal $inp $writeO $incCor >& bal.${numprocs}.txt
 

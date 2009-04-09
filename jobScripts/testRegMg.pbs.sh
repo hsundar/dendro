@@ -15,7 +15,7 @@ mgLoadFac=1.5
 
 prefixPath=/opt/openmpi/1.2.4
 
-cd ${HOME}/otk
+cd ${DENDRO_DIR}
 
 mpirun -prefix $prefixPath -nooversubscribe -np ${numprocs} ./tstMgReg $regLev $maxD ${dim} ${incCor} ${compressLut} ${mgLoadFac} >& tstMgRg.${regLev}.${numprocs}.txt
 

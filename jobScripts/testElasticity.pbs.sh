@@ -17,7 +17,7 @@ mgLoadFac=1.5
 
 prefixPath=/opt/openmpi/1.2.4
 
-cd ${HOME}/otk
+cd ${DENDRO_DIR}
 
 mpirun -prefix $prefixPath -nooversubscribe -np ${numprocs} ./elasticitySolver ${inp} ${maxD} ${solveU} ${writeB} ${dim} ${maxNum} ${incCor} ${compressLut} ${mgLoadFac} >& ${HOME}/otk/nvlm.${inp}.${numprocs}.txt
 

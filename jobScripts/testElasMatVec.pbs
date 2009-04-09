@@ -16,7 +16,7 @@ numLoops=100
 
 prefixPath=/opt/openmpi/1.2.4
 
-cd ${HOME}/Dendro
+cd ${DENDRO_DIR}
 
 mpirun -prefix $prefixPath -nooversubscribe -np ${numprocs} ./testElasMatVec ${localNumPts} ${dim} ${maxD} ${maxNumPts} ${incCorner} ${compressLut} ${mgLoadFac} ${numLoops}  >& elasMV5K.${numprocs}.txt
 

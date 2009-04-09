@@ -27,7 +27,7 @@ mgLoadFac=1.5
 
 prefixPath=/ronaldo/opt/openmpi/1.1.1
 
-cd ${HOME}/otk
+cd ${DENDRO_DIR}
 
 mpirun -prefix $prefixPath -hostfile ${tmpfile} -nooversubscribe -np ${numprocs} ./tstMgSetUp ${inp} ${maxD} ${writeB} ${dim} ${maxNum} ${incCor} ${compressLut} ${mgLoadFac} >& setUpTest.${inp}.${numprocs}.txt
 

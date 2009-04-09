@@ -20,7 +20,7 @@ incCor=1
 
 prefixPath=/opt/openmpi/1.2.4
 
-cd ${HOME}/otk
+cd ${DENDRO_DIR}
 
 mpirun -prefix $prefixPath -nooversubscribe -np ${numprocs} ./runScal $inp $cmplx $incInt $runOpt $readP $readO $maxD $writeP $writeO $dim $maxNum $incCor >& ${inp}.${numprocs}.txt
 

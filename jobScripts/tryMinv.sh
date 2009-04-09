@@ -30,7 +30,7 @@ noRandom=1
 
 prefixPath=/ronaldo/opt/openmpi/1.1.1
 
-cd ${HOME}/otk
+cd ${DENDRO_DIR}
 
 mpirun -prefix $prefixPath -hostfile ${tmpfile} -nooversubscribe -np ${numprocs} ./tstMinv ${inp} 1 ${noRandom} ${maxD} 1 0 3 1 1 1 1 1.2 20 >& Minv.${inp}.${maxD}.${noRandom}.txt
 

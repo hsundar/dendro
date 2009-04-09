@@ -12,7 +12,7 @@ maxNum=1
 
 prefixPath=/opt/openmpi/1.2.4
 
-cd ${HOME}/otk
+cd ${DENDRO_DIR}
 
 mpirun -prefix $prefixPath -nooversubscribe -np ${numprocs} ./downSample ${inp} ${maxD} ${dim} ${maxNum} >& downSample.${inp}.${numprocs}.txt
 
