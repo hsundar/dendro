@@ -59,7 +59,10 @@ namespace par {
     MPI_Comm_create(orig_comm, new_group, new_comm);
 
     delete [] ranksAsc;
+    ranksAsc = NULL;
+    
     delete [] ranksDesc;
+    ranksDesc = NULL;
 
     return splitterRank;
   }//end function
@@ -105,7 +108,10 @@ namespace par {
     MPI_Comm_create(orig_comm, new_group, new_comm);
 
     delete [] ranksAsc;
+    ranksAsc = NULL;
+    
     delete [] ranksDesc;
+    ranksDesc = NULL;
 
     return splitterRank;
   }//end function
@@ -149,6 +155,7 @@ namespace par {
     }//end for i
 
     delete [] isEmptyList;	
+    isEmptyList = NULL;
 
     /* Extract the original group handle */
     MPI_Comm_group(comm, &orig_group);
@@ -164,7 +171,10 @@ namespace par {
     MPI_Comm_create(comm, new_group, new_comm);
 
     delete [] ranksActive;
+    ranksActive = NULL;
+    
     delete [] ranksIdle;
+    ranksIdle = NULL;
 
     PROF_SPLIT_COMM_2WAY_END
   }//end function
@@ -207,7 +217,10 @@ namespace par {
     MPI_Comm_create(comm, new_group, new_comm);
 
     delete [] ranksActive;
+    ranksActive = NULL;
+    
     delete [] ranksIdle;
+    ranksIdle = NULL;
 
     PROF_SPLIT_COMM_END
   }//end function
@@ -258,7 +271,10 @@ namespace par {
     MPI_Comm_create(comm, new_group, new_comm);
 
     delete [] ranksActive;
+    ranksActive = NULL;
+    
     delete [] ranksIdle;
+    ranksIdle = NULL;
 
     return 0;
   }//end function
