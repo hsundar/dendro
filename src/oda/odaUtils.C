@@ -35,6 +35,8 @@ namespace ot {
   void interpolateData(ot::DA* da, Vec in, Vec out, Vec* gradOut,
       unsigned int dof, std::vector<double>& pts) {
 
+    assert(da != NULL);
+
     int rank = da->getRankAll();
     int npes = da->getNpesAll();
     MPI_Comm comm = da->getComm();
@@ -121,8 +123,20 @@ namespace ot {
     }//end for i
 
     std::vector<ot::NodeAndValues<double, 3> > recvList(recvDisps[npes - 1] + recvCnts[npes - 1]);
-    par::Mpi_Alltoallv_sparse<ot::NodeAndValues<double, 3> >(&(*(sendList.begin())), 
-        sendCnts, sendDisps, &(*(recvList.begin())), recvCnts, recvDisps, comm);
+
+    ot::NodeAndValues<double, 3>* sendListPtr = NULL;
+    ot::NodeAndValues<double, 3>* recvListPtr = NULL;
+
+    if(!(sendList.empty())) {
+      sendListPtr = (&(*(sendList.begin())));
+    }
+
+    if(!(recvList.empty())) {
+      recvListPtr = (&(*(recvList.begin())));
+    }
+
+    par::Mpi_Alltoallv_sparse<ot::NodeAndValues<double, 3> >(sendListPtr, 
+        sendCnts, sendDisps, recvListPtr, recvCnts, recvDisps, comm);
     sendList.clear();
 
     //Sort recvList but also store the mapping to the original order
@@ -266,8 +280,20 @@ namespace ot {
       recvCnts[i] *= dof;
       recvDisps[i] *= dof;
     }//end for i
-    par::Mpi_Alltoallv_sparse<double >(&(*(tmpOut.begin())), 
-        recvCnts, recvDisps, &(*(results.begin())), sendCnts, sendDisps, comm);
+
+    double* tmpOutPtr = NULL;
+    double* resultsPtr = NULL;
+
+    if(!(tmpOut.empty())) {
+      tmpOutPtr = (&(*(tmpOut.begin())));
+    }
+
+    if(!(results.empty())) {
+      resultsPtr = (&(*(results.begin())));
+    }
+
+    par::Mpi_Alltoallv_sparse<double>( tmpOutPtr, recvCnts, recvDisps,
+        resultsPtr, sendCnts, sendDisps, comm);
     tmpOut.clear();
 
     std::vector<double> gradResults;
@@ -279,8 +305,20 @@ namespace ot {
         recvDisps[i] *= 3;
       }//end for i
       gradResults.resize(3*dof*numPts);
-      par::Mpi_Alltoallv_sparse<double >(&(*(tmpGradOut.begin())), 
-          recvCnts, recvDisps, &(*(gradResults.begin())), sendCnts, sendDisps, comm);
+
+      double* tmpGradOutPtr = NULL;
+      double* gradResultsPtr = NULL;
+
+      if(!(tmpGradOut.empty())) {
+        tmpGradOutPtr = (&(*(tmpGradOut.begin())));
+      }
+
+      if(!(gradResults.empty())) {
+        gradResultsPtr = (&(*(gradResults.begin())));
+      }
+
+      par::Mpi_Alltoallv_sparse<double >( tmpGradOutPtr, recvCnts, recvDisps,
+          gradResultsPtr, sendCnts, sendDisps, comm);
       tmpGradOut.clear();
     }
 
@@ -305,6 +343,7 @@ namespace ot {
 
     if(computeGradient) {
       PetscInt gradOutSz;
+      assert(gradOut != NULL);
       VecGetLocalSize((*gradOut), &gradOutSz);
       assert(gradOutSz == (3*dof*numPts));
       PetscScalar* gradOutArr;
@@ -411,8 +450,20 @@ namespace ot {
     }//end for i
 
     std::vector<ot::NodeAndValues<double, 3> > recvList(recvDisps[npes - 1] + recvCnts[npes - 1]);
-    par::Mpi_Alltoallv_sparse<ot::NodeAndValues<double, 3> >(&(*(sendList.begin())), 
-        sendCnts, sendDisps, &(*(recvList.begin())), recvCnts, recvDisps, comm);
+
+    ot::NodeAndValues<double, 3>* sendListPtr = NULL;
+    ot::NodeAndValues<double, 3>* recvListPtr = NULL;
+
+    if(!(sendList.empty())) {
+      sendListPtr = (&(*(sendList.begin())));
+    }
+
+    if(!(recvList.empty())) {
+      recvListPtr = (&(*(recvList.begin())));
+    }
+
+    par::Mpi_Alltoallv_sparse<ot::NodeAndValues<double, 3> >( sendListPtr, 
+        sendCnts, sendDisps, recvListPtr, recvCnts, recvDisps, comm);
     sendList.clear();
 
     //Sort recvList but also store the mapping to the original order
@@ -557,8 +608,20 @@ namespace ot {
       recvCnts[i] *= dof;
       recvDisps[i] *= dof;
     }//end for i
-    par::Mpi_Alltoallv_sparse<double >(&(*(tmpOut.begin())), 
-        recvCnts, recvDisps, &(*(results.begin())), sendCnts, sendDisps, comm);
+
+    double* tmpOutPtr = NULL;
+    double* resultsPtr = NULL;
+
+    if(!(tmpOut.empty())) {
+      tmpOutPtr = (&(*(tmpOut.begin())));
+    }
+
+    if(!(results.empty())) {
+      resultsPtr = (&(*(results.begin())));
+    }
+
+    par::Mpi_Alltoallv_sparse<double >( tmpOutPtr, recvCnts, recvDisps,
+        resultsPtr, sendCnts, sendDisps, comm);
     tmpOut.clear();
 
     std::vector<double> gradResults;
@@ -570,8 +633,20 @@ namespace ot {
         recvDisps[i] *= 3;
       }//end for i
       gradResults.resize(3*dof*numPts);
-      par::Mpi_Alltoallv_sparse<double >(&(*(tmpGradOut.begin())), 
-          recvCnts, recvDisps, &(*(gradResults.begin())), sendCnts, sendDisps, comm);
+
+      double* tmpGradOutPtr = NULL;
+      double* gradResultsPtr = NULL;
+
+      if(!(tmpGradOut.empty())) {
+        tmpGradOutPtr = (&(*(tmpGradOut.begin())));
+      }
+
+      if(!(gradResults.empty())) {
+        gradResultsPtr = (&(*(gradResults.begin())));
+      }
+
+      par::Mpi_Alltoallv_sparse<double >( tmpGradOutPtr, recvCnts, recvDisps,
+          gradResultsPtr, sendCnts, sendDisps, comm);
       tmpGradOut.clear();
     }
 
