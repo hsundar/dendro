@@ -41,10 +41,12 @@ namespace ot {
 
     //Get the mins of inOct1
     ot::TreeNode* mins = new ot::TreeNode[npes];
+    assert(mins);
     par::Mpi_Allgather<ot::TreeNode>(&(*(inOct1.begin())), mins, 1, comm);
 
     //Distribute inOct2 to align with inOct1
     int* sendCnts = new int[npes];
+    assert(sendCnts);
     for(int i = 0; i < npes; i++) {
       sendCnts[i] = 0;
     }//end for i 
@@ -74,11 +76,17 @@ namespace ot {
       }//end for i
     }
 
-    int * recvCnts = new int[npes];
+    int* recvCnts = new int[npes];
+    assert(recvCnts);
+
     par::Mpi_Alltoall<int>(sendCnts, recvCnts, 1, comm);
 
-    int * sendDisps = new int[npes];
-    int * recvDisps = new int[npes];
+    int* sendDisps = new int[npes];
+    assert(sendDisps);
+
+    int* recvDisps = new int[npes];
+    assert(recvDisps);
+
     sendDisps[0] = 0;
     recvDisps[0] = 0;
     for(int i = 1; i < npes; i++) {
@@ -312,6 +320,7 @@ namespace ot {
 
     if(temp) {
       ptsTemp = new double[3*temp];
+      assert(ptsTemp);
       fread(ptsTemp, sizeof(double),3*temp,infile);
     }
 
@@ -856,6 +865,7 @@ namespace ot {
     unsigned int *part = NULL;
     if(!keys.empty()) {
       part = new unsigned int[keys.size()];    
+      assert(part);
     }
 
     for (unsigned int i = 0; i < keys.size(); i++) {
@@ -875,7 +885,10 @@ namespace ot {
       PROF_FLN_STAGE3_BEGIN
 
       int *numKeysSend = new int[npes];
+    assert(numKeysSend);
+
     int *numKeysRecv = new int[npes];
+    assert(numKeysRecv);
     for (int i = 0; i < npes; i++) {
       numKeysSend[i] = 0;
     }
@@ -907,9 +920,17 @@ namespace ot {
       }
     }//end for i
     int* allNumProcsSend = new int[npes];
+    assert(allNumProcsSend);
+
     int* allNumProcsRecv = new int[npes];
+    assert(allNumProcsRecv);
+
     unsigned int* allKeysSz = new unsigned int[npes];
+    assert(allKeysSz);
+
     unsigned int* allTotalRecv = new unsigned int[npes]; 
+    assert(allTotalRecv);
+
     unsigned int localKeysSize = keys.size(); 
     par::Mpi_Gather<int>(&numProcsSend, allNumProcsSend, 1, 0, comm);
     par::Mpi_Gather<int>(&numProcsRecv, allNumProcsRecv, 1, 0, comm);
@@ -938,12 +959,21 @@ namespace ot {
     unsigned int * comm_map = NULL;
     if(!keys.empty()) {
       comm_map = new unsigned int [keys.size()];
+      assert(comm_map);
     }
 
     // Now create sendK
-    int *sendOffsets = new int[npes]; sendOffsets[0] = 0;
-    int *recvOffsets = new int[npes]; recvOffsets[0] = 0;
-    int *numKeysTmp = new int[npes]; numKeysTmp[0] = 0; 
+    int *sendOffsets = new int[npes]; 
+    assert(sendOffsets);
+    sendOffsets[0] = 0;
+
+    int *recvOffsets = new int[npes]; 
+    assert(recvOffsets);
+    recvOffsets[0] = 0;
+
+    int *numKeysTmp = new int[npes]; 
+    assert(numKeysTmp);
+    numKeysTmp[0] = 0; 
 
     // compute offsets ...
     for (int i = 1; i < npes; i++) {
@@ -1290,18 +1320,22 @@ namespace ot {
 
       // allocate memory for the mins array
       ot::TreeNode* mins = new ot::TreeNode[npes];
+    assert(mins);
 
     par::Mpi_Allgather<ot::TreeNode>(inPtr, mins, 1, comm);
     //Mins will be sorted and unique
 
     MPI_Request* requests = new MPI_Request[npes<<1];
+    assert(requests);
     ot::TreeNode* keysPtr = NULL;
     if(!(keys.empty())) {
       keysPtr = (&(*keys.begin()));
     }
 
     int* sendOffsets = new int[npes];
+    assert(sendOffsets);
     int* sendCounts = new int[npes];
+    assert(sendCounts);
     for(int i = 0; i < npes; i++) {
       sendOffsets[i] = 0;
       sendCounts[i] = 0;
@@ -1323,9 +1357,11 @@ namespace ot {
     delete [] mins;
 
     int* recvCounts = new int[npes];
+    assert(recvCounts);
     par::Mpi_Alltoall(sendCounts, recvCounts, 1, comm); 
 
     std::vector<ot::TreeNode>* recvNodes = new std::vector<ot::TreeNode>[npes];
+    assert(recvNodes);
     for(int i = 0; i < npes; i++) {
       recvNodes[i].resize(recvCounts[i]);
     }//end for i
@@ -1364,6 +1400,7 @@ namespace ot {
       PROF_FLN_STAGE4_BEGIN
 
       bool* isHanging = new bool[in.size()];
+    assert(isHanging);
     for(int i = 0; i < in.size(); i++) {
       isHanging[i] = false; 
     }//end for i
@@ -1611,6 +1648,7 @@ namespace ot {
     unsigned int *part = NULL;
     if(!keys.empty()) {
       part = new unsigned int[keys.size()];    
+      assert(part);
     }
 
     for (unsigned int i = 0; i < keys.size(); i++) {
