@@ -2541,11 +2541,18 @@ Type2: Use Aux. Coarse and Fine are not aligned.
         globalMaxLevAux = getGlobalMaxLevel(damg[i]->da_aux);
       }
 
+      int fullNpes = damg[i]->da->getNpesAll();
+      int fullNpesAux;
+      if(damg[i]->da_aux) {
+        fullNpesAux = damg[i]->da_aux->getNpesAll();
+      }
+
       int activeNpes = damg[i]->da->getNpesActive();
       int activeNpesAux;
       if(damg[i]->da_aux) {
         activeNpesAux = damg[i]->da_aux->getNpesActive();
       }
+
       if(!rank) {
         std::cout<<"At Level "<<i<<" Elem size: "<<elemSizeGlobal
           <<", GlobalBlocksSize: "<<globalBlocksSize
@@ -2558,7 +2565,8 @@ Type2: Use Aux. Coarse and Fine are not aligned.
           <<", maxNodeSize: "<<maxNodeSize
           <<", min Lev: "<<globalMinLev
           <<", max Lev: "<<globalMaxLev
-          <<", Active Npes: "<<activeNpes<<std::endl; 
+          <<", Active Npes: "<<activeNpes 
+          <<", Full Npes: "<<fullNpes<<std::endl; 
         fflush(stdout);
         if(damg[i]->da_aux) {
           std::cout<<"At AUX Level "<<i<<" Elem size: "<<elemSizeGlobalAux
@@ -2572,7 +2580,8 @@ Type2: Use Aux. Coarse and Fine are not aligned.
             <<", maxNodeSize: "<<maxNodeSizeAux
             <<", min Lev: "<<globalMinLevAux
             <<", max Lev: "<<globalMaxLevAux
-            <<", Active Npes: "<<activeNpesAux<<std::endl; 
+            <<", Active Npes: "<<activeNpesAux
+            <<", Full Npes: "<<fullNpesAux<<std::endl; 
           fflush(stdout);
         }
       }//end if p0
