@@ -574,6 +574,7 @@ namespace ot {
 
       if(sz) {
         out = new PetscScalar[sz];
+        assert(out);
       }else {
         out = NULL;
       }
