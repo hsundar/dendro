@@ -484,6 +484,7 @@ namespace ot {
         T* sendK = NULL;
       if(m_uipScatterMap.size()) {
         sendK = new T[dof*m_uipScatterMap.size()];
+        assert(sendK);
       }
       for (unsigned int i = 0; i < m_uipScatterMap.size(); i++ ) {
         // add dof loop ...
@@ -500,6 +501,7 @@ namespace ot {
       // Post Recv ...
       for (unsigned int i = 0; i < m_uipRecvProcs.size(); i++) {
         MPI_Request *req = new MPI_Request();
+        assert(req);
         par::Mpi_Irecv<T>(arr + (dof*m_uipRecvOffsets[i]), (dof*m_uipRecvCounts[i]), 
             m_uipRecvProcs[i], m_uiCommTag, m_mpiCommActive, req );
         ctx.requests.push_back(req);
@@ -508,6 +510,7 @@ namespace ot {
       //*********** Send ****************//
       for (unsigned int i = 0; i < m_uipSendProcs.size(); i++) {
         MPI_Request *req = new MPI_Request();
+        assert(req);
         par::Mpi_Isend<T>( sendK + (dof*m_uipSendOffsets[i]), (dof*m_uipSendCounts[i]),
             m_uipSendProcs[i], m_uiCommTag, m_mpiCommActive, req );
         ctx.requests.push_back(req);
@@ -567,6 +570,7 @@ namespace ot {
         T* recvK = NULL;
       if(m_uipScatterMap.size()) {
         recvK = new T[dof*(m_uipScatterMap.size())];
+        assert(recvK);
       }
 
       // create a new context ...
@@ -577,6 +581,7 @@ namespace ot {
       // Post Recv ...
       for (unsigned int i = 0; i < m_uipSendProcs.size(); i++) {
         MPI_Request *req = new MPI_Request();
+        assert(req);
         par::Mpi_Irecv<T>( recvK + (dof*m_uipSendOffsets[i]), (dof*m_uipSendCounts[i]), 
             m_uipSendProcs[i], m_uiCommTag, m_mpiCommActive, req );
         ctx.requests.push_back(req);
@@ -586,6 +591,7 @@ namespace ot {
       //*********** Send ****************//
       for (unsigned int i = 0; i < m_uipRecvProcs.size(); i++) {
         MPI_Request *req = new MPI_Request();
+        assert(req);
         par::Mpi_Isend<T>( arr + (dof*m_uipRecvOffsets[i]), (dof*m_uipRecvCounts[i]), 
             m_uipRecvProcs[i], m_uiCommTag, m_mpiCommActive, req );
         ctx.requests.push_back(req);
@@ -653,6 +659,7 @@ namespace ot {
 
       if(m_uipElemScatterMap.size()) {
         sendK = new T[dof*m_uipElemScatterMap.size()];
+        assert(sendK);
       }
 
       for (unsigned int i = 0; i < m_uipElemScatterMap.size(); i++ ) {
@@ -670,6 +677,7 @@ namespace ot {
       // Post Recv ...
       for (unsigned int i = 0; i < m_uipElemRecvProcs.size(); i++) {
         MPI_Request *req = new MPI_Request();
+        assert(req);
         par::Mpi_Irecv<T>( arr + dof*m_uipElemRecvOffsets[i], dof*m_uipElemRecvCounts[i],
             m_uipElemRecvProcs[i], m_uiCommTag, m_mpiCommActive, req );
         ctx.requests.push_back(req);
@@ -678,6 +686,7 @@ namespace ot {
       //*********** Send ****************//
       for (unsigned int i = 0; i < m_uipElemSendProcs.size(); i++) {
         MPI_Request *req = new MPI_Request();
+        assert(req);
         par::Mpi_Issend<T>( sendK + dof*m_uipElemSendOffsets[i], dof*m_uipElemSendCounts[i],
             m_uipElemSendProcs[i], m_uiCommTag, m_mpiCommActive, req );
         ctx.requests.push_back(req);
@@ -738,6 +747,7 @@ namespace ot {
         T* recvK = NULL;
       if(m_uipElemScatterMap.size()) {
         recvK = new T[dof*m_uipElemScatterMap.size()];
+        assert(recvK);
       }
 
       // create a new context ...
@@ -748,6 +758,7 @@ namespace ot {
       // and Recv ...
       for (unsigned int i = 0; i < m_uipElemSendProcs.size(); i++) {
         MPI_Request *req = new MPI_Request();
+        assert(req);
         par::Mpi_Irecv<T>( recvK + dof*m_uipElemSendOffsets[i], dof*m_uipElemSendCounts[i],
             m_uipElemSendProcs[i], m_uiCommTag, m_mpiCommActive, req );
         ctx.requests.push_back(req);
@@ -757,6 +768,7 @@ namespace ot {
       //*********** Send ****************//
       for (unsigned int i = 0; i < m_uipElemRecvProcs.size(); i++) {
         MPI_Request *req = new MPI_Request();
+        assert(req);
         par::Mpi_Issend<T>( arr + dof*m_uipElemRecvOffsets[i], dof*m_uipElemRecvCounts[i],
             m_uipElemRecvProcs[i], m_uiCommTag, m_mpiCommActive, req );
         ctx.requests.push_back(req);
@@ -900,6 +912,7 @@ namespace ot {
         //out with the appropriate zero entries. 
         if(sz) {
           out = new T[sz];
+          assert(out);
         } else {
           out = NULL;
         }
