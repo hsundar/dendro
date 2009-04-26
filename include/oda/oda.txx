@@ -566,7 +566,7 @@ namespace ot {
         // first need to create contiguous list of boundaries ...
         T* recvK = NULL;
       if(m_uipScatterMap.size()) {
-        recvK = new T[dof*m_uipScatterMap.size()];
+        recvK = new T[dof*(m_uipScatterMap.size())];
       }
 
       // create a new context ...
@@ -577,7 +577,7 @@ namespace ot {
       // Post Recv ...
       for (unsigned int i = 0; i < m_uipSendProcs.size(); i++) {
         MPI_Request *req = new MPI_Request();
-        par::Mpi_Irecv<T>( recvK + dof*m_uipSendOffsets[i], dof*m_uipSendCounts[i], 
+        par::Mpi_Irecv<T>( recvK + (dof*m_uipSendOffsets[i]), (dof*m_uipSendCounts[i]), 
             m_uipSendProcs[i], m_uiCommTag, m_mpiCommActive, req );
         ctx.requests.push_back(req);
       }
@@ -586,7 +586,7 @@ namespace ot {
       //*********** Send ****************//
       for (unsigned int i = 0; i < m_uipRecvProcs.size(); i++) {
         MPI_Request *req = new MPI_Request();
-        par::Mpi_Issend<T>( arr + dof*m_uipRecvOffsets[i], dof*m_uipRecvCounts[i], 
+        par::Mpi_Isend<T>( arr + (dof*m_uipRecvOffsets[i]), (dof*m_uipRecvCounts[i]), 
             m_uipRecvProcs[i], m_uiCommTag, m_mpiCommActive, req );
         ctx.requests.push_back(req);
       }
@@ -622,7 +622,7 @@ namespace ot {
       T *recvK = static_cast<T *>(m_mpiContexts[ctx].keys);
       for (unsigned int i=0; i<m_uipScatterMap.size(); i++ ) {
         for (unsigned int j=0; j<dof; j++) {
-          arr[dof*m_uipScatterMap[i]+j] += recvK[dof*i + j];
+          arr[(dof*m_uipScatterMap[i]) + j] += recvK[(dof*i) + j];
         }
       }
 
