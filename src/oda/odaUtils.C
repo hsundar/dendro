@@ -80,43 +80,71 @@ namespace ot {
 
     //Re-distribute ptsWrapper to align with minBlocks
     int* sendCnts = new int[npes];
+    assert(sendCnts);
+
     int* tmpSendCnts = new int[npes];
+    assert(tmpSendCnts);
+
     for(int i = 0; i < npes; i++) {
       sendCnts[i] = 0;
       tmpSendCnts[i] = 0;
     }//end for i
 
-    unsigned int *part = new unsigned int[numPts];
+    unsigned int *part = NULL;
+    if(numPts) {
+      part = new unsigned int[numPts];
+      assert(part);
+    }
+
     for(int i = 0; i < numPts; i++) {
       bool found = seq::maxLowerBound<ot::TreeNode>(minBlocks,
           ptsWrapper[i].node, part[i], NULL, NULL);
       assert(found);
+      assert(part[i] < npes);
       sendCnts[part[i]]++;
     }//end for i
 
     int* sendDisps = new int[npes];
+    assert(sendDisps);
+
     sendDisps[0] = 0;
     for(int i = 1; i < npes; i++) {
       sendDisps[i] = sendDisps[i-1] + sendCnts[i-1];
     }//end for i
 
     std::vector<ot::NodeAndValues<double, 3> > sendList(numPts);
-    unsigned int *commMap = new unsigned int[numPts];
+
+    unsigned int *commMap = NULL;
+    if(numPts) {
+      commMap = new unsigned int[numPts];
+      assert(commMap);
+    }
+
     for(int i = 0; i < numPts; i++) {
       unsigned int pId = part[i];
       unsigned int sId = (sendDisps[pId] + tmpSendCnts[pId]);
+      assert(sId < numPts);
       sendList[sId] = ptsWrapper[i];
       commMap[sId] = i;
       tmpSendCnts[pId]++;
     }//end for i
-    delete [] part;
+
+    if(part) {
+      delete [] part;
+      part = NULL;
+    }
     delete [] tmpSendCnts;
+
     ptsWrapper.clear();
 
     int* recvCnts = new int[npes];
+    assert(recvCnts);
+
     par::Mpi_Alltoall<int>(sendCnts, recvCnts, 1, comm);
 
     int* recvDisps = new int[npes];
+    assert(recvDisps);
+
     recvDisps[0] = 0;
     for(int i = 1; i < npes; i++) {
       recvDisps[i] = recvDisps[i-1] + recvCnts[i-1];
@@ -158,10 +186,11 @@ namespace ot {
 
     PetscScalar* inArr;
     da->vecGetBuffer(in, inArr, false, false, true, dof);
-    da->ReadFromGhostsBegin<PetscScalar>(inArr, dof);
-    da->ReadFromGhostsEnd<PetscScalar>(inArr);
 
     if(da->iAmActive()) {
+      da->ReadFromGhostsBegin<PetscScalar>(inArr, dof);
+      da->ReadFromGhostsEnd<PetscScalar>(inArr);
+
       //interpolate at the received points
       //The pts must be inside the domain and not on the positive boundaries
       unsigned int ptsCtr = 0;
@@ -322,16 +351,28 @@ namespace ot {
       tmpGradOut.clear();
     }
 
+    assert(sendCnts);
     delete [] sendCnts;
+    sendCnts = NULL;
+
+    assert(sendDisps);
     delete [] sendDisps;
+    sendDisps = NULL;
+
+    assert(recvCnts);
     delete [] recvCnts;
+    recvCnts = NULL;
+
+    assert(recvDisps);
     delete [] recvDisps;
+    recvDisps = NULL;
 
     //Use commMap and re-order the results in the same order as the original
     //points
     PetscInt outSz;
     VecGetLocalSize(out, &outSz);
     assert(outSz == (dof*numPts));
+
     PetscScalar* outArr;
     VecGetArray(out, &outArr);
     for(int i = 0; i < numPts; i++) {
@@ -356,7 +397,10 @@ namespace ot {
       VecRestoreArray((*gradOut), &gradOutArr);
     }
 
-    delete [] commMap;
+    if(commMap) {
+      delete [] commMap;
+      commMap = NULL;
+    }
 
   }
 
@@ -407,43 +451,70 @@ namespace ot {
 
     //Re-distribute ptsWrapper to align with minBlocks
     int* sendCnts = new int[npes];
+    assert(sendCnts);
     int* tmpSendCnts = new int[npes];
+    assert(tmpSendCnts);
+
     for(int i = 0; i < npes; i++) {
       sendCnts[i] = 0;
       tmpSendCnts[i] = 0;
     }//end for i
 
-    unsigned int *part = new unsigned int[numPts];
+    unsigned int* part = NULL;
+    if(numPts) {
+      part = new unsigned int[numPts];
+      assert(part);
+    }
+
     for(int i = 0; i < numPts; i++) {
       bool found = seq::maxLowerBound<ot::TreeNode>(minBlocks,
           ptsWrapper[i].node, part[i], NULL, NULL);
       assert(found);
+      assert(part[i] < npes);
       sendCnts[part[i]]++;
     }//end for i
 
     int* sendDisps = new int[npes];
+    assert(sendDisps);
+
     sendDisps[0] = 0;
     for(int i = 1; i < npes; i++) {
       sendDisps[i] = sendDisps[i-1] + sendCnts[i-1];
     }//end for i
 
     std::vector<ot::NodeAndValues<double, 3> > sendList(numPts);
-    unsigned int *commMap = new unsigned int[numPts];
+
+    unsigned int* commMap = NULL;
+    if(numPts) {
+      commMap = new unsigned int[numPts];
+      assert(commMap);
+    }
+
     for(int i = 0; i < numPts; i++) {
       unsigned int pId = part[i];
       unsigned int sId = (sendDisps[pId] + tmpSendCnts[pId]);
+      assert(sId < numPts);
       sendList[sId] = ptsWrapper[i];
       commMap[sId] = i;
       tmpSendCnts[pId]++;
     }//end for i
-    delete [] part;
+
+    if(part) {
+      delete [] part;
+      part = NULL;
+    }
+
     delete [] tmpSendCnts;
     ptsWrapper.clear();
 
     int* recvCnts = new int[npes];
+    assert(recvCnts);
+
     par::Mpi_Alltoall<int>(sendCnts, recvCnts, 1, comm);
 
     int* recvDisps = new int[npes];
+    assert(recvDisps);
+
     recvDisps[0] = 0;
     for(int i = 1; i < npes; i++) {
       recvDisps[i] = recvDisps[i-1] + recvCnts[i-1];
@@ -486,10 +557,10 @@ namespace ot {
     double* inArr;
     da->vecGetBuffer<double>(in, inArr, false, false, true, dof);
 
-    da->ReadFromGhostsBegin<double>(inArr, dof);
-    da->ReadFromGhostsEnd<double>(inArr);
-
     if(da->iAmActive()) {
+      da->ReadFromGhostsBegin<double>(inArr, dof);
+      da->ReadFromGhostsEnd<double>(inArr);
+
       //interpolate at the received points
       //The pts must be inside the domain and not on the positive boundaries
       unsigned int ptsCtr = 0;
@@ -650,10 +721,21 @@ namespace ot {
       tmpGradOut.clear();
     }
 
+    assert(sendCnts);
     delete [] sendCnts;
+    sendCnts = NULL;
+
+    assert(sendDisps);
     delete [] sendDisps;
+    sendDisps = NULL;
+
+    assert(recvCnts);
     delete [] recvCnts;
+    recvCnts = NULL;
+
+    assert(recvDisps);
     delete [] recvDisps;
+    recvDisps = NULL;
 
     //Use commMap and re-order the results in the same order as the original
     //points
@@ -673,7 +755,10 @@ namespace ot {
       }//end for i
     }
 
-    delete [] commMap;
+    if(commMap) {
+      delete [] commMap;
+      commMap = NULL;
+    }
 
   }//end function
 
@@ -1742,6 +1827,7 @@ namespace ot {
     MPI_Comm newComm;
 
     bool* isEmptyList = new bool[npes];
+    assert(isEmptyList);
     for(int i = 0; i < numGroups; i++) {
       for(int j = 0; (j < (i*THOUSAND)) && (j < npes); j++) {
         isEmptyList[j] = true;
@@ -1795,6 +1881,7 @@ namespace ot {
     }
 
     double * tmpMat = new double[9216];
+    assert(tmpMat);
 
     if((rank % THOUSAND) == 0) {
       unsigned int ctr = 0;
@@ -1870,6 +1957,7 @@ namespace ot {
     }
 
     double * tmpMat = new double[9216];
+    assert(tmpMat);
 
     if(!rank) {
       unsigned int ctr = 0;
