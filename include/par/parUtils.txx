@@ -173,6 +173,7 @@ namespace par {
       par::Mpi_Allreduce<int>(&sendCount, &maxSendCount, 1, MPI_MAX, comm);
 
       T* dummySendBuf = new T[maxSendCount*npes];
+      assert(dummySendBuf);
 
       for(int i = 0; i < npes; i++) {
         for(int j = 0; j < sendCount; j++) {
@@ -181,6 +182,7 @@ namespace par {
       }
 
       T* dummyRecvBuf = new T[maxSendCount*npes];
+      assert(dummyRecvBuf);
 
       par::Mpi_Alltoall<T>(dummySendBuf, dummyRecvBuf, maxSendCount, comm);
 
@@ -215,6 +217,7 @@ namespace par {
         int npes;
       MPI_Comm_size(comm, &npes);
       T* dummySendBuf = new T[count*npes];
+      assert(dummySendBuf);
       for(int i = 0; i < npes; i++) {
         for(int j = 0; j < count; j++) {
           dummySendBuf[(i*count) + j] = sendBuf[j];
@@ -266,7 +269,10 @@ namespace par {
       }
 
       MPI_Request* requests = new MPI_Request[commCnt];
+      assert(requests);
+
       MPI_Status* statuses = new MPI_Status[commCnt];
+      assert(statuses);
 
       commCnt = 0;
 
@@ -357,7 +363,10 @@ namespace par {
       par::Mpi_Allreduce<int>(&maxNumElemSend, &allToAllCount, 1, MPI_MAX, comm);
 
       T* tmpSendBuf = new T[allToAllCount*npes];
+      assert(tmpSendBuf);
+
       T* tmpRecvBuf = new T[allToAllCount*npes];
+      assert(tmpRecvBuf);
 
       for(int i = 0; i < rank; i++) {
         for(int j = 0; j < sendcnts[i]; j++) {
@@ -428,6 +437,7 @@ namespace par {
       DendroIntL * scnIn = NULL;
       if(inSz) {  
         scnIn = new DendroIntL [inSz]; 
+        assert(scnIn);
       }
 
       // perform a local scan first ...
@@ -461,6 +471,7 @@ namespace par {
       //Gather Scan of outCnts
       DendroIntL *outCnts;
       outCnts = new DendroIntL[npes];
+      assert(outCnts);
 
       if(rank < (npes-1)) {
         MPI_Status statusWait;
@@ -476,9 +487,16 @@ namespace par {
       par::Mpi_Allgather<DendroIntL>( &off1, outCnts, 1, comm);
 
       int * sendSz = new int [npes];
+      assert(sendSz);
+
       int * recvSz = new int [npes];
+      assert(recvSz);
+
       int * sendOff = new int [npes];
+      assert(sendOff);
+
       int * recvOff = new int [npes];
+      assert(recvOff);
 
       // compute the partition offsets and sizes so that All2Allv can be performed.
       // initialize ...
@@ -800,6 +818,7 @@ namespace par {
 
       if(keys.size()) {
         part = new unsigned int[keys.size()];
+        assert(part);
       }
 
       for ( unsigned int i=0; i<keys.size(); i++ ) {
@@ -816,8 +835,10 @@ namespace par {
       mins.clear();
 
       int *numKeysSend = new int[npes];
-      int *numKeysRecv = new int[npes];
+      assert(numKeysSend);
 
+      int *numKeysRecv = new int[npes];
+      assert(numKeysRecv);
 
       for ( int i=0; i<npes; i++ ) {
         numKeysSend[i] = 0;
@@ -845,12 +866,21 @@ namespace par {
 
       if(keys.size()) {
         comm_map = new unsigned int [keys.size()];
+        assert(comm_map);
       }
 
       // Now create sendK
-      int *sendOffsets = new int[npes]; sendOffsets[0] = 0;
-      int *recvOffsets = new int[npes]; recvOffsets[0] = 0;
-      int *numKeysTmp = new int[npes]; numKeysTmp[0] = 0; 
+      int *sendOffsets = new int[npes]; 
+      assert(sendOffsets);
+      sendOffsets[0] = 0;
+
+      int *recvOffsets = new int[npes]; 
+      assert(recvOffsets);
+      recvOffsets[0] = 0;
+
+      int *numKeysTmp = new int[npes]; 
+      assert(numKeysTmp);
+      numKeysTmp[0] = 0; 
 
       // compute offsets ...
       for ( int i=1; i<npes; i++ ) {
@@ -872,6 +902,7 @@ namespace par {
         delete [] part;
       }
 
+      assert(numKeysTmp);
       delete [] numKeysTmp;
       numKeysTmp = NULL;
 
@@ -892,7 +923,7 @@ namespace par {
       std::vector<T>  resRecv (keys.size());
 
       //Final local search.
-      for ( unsigned int i=0; i<totalKeys;i++) {
+      for ( unsigned int i = 0; i < totalKeys; i++) {
         unsigned int idx;
         bool found = par::maxLowerBound<T>( searchList, recvK[i], &idx,NULL,NULL );
         if(found) {
@@ -913,15 +944,19 @@ namespace par {
       par::Mpi_Alltoallv_sparse<T>(resSendPtr, numKeysRecv, recvOffsets, 
           resRecvPtr, numKeysSend, sendOffsets, comm);
 
+      assert(sendOffsets);
       delete [] sendOffsets;
       sendOffsets = NULL;
 
+      assert(recvOffsets);
       delete [] recvOffsets;
       recvOffsets = NULL;
 
+      assert(numKeysSend);
       delete [] numKeysSend;
       numKeysSend = NULL;
 
+      assert(numKeysRecv);
       delete [] numKeysRecv;
       numKeysRecv = NULL;
 
@@ -971,7 +1006,10 @@ namespace par {
       DendroIntL nlSize = nodeList.size();
       if(nlSize) {
         wts = new DendroIntL[nlSize];
+        assert(wts);
+
         lscn= new DendroIntL[nlSize]; 
+        assert(lscn);
       }
 
       // First construct arrays of id and wts.
@@ -1029,9 +1067,18 @@ namespace par {
 #endif
 
       int * sendSz = new int [npes];
+      assert(sendSz);
+
       int * recvSz = new int [npes];
-      int * sendOff = new int [npes]; sendOff[0] = 0;
-      int * recvOff = new int [npes]; recvOff[0] = 0;
+      assert(recvSz);
+
+      int * sendOff = new int [npes]; 
+      assert(sendOff);
+      sendOff[0] = 0;
+
+      int * recvOff = new int [npes]; 
+      assert(recvOff);
+      recvOff[0] = 0;
 
       // compute the partition offsets and sizes so that All2Allv can be performed.
       // initialize ...
@@ -1409,9 +1456,16 @@ namespace par {
       sendSplits.clear();
 
       int *sendcnts = new int[npes];
+      assert(sendcnts);
+
       int * recvcnts = new int[npes];
+      assert(recvcnts);
+
       int * sdispls = new int[npes];
+      assert(sdispls);
+
       int * rdispls = new int[npes];
+      assert(rdispls);
 
       for(int k = 0; k < npes; k++){
         sendcnts[k] = 0;
