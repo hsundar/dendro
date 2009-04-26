@@ -47,12 +47,14 @@ namespace ot {
       unsigned int sz = (dof*(damg[i]->da->getLocalBufferSize()));
       if(sz) {
         damg[i]->suppressedDOF = new unsigned char[sz];
+        assert(damg[i]->suppressedDOF);
       }
 
       if(damg[i]->da_aux) {
         unsigned int sz2 = (dof*(damg[i]->da_aux->getLocalBufferSize()));
         if(sz2) {
           damg[i]->suppressedDOFaux = new unsigned char[sz2];
+          assert(damg[i]->suppressedDOFaux);
         }
       }
     }
@@ -103,6 +105,7 @@ namespace ot {
     MPI_Comm newComm;
 
     bool* isEmptyList = new bool[npes];
+    assert(isEmptyList);
     for(int i = 0; i < numGroups; i++) {
       for(int j = 0; (j < (i*THOUSAND)) && (j < npes); j++) {
         isEmptyList[j] = true;
@@ -214,6 +217,7 @@ namespace ot {
     //RmatType1[8][8][18][8][8]: 73728
     //RmatType2[8][18][8][8]: 9216
     double * tmpRmats = new double [82944];
+    assert(tmpRmats);
 
     if((rank % THOUSAND) == 0) {
       unsigned int ctr = 0;
@@ -277,6 +281,7 @@ namespace ot {
     //map3[7][2][8][18][8]: 16128
     //map4[7][2][8][8][18][8]: 129024
     unsigned short * tmpVtxMaps = new unsigned short[228096];
+    assert(tmpVtxMaps);
 
     if((rank % THOUSAND) == 0) {
       unsigned int ctr = 0;
@@ -487,6 +492,7 @@ namespace ot {
     //RmatType1[8][8][18][8][8]: 73728
     //RmatType2[8][18][8][8]: 9216
     double * tmpRmats = new double [82944];
+    assert(tmpRmats);
 
     if(!rank) {
       unsigned int ctr = 0;
@@ -550,6 +556,7 @@ namespace ot {
     //map3[7][2][8][18][8]: 16128
     //map4[7][2][8][8][18][8]: 129024
     unsigned short * tmpVtxMaps = new unsigned short[228096];
+    assert(tmpVtxMaps);
 
     if(!rank) {
       unsigned int ctr = 0;
@@ -882,6 +889,7 @@ namespace ot {
             ierr = PCShellSetName(pc, "PC_KSP_Shell"); CHKERRQ(ierr);
 
             PC_KSP_Shell* pcShellContext = new PC_KSP_Shell;
+            assert(pcShellContext);
             pcShellContext->sol_private = NULL;
             pcShellContext->rhs_private = NULL;
             pcShellContext->ksp_private = NULL;
@@ -969,6 +977,7 @@ namespace ot {
             ierr = PCShellSetName(pc, "PC_KSP_Shell"); CHKERRQ(ierr);
 
             PC_KSP_Shell* pcShellContext = new PC_KSP_Shell;
+            assert(pcShellContext);
             pcShellContext->sol_private = NULL;
             pcShellContext->rhs_private = NULL;
             pcShellContext->ksp_private = NULL;
@@ -1338,9 +1347,16 @@ namespace ot {
 
     if(nlevels > 1) {
       coarserOctrees = new std::vector<ot::TreeNode> [nlevels-1];
+      assert(coarserOctrees);
+
       activeStatesInCoarseBal = new bool[nlevels - 1];
+      assert(activeStatesInCoarseBal);
+
       activeCommsInCoarseBal = new MPI_Comm[nlevels - 1];
+      assert(activeCommsInCoarseBal);
+
       activeNpesInCoarseBal = new int[nlevels - 1];
+      assert(activeNpesInCoarseBal);
 
       //Default value is false so if a processor becomes inactive at some
       //level and exits the loop it will still have the correct value for the
@@ -1495,7 +1511,11 @@ namespace ot {
 
     //All processors should know the global size at each level
     DendroIntL* localOctreeSizeForThisLevel = new DendroIntL[nlevels];
+    assert(localOctreeSizeForThisLevel);
+
     DendroIntL* globalOctreeSizeForThisLevel = new DendroIntL[nlevels];
+    assert(globalOctreeSizeForThisLevel);
+
     localOctreeSizeForThisLevel[0] = finestOctree.size();
     for(int lev = 0; lev < (nlevels - 1); lev++) {
       localOctreeSizeForThisLevel[lev + 1] = coarserOctrees[lev].size();
@@ -1518,6 +1538,7 @@ namespace ot {
 
     //0 is the finest and (nlevels-1) is the coarsest
     int *maxProcsForThisLevel = new int [nlevels];
+    assert(maxProcsForThisLevel);
 
     for(int i = 0; i < nlevels; i++) {
       const DendroIntL THOUSAND = 1000;
@@ -1612,6 +1633,7 @@ namespace ot {
       //Create activeComms for each level.
       //0 is the finest and (nlevels-1) is the coarsest
       MPI_Comm* activeComms = new MPI_Comm[nlevels];
+    assert(activeComms);
 
     if(maxProcsForThisLevel[0] == npes) {
       activeComms[0] = comm;
@@ -2588,7 +2610,7 @@ Type2: Use Aux. Coarse and Fine are not aligned.
 
       if(getPrivateMatricesForKSP_Shell) {
         (*getPrivateMatricesForKSP_Shell)(Amat, &Amat_private,
-            &Pmat_private, &pFlag);
+                                          &Pmat_private, &pFlag);
       } else {
         SETERRQ(PETSC_ERR_USER,
             " Expected function to be set:\
