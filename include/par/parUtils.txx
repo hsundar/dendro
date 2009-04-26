@@ -6,7 +6,7 @@
   @author Hari Sundar, hsundar@gmail.com
   @author Shravan Veerapaneni, shravan@seas.upenn.edu
   @author Santi Swaroop Adavani, santis@gmail.com
-  */
+ */
 
 #include "binUtils.h"
 #include "seqUtils.h"
@@ -23,6 +23,17 @@
 #endif
 
 namespace par {
+
+  template <typename T>
+    inline int Mpi_Isend(T* buf, int count, int dest, int tag,
+        MPI_Comm comm, MPI_Request* request) {
+
+      MPI_Isend(buf, count, par::Mpi_datatype<T>::value(),
+          dest, tag, comm, request);
+
+      return 1;
+
+    }
 
   template <typename T>
     inline int Mpi_Issend(T* buf, int count, int dest, int tag,
@@ -1103,7 +1114,7 @@ namespace par {
       /*
          std::cout<<rank<<": newSize: "<<nn<<" oldSize: "<<(nodeList.size())
          <<" send: "<<totSendToOthers<<" recv: "<<totRecvFromOthers<<std::endl;
-         */
+       */
       MPI_Barrier(comm);
 #endif
 

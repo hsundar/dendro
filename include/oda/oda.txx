@@ -488,7 +488,7 @@ namespace ot {
       for (unsigned int i = 0; i < m_uipScatterMap.size(); i++ ) {
         // add dof loop ...
         for (unsigned int j = 0; j < dof; j++) {
-          sendK[dof*i + j] = arr[dof*m_uipScatterMap[i]+j];
+          sendK[(dof*i) + j] = arr[(dof*m_uipScatterMap[i]) + j];
         }
       }
 
@@ -500,7 +500,7 @@ namespace ot {
       // Post Recv ...
       for (unsigned int i = 0; i < m_uipRecvProcs.size(); i++) {
         MPI_Request *req = new MPI_Request();
-        par::Mpi_Irecv<T>(arr + dof*m_uipRecvOffsets[i], dof*m_uipRecvCounts[i], 
+        par::Mpi_Irecv<T>(arr + (dof*m_uipRecvOffsets[i]), (dof*m_uipRecvCounts[i]), 
             m_uipRecvProcs[i], m_uiCommTag, m_mpiCommActive, req );
         ctx.requests.push_back(req);
       }
@@ -508,7 +508,7 @@ namespace ot {
       //*********** Send ****************//
       for (unsigned int i = 0; i < m_uipSendProcs.size(); i++) {
         MPI_Request *req = new MPI_Request();
-        par::Mpi_Issend<T>( sendK + dof*m_uipSendOffsets[i], dof*m_uipSendCounts[i],
+        par::Mpi_Isend<T>( sendK + (dof*m_uipSendOffsets[i]), (dof*m_uipSendCounts[i]),
             m_uipSendProcs[i], m_uiCommTag, m_mpiCommActive, req );
         ctx.requests.push_back(req);
       }
