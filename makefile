@@ -5,6 +5,8 @@ include ${PETSC_DIR}/bmake/common/variables
 CEXT = C
 CFLAGS = -D__USE_PVT_DA_IN_MG__ -DPETSC_USE_LOG 
 
+#-g -O0 
+
 #-D__SILENT_MODE__
 #-D__USE_64_BIT_INT__
 #-D__USE_MG_INIT_TYPE2__ 
