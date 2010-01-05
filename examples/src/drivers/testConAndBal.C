@@ -38,9 +38,9 @@ int main(int argc, char ** argv ) {
 
 #ifdef PETSC_USE_LOG
   int stages[3];
-  PetscLogStageRegister(&stages[0], "Main");
-  PetscLogStageRegister(&stages[1], "P2O");
-  PetscLogStageRegister(&stages[2], "Bal");
+  PetscLogStageRegister( "Main",&stages[0]);
+  PetscLogStageRegister( "P2O",&stages[1]);
+  PetscLogStageRegister( "Bal",&stages[2]);
 #endif
 
 #ifdef PETSC_USE_LOG

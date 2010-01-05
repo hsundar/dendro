@@ -37,9 +37,9 @@ int main(int argc, char ** argv ) {
 
 #ifdef PETSC_USE_LOG
   int stages[3];
-  PetscLogStageRegister(&stages[0],"P2O.");
-  PetscLogStageRegister(&stages[1],"Bal");  
-  PetscLogStageRegister(&stages[2],"Solve");  
+  PetscLogStageRegister("P2O.",&stages[0]);
+  PetscLogStageRegister("Bal",&stages[1]);  
+  PetscLogStageRegister("Solve",&stages[2]);  
 #endif
 
   MPI_Comm_size(MPI_COMM_WORLD,&size);

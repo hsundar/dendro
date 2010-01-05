@@ -1280,8 +1280,10 @@ namespace par {
 
       int new_rank, new_size; 
       MPI_Comm   new_comm;
-      par::splitComm2way(tmpVec.empty(), &new_comm, comm);
-
+      // very quick and dirty solution -- assert that tmpVec is non-emply at every processor (repetetive calls to splitComm2way exhaust MPI resources)
+      // par::splitComm2way(tmpVec.empty(), &new_comm, comm);
+      new_comm=comm;
+      assert(!tmpVec.empty());
       MPI_Comm_rank (new_comm, &new_rank);
       MPI_Comm_size (new_comm, &new_size);
 
@@ -1509,7 +1511,7 @@ namespace par {
       if(!SortedElem.empty()) {
         SortedElemPtr = &(*(SortedElem.begin()));
       }
-      par::Mpi_Alltoallv_sparse<T>(arrPtr, sendcnts, sdispls,
+      par::Mpi_Alltoallv_dense<T>(arrPtr, sendcnts, sdispls,
           SortedElemPtr, recvcnts, rdispls, comm);
 
       arr.clear();

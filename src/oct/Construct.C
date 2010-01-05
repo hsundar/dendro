@@ -540,7 +540,8 @@ namespace ot {
 
     //Remove empty processors...    
     MPI_Comm   new_comm;
-    if(assertNoEmptyProcs) {
+    // quick and dirty fix to avoid repetetive creation of communicators (which would exhaust MPI resources)
+    if(true /* assertNoEmptyProcs */) {
       new_comm = comm;
       assert(!out.empty());
     } else {
@@ -771,7 +772,8 @@ namespace ot {
 
     //Tackle small problems separately....
     //min Grain size = 1000 
-    const DendroIntL THOUSAND = 1000;
+    // for now, we shall turn this feature off (since it is a hassle for FMM code)
+    const DendroIntL THOUSAND = 1;
     if (totSize < (THOUSAND*size)) {
       int splittingSize = (totSize/THOUSAND); 
 

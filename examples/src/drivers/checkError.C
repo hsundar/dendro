@@ -72,25 +72,25 @@ int main(int argc, char ** argv ) {
   ot::DAMG_Initialize(MPI_COMM_WORLD);
 
 #ifdef PETSC_USE_LOG
-  PetscLogEventRegister(&Jac1DiagEvent,"ODAmatDiag",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&Jac1MultEvent,"ODAmatMult",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&Jac1FinestDiagEvent,"ODAmatDiagFinest",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&Jac1FinestMultEvent,"ODAmatMultFinest",PETSC_VIEWER_COOKIE);
+  PetscLogEventRegister("ODAmatDiag",PETSC_VIEWER_COOKIE, &Jac1DiagEvent);
+  PetscLogEventRegister("ODAmatMult",PETSC_VIEWER_COOKIE, &Jac1MultEvent);
+  PetscLogEventRegister("ODAmatDiagFinest",PETSC_VIEWER_COOKIE, &Jac1FinestDiagEvent);
+  PetscLogEventRegister("ODAmatMultFinest",PETSC_VIEWER_COOKIE, &Jac1FinestMultEvent);
 
-  PetscLogEventRegister(&Jac2DiagEvent,"OMGmatDiag-2",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&Jac2MultEvent,"OMGmatMult-2",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&Jac2FinestDiagEvent,"OMGmatDiagFinest-2",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&Jac2FinestMultEvent,"OMGmatMultFinest-2",PETSC_VIEWER_COOKIE);
+  PetscLogEventRegister("OMGmatDiag-2",PETSC_VIEWER_COOKIE, &Jac2DiagEvent);
+  PetscLogEventRegister("OMGmatMult-2",PETSC_VIEWER_COOKIE, &Jac2MultEvent);
+  PetscLogEventRegister("OMGmatDiagFinest-2",PETSC_VIEWER_COOKIE, &Jac2FinestDiagEvent);
+  PetscLogEventRegister("OMGmatMultFinest-2",PETSC_VIEWER_COOKIE, &Jac2FinestMultEvent);
 
-  PetscLogEventRegister(&Jac3DiagEvent,"OMGmatDiag-3",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&Jac3MultEvent,"OMGmatMult-3",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&Jac3FinestDiagEvent,"OMGmatDiagFinest-3",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&Jac3FinestMultEvent,"OMGmatMultFinest-3",PETSC_VIEWER_COOKIE);
+  PetscLogEventRegister("OMGmatDiag-3",PETSC_VIEWER_COOKIE, &Jac3DiagEvent);
+  PetscLogEventRegister("OMGmatMult-3",PETSC_VIEWER_COOKIE, &Jac3MultEvent);
+  PetscLogEventRegister("OMGmatDiagFinest-3",PETSC_VIEWER_COOKIE, &Jac3FinestDiagEvent);
+  PetscLogEventRegister("OMGmatMultFinest-3",PETSC_VIEWER_COOKIE, &Jac3FinestMultEvent);
 
   int stages[3];
-  PetscLogStageRegister(&stages[0],"P2O.");
-  PetscLogStageRegister(&stages[1],"Bal");  
-  PetscLogStageRegister(&stages[2],"Solve");  
+  PetscLogStageRegister("P2O.",&stages[0]);
+  PetscLogStageRegister("Bal",&stages[1]);  
+  PetscLogStageRegister("Solve",&stages[2]);  
 #endif
 
   MPI_Comm_size(MPI_COMM_WORLD,&size);

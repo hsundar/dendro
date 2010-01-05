@@ -35,7 +35,7 @@ int main(int argc, char ** argv ) {
 
 #ifdef PETSC_USE_LOG
   int stages[1];
-  PetscLogStageRegister(&stages[0],"ODACreate");
+  PetscLogStageRegister("ODACreate",&stages[0]);
 #endif
 
   MPI_Comm_size(MPI_COMM_WORLD,&size);

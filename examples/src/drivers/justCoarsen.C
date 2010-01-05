@@ -24,7 +24,7 @@ int main(int argc, char ** argv ) {
 
 #ifdef PETSC_USE_LOG
   int stages[1];
-  PetscLogStageRegister(&stages[0],"Coarsen");
+  PetscLogStageRegister("Coarsen",&stages[0]);
 #else
   MPI_Init(&argc,&argv);
 #endif

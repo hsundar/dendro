@@ -133,34 +133,34 @@ int main(int argc, char ** argv ) {
   }
 
 #ifdef PETSC_USE_LOG
-  PetscLogEventRegister(&Jac1DiagEvent,"ODAmatDiag",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&Jac1MultEvent,"ODAmatMult",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&Jac1FinestDiagEvent,"ODAmatDiagFinest",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&Jac1FinestMultEvent,"ODAmatMultFinest",PETSC_VIEWER_COOKIE);
+  PetscLogEventRegister("ODAmatDiag",PETSC_VIEWER_COOKIE, &Jac1DiagEvent);
+  PetscLogEventRegister("ODAmatMult",PETSC_VIEWER_COOKIE, &Jac1MultEvent);
+  PetscLogEventRegister("ODAmatDiagFinest",PETSC_VIEWER_COOKIE, &Jac1FinestDiagEvent);
+  PetscLogEventRegister("ODAmatMultFinest",PETSC_VIEWER_COOKIE, &Jac1FinestMultEvent);
 
-  PetscLogEventRegister(&Jac2DiagEvent,"OMGmatDiag-2",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&Jac2MultEvent,"OMGmatMult-2",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&Jac2FinestDiagEvent,"OMGmatDiagFinest-2",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&Jac2FinestMultEvent,"OMGmatMultFinest-2",PETSC_VIEWER_COOKIE);
+  PetscLogEventRegister("OMGmatDiag-2",PETSC_VIEWER_COOKIE, &Jac2DiagEvent);
+  PetscLogEventRegister("OMGmatMult-2",PETSC_VIEWER_COOKIE, &Jac2MultEvent);
+  PetscLogEventRegister("OMGmatDiagFinest-2",PETSC_VIEWER_COOKIE, &Jac2FinestDiagEvent);
+  PetscLogEventRegister("OMGmatMultFinest-2",PETSC_VIEWER_COOKIE, &Jac2FinestMultEvent);
 
-  PetscLogEventRegister(&Jac3DiagEvent,"OMGmatDiag-3",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&Jac3MultEvent,"OMGmatMult-3",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&Jac3FinestDiagEvent,"OMGmatDiagFinest-3",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&Jac3FinestMultEvent,"OMGmatMultFinest-3",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&vecMassDiagEvent,"vMassDiag",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&vecMassMultEvent,"vMassMult",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&vecMassFinestDiagEvent,"vMassDiagFinest",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&vecMassFinestMultEvent,"vMassMultFinest",PETSC_VIEWER_COOKIE);
+  PetscLogEventRegister("OMGmatDiag-3",PETSC_VIEWER_COOKIE, &Jac3DiagEvent);
+  PetscLogEventRegister("OMGmatMult-3",PETSC_VIEWER_COOKIE, &Jac3MultEvent);
+  PetscLogEventRegister("OMGmatDiagFinest-3",PETSC_VIEWER_COOKIE, &Jac3FinestDiagEvent);
+  PetscLogEventRegister("OMGmatMultFinest-3",PETSC_VIEWER_COOKIE, &Jac3FinestMultEvent);
+  PetscLogEventRegister("vMassDiag",PETSC_VIEWER_COOKIE, &vecMassDiagEvent);
+  PetscLogEventRegister("vMassMult",PETSC_VIEWER_COOKIE, &vecMassMultEvent);
+  PetscLogEventRegister("vMassDiagFinest",PETSC_VIEWER_COOKIE, &vecMassFinestDiagEvent);
+  PetscLogEventRegister("vMassMultFinest",PETSC_VIEWER_COOKIE, &vecMassFinestMultEvent);
 
-  PetscLogEventRegister(&elasticityDiagEvent,"elDiag",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&elasticityMultEvent,"elMult",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&elasticityFinestDiagEvent,"elDiagFinest",PETSC_VIEWER_COOKIE);
-  PetscLogEventRegister(&elasticityFinestMultEvent,"elMultFinest",PETSC_VIEWER_COOKIE);
+  PetscLogEventRegister("elDiag",PETSC_VIEWER_COOKIE, &elasticityDiagEvent);
+  PetscLogEventRegister("elMult",PETSC_VIEWER_COOKIE, &elasticityMultEvent);
+  PetscLogEventRegister("elDiagFinest",PETSC_VIEWER_COOKIE, &elasticityFinestDiagEvent);
+  PetscLogEventRegister("elMultFinest",PETSC_VIEWER_COOKIE, &elasticityFinestMultEvent);
 
   int stages[3];
-  PetscLogStageRegister(&stages[0],"P2O.");
-  PetscLogStageRegister(&stages[1],"Bal");  
-  PetscLogStageRegister(&stages[2],"Solve");  
+  PetscLogStageRegister("P2O.",&stages[0]);
+  PetscLogStageRegister("Bal",&stages[1]);  
+  PetscLogStageRegister("Solve",&stages[2]);  
 #endif
 
 

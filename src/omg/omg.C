@@ -874,7 +874,7 @@ namespace ot {
             CHKERRQ(ierr);
 
             ierr = KSPSetConvergenceTest(damg[0]->ksp, KSPSkipConverged,
-                PETSC_NULL);
+                PETSC_NULL,PETSC_NULL);
             CHKERRQ(ierr);
 
             ierr = KSPSetInitialGuessNonzero(damg[0]->ksp, PETSC_FALSE);
@@ -962,7 +962,7 @@ namespace ot {
                 PETSC_DEFAULT, 1); 
             CHKERRQ(ierr);
 
-            ierr = KSPSetConvergenceTest(lksp, KSPSkipConverged, PETSC_NULL);
+            ierr = KSPSetConvergenceTest(lksp, KSPSkipConverged, PETSC_NULL, PETSC_NULL);
             CHKERRQ(ierr);
 
             ierr = KSPSetInitialGuessNonzero(lksp, PETSC_FALSE);

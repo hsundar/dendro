@@ -35,10 +35,10 @@ int main(int argc, char ** argv ) {
 
 #ifdef PETSC_USE_LOG
   int stages[4];
-  PetscLogStageRegister(&stages[0],"Prepare Input.");
-  PetscLogStageRegister(&stages[1],"P2O");
-  PetscLogStageRegister(&stages[2],"N2O");
-  PetscLogStageRegister(&stages[3],"Bal");
+  PetscLogStageRegister("Prepare Input.",&stages[0]);
+  PetscLogStageRegister("P2O",&stages[1]);
+  PetscLogStageRegister("N2O",&stages[2]);
+  PetscLogStageRegister("Bal",&stages[3]);
 #endif
 
   MPI_Comm_size(MPI_COMM_WORLD,&size);

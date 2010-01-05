@@ -23,7 +23,6 @@ namespace ot {
     PCRegister("blockDiag","${DENDRO_DIR}/lib/libPC","ot::PCCreate_BlockDiag",ot::PCCreate_BlockDiag);
 
 #ifdef PETSC_USE_LOG
-#if (PETSC_VERSION_RELEASE == 0)  // if using development version
     PetscLogEventRegister("splitComm-2way",PETSC_VIEWER_COOKIE,&par::splitComm2wayEvent);
     PetscLogEventRegister("splitComm",PETSC_VIEWER_COOKIE,&par::splitCommEvent);
     PetscLogEventRegister("partW",PETSC_VIEWER_COOKIE,&par::partwEvent);
@@ -148,128 +147,6 @@ namespace ot {
     PetscLogEventRegister("FLN-stg9",PETSC_VIEWER_COOKIE,&FLNstage9Event);
     PetscLogEventRegister("FLN-stg10",PETSC_VIEWER_COOKIE,&FLNstage10Event);
     PetscLogEventRegister("FLN-stg11",PETSC_VIEWER_COOKIE,&FLNstage11Event);
-#else
-    PetscLogEventRegister(&par::splitComm2wayEvent,"splitComm-2way",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&par::splitCommEvent,"splitComm",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&par::partwEvent,"partW",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&par::sortEvent,"sort",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&par::remdupEvent,"remdup",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&par::searchEvent,"ParallelSearch", PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&par::parScatterEvent,"Par-Scatter", PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&par::sendRecvEvent,"Par-sendRecv", PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&par::gatherEvent,"Par-gather", PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&par::a2avWaitEvent,"a2avs-Wait", PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&par::all2AllvSparseEvent,"Par-a2avs", PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&par::all2AllvDenseEvent,"Par-a2avd", PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&par::allGatherEvent,"Par-ag", PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&par::allGathervEvent,"Par-agv", PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&par::all2AllEvent,"Par-a2a", PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&par::allReduceEvent,"Par-aRed", PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&par::reduceEvent,"Par-red", PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&par::bcastEvent,"Par-bcast",	PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&par::scanEvent,"Par-scan", PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&par::concatEvent,"Par-ConCat",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&pickNhBlocksEvent,"nhBlk",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&mergeComboBalEvent,"mergeComboBal",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&mergeRecvKeysBalEvent,"bal-mergeRecv",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&finalBalMergeEvent,"finalBalMerge",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&prepBalComm1MssgEvent,"bal-comm1",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&prepBalComm2MssgEvent,"bal-comm2",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&prepBalWlistEvent,"bal-wList",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&p2oEvent,"p2o",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&p2oSeqEvent,"p2oSeq",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&p2oLocalEvent,"p2oLoc",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&comboRippleEvent,"ComboRipple",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&coarsenEvent,"Coarsen",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&coarsenSeqEvent,"CoarsenSeq",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&simpleCoarsenEvent,"ezCoarse",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&balanceEvent,"bal",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&DAaprioriCommEvent,"DA-apriori",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&balSubtreeEvent,"balSubtree", PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&completeSubtreeEvent,"conSubtree", PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&n2oEvent,"n2o",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&n2oSeqEvent,"n2oSeq",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&completeRegionEvent,"compReg",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&pickBndEvent,"pickBnd",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&blockPart1Event,"bPart1",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&blockPart2Event,"bPart2",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&blockPart3Event,"bPart3",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&DAbPart1Event,"DAbPart1",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&DAbPart2Event,"DAbPart2",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&DAbPart3Event,"DAbPart3",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&conBalEvent,"conBal",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&rippleBalEvent,"rippleBal",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&ptrRippleBalEvent,"ptrRipple",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&parRippleType1Event,"parRipple1",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&parRippleType2Event,"parRipple2",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&parRippleType3Event,"parRipple3",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&buildDaEvent,"BuildDA",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&setMatValuesEvent,"SetMatValues",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&markHangingEvent,"FlagNodes",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&buildNlistEvent,"BuildNodeList",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&buildNlistCommEvent,"Nlist-Comm",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&addBdyEvent,"Add Bdy",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&addBdySiblingsEvent,"AddBdySiblings",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&pickGhostsEvent,"Pick Ghosts",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&setDaEvent,"SetDA",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&setUpEvent,"SetUp",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&createRp1Event,"crRp1",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&createRp2Event,"crRp2",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&setKspEvent,"SetKSP",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&restrictEvent,"Restrict",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&dummyRestrictEvent,"Restrict-Dummy",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&prolongEvent,"Prolong",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&scatterEvent,"MG Scatter",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&readFromGhostNodesBeginEvent,"R-Gh-N-Begin",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&readFromGhostNodesEndEvent,"R-Gh-N-End",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&readFromGhostElemsBeginEvent,"R-Gh-E-Begin",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&readFromGhostElemsEndEvent,"R-Gh-E-End",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&writeToGhostNodesBeginEvent,"W-Gh-N-Begin",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&writeToGhostNodesEndEvent,"W-Gh-N-End",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&writeToGhostElemsBeginEvent,"W-Gh-E-Begin",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&writeToGhostElemsEndEvent,"W-Gh-E-End",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&damgInitEvent,"DAMG-Init",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&damgFinalEvent,"DAMG-Final",PETSC_VIEWER_COOKIE);
-
-    PetscLogEventRegister(&pcKspShellSetupEvent,"PC-KSP-Shell-Setup",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&pcKspShellApplyEvent,"PC-KSP-Shell-Apply",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&pcKspShellDestroyEvent,"PC-KSP-Shell-Destroy",PETSC_VIEWER_COOKIE);
-
-    PetscLogEventRegister(&balCommEvent,"Bal-Comm",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&balSplitCommEvent,"Bal-SplitComm",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&balScatterEvent,"Bal-Scatter",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&balBpart1Event,"Bal-Bpart1",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&balBpart2Event,"Bal-Bpart2",PETSC_VIEWER_COOKIE);
-
-    PetscLogEventRegister(&setDAstage1Event,"SetDA-stg1",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&setDAstage2Event,"SetDA-stg2",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&setDAstage3Event,"SetDA-stg3",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&setDAstage4Event,"SetDA-stg4",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&setDAstage5Event,"SetDA-stg5",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&setDAstage6Event,"SetDA-stg6",PETSC_VIEWER_COOKIE);
-
-    PetscLogEventRegister(&buildDAstage1Event,"buildDA-stg1",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&buildDAstage2Event,"buildDA-stg2",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&buildDAstage3Event,"buildDA-stg3",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&buildDAstage4Event,"buildDA-stg4",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&buildDAstage5Event,"buildDA-stg5",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&buildDAstage6Event,"buildDA-stg6",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&buildDAstage7Event,"buildDA-stg7",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&buildDAstage8Event,"buildDA-stg8",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&buildDAstage9Event,"buildDA-stg9",PETSC_VIEWER_COOKIE);
-
-    PetscLogEventRegister(&FLNstage1Event,"FLN-stg1",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&FLNstage2Event,"FLN-stg2",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&FLNstage3Event,"FLN-stg3",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&FLNstage4Event,"FLN-stg4",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&FLNstage5Event,"FLN-stg5",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&FLNstage6Event,"FLN-stg6",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&FLNstage7Event,"FLN-stg7",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&FLNstage8Event,"FLN-stg8",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&FLNstage9Event,"FLN-stg9",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&FLNstage10Event,"FLN-stg10",PETSC_VIEWER_COOKIE);
-    PetscLogEventRegister(&FLNstage11Event,"FLN-stg11",PETSC_VIEWER_COOKIE);
-#endif
 #endif
 
     PetscFunctionReturn(0);

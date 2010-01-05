@@ -404,12 +404,14 @@ namespace ot {
     }//end if active
 
     // now create the PETSc Mat
+    // The "parallel direct solver" matrix types like MATAIJSPOOLES are ALL gone in petsc-3.0.0
+    // Thus, I (Ilya Lashuk) "delete" all such checks for matrix type.  Hope it is reasonable thing to do.
     PetscTruth isAij, isAijSeq, isAijPrl, isSuperLU, isSuperLU_Dist;
     PetscStrcmp(mtype,MATAIJ,&isAij);
     PetscStrcmp(mtype,MATSEQAIJ,&isAijSeq);
     PetscStrcmp(mtype,MATMPIAIJ,&isAijPrl);
-    PetscStrcmp(mtype,MATSUPERLU,&isSuperLU);
-    PetscStrcmp(mtype,MATSUPERLU_DIST,&isSuperLU_Dist);
+    isSuperLU = PETSC_FALSE; // PetscStrcmp(mtype,MATSUPERLU,&isSuperLU);
+    isSuperLU_Dist = PETSC_FALSE; // PetscStrcmp(mtype,MATSUPERLU_DIST,&isSuperLU_Dist);
 
     MatCreate(m_mpiCommAll, &M);
     MatSetSizes(M, sz,sz, PETSC_DECIDE, PETSC_DECIDE);
@@ -437,8 +439,8 @@ namespace ot {
       PetscStrcmp(mtype,MATAIJ,&isAij);
       PetscStrcmp(mtype,MATSEQAIJ,&isAijSeq);
       PetscStrcmp(mtype,MATMPIAIJ,&isAijPrl);
-      PetscStrcmp(mtype,MATSUPERLU,&isSuperLU);
-      PetscStrcmp(mtype,MATSUPERLU_DIST,&isSuperLU_Dist);
+      isSuperLU = PETSC_FALSE; //PetscStrcmp(mtype,MATSUPERLU,&isSuperLU);
+      isSuperLU_Dist = PETSC_FALSE; //PetscStrcmp(mtype,MATSUPERLU_DIST,&isSuperLU_Dist);
 
       MatCreate(m_mpiCommActive, &M);
       MatSetSizes(M, sz,sz, PETSC_DECIDE, PETSC_DECIDE);
