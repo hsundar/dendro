@@ -73,7 +73,7 @@ namespace ot {
     PROF_BAL_COMM_END
 
       //min grain size = 1000
-      const DendroIntL THOUSAND = 1000;
+      const DendroIntL THOUSAND = 1;
     if (globSize < (THOUSAND*size)) {
       int splittingSize = (globSize/THOUSAND); 
       if(splittingSize == 0) {
