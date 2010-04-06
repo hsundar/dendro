@@ -4,7 +4,7 @@ include ${PETSC_DIR}/conf/base
 # include ${PETSC_DIR}/bmake/${PETSC_ARCH}/petscconf
 # include ${PETSC_DIR}/bmake/common/variables
 CEXT = C
-CFLAGS = -D__USE_PVT_DA_IN_MG__ -D__USE_64_BIT_INT__ -DPETSC_USE_LOG # -D__USE_A2A_FOR_MPI_ALLGATHER__ 
+CFLAGS = -g  -D__USE_PVT_DA_IN_MG__ -D__USE_64_BIT_INT__ -DPETSC_USE_LOG # -D__USE_A2A_FOR_MPI_ALLGATHER__ 
 
 #-D__USE_64_BIT_INT__
 #-g -O0 

@@ -6,6 +6,7 @@
  */
 
 #include <cmath>
+#include <cstdlib>
 
 namespace seq {
 

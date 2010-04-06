@@ -118,6 +118,20 @@ namespace par {
     }
 
   template <typename T>
+    inline int Mpi_Alltoallv
+    (T* sendbuf, int* sendcnts, int* sdispls, 
+     T* recvbuf, int* recvcnts, int* rdispls, MPI_Comm comm) {
+#ifdef __PROFILE_WITH_BARRIER__
+      MPI_Barrier(comm);
+#endif
+
+	MPI_Alltoallv(
+	    sendbuf, sendcnts, sdispls, par::Mpi_datatype<T>::value(), 
+	    recvbuf, recvcnts, rdispls, par::Mpi_datatype<T>::value(), 
+	    comm);
+    }
+
+  template <typename T>
     inline int Mpi_Gather( T* sendBuffer, T* recvBuffer, int count, int root, MPI_Comm comm) {
 #ifdef __PROFILE_WITH_BARRIER__
       MPI_Barrier(comm);
@@ -339,7 +353,12 @@ namespace par {
 #endif
       PROF_PAR_ALL2ALLV_DENSE_BEGIN
 
-        int npes, rank;
+#ifndef ALLTOALL_FIX
+      Mpi_Alltoallv
+	(sendbuf, sendcnts, sdispls, 
+	 recvbuf, recvcnts, rdispls, comm);
+#else
+	int npes, rank;
       MPI_Comm_size(comm, &npes);
       MPI_Comm_rank(comm, &rank);
 
@@ -405,6 +424,7 @@ namespace par {
 
       delete [] tmpSendBuf;
       delete [] tmpRecvBuf;
+#endif
 
       PROF_PAR_ALL2ALLV_DENSE_END
     }
