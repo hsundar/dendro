@@ -1205,7 +1205,8 @@ namespace par {
       if(!newNodes.empty()) {
         newNodesPtr = &(*(newNodes.begin()));
       }
-      par::Mpi_Alltoallv_sparse<T>(nodeListPtr, sendSz, sendOff, 
+
+      par::Mpi_Alltoallv_dense<T>(nodeListPtr, sendSz, sendOff, 
           newNodesPtr, recvSz, recvOff, comm);
 
 #ifdef __DEBUG_PAR__
