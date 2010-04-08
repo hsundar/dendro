@@ -633,7 +633,7 @@ namespace ot {
 
     PROF_BAL_COMM_BEGIN
 
-      par::Mpi_Alltoallv_sparse<ot::TreeNode>(sendKptr, sendCnt, sendOffsets,        
+      par::Mpi_Alltoallv_dense<ot::TreeNode>(sendKptr, sendCnt, sendOffsets,        
           recvK2ptr, recvCnt, recvOffsets2, comm);
 
     PROF_BAL_COMM_END
