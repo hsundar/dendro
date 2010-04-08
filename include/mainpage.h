@@ -14,7 +14,7 @@
 Dendro (from the greek word, \htmlonly &delta;&epsilon;&nu;&delta;&rho;&omicron; \endhtmlonly, for tree) is a suite of parallel algorithms for the discretization and solution of partial differential equations that require discretization of second-order elliptic operators. It supports trilinear finite element discretizations constructed using octees. The package comprises of four main modules: a templated parallel utilities module ('par'), a bottom-up octree generation and 2:1 balancing module ('oct'), a meshing module ('oda'), a geometric multigrid module ('omg'). It supports the PETSc objects 'Mat' and 'Vec' and provides interfaces to PETSc's linear and non-linear solvers. Dendro can be best viewed as an extension of PETSc's DA and DMMG modules that supports octree discretizations.
 
 * This package uses the following libraries:
-* - <A href="http://www-unix.mcs.anl.gov/petsc/petsc-2/">PETSc (Version 2.3.3)</A>  PETSc (Argonne National Laboratories) is a suite of data structures and routines for the scalable (parallel) solution of scientific applications modeled by partial differential equations.
+* - <A href="http://www-unix.mcs.anl.gov/petsc/petsc-2/">PETSc (Version 3.0.0)</A>  PETSc (Argonne National Laboratories) is a suite of data structures and routines for the scalable (parallel) solution of scientific applications modeled by partial differential equations.
 * - <A href="http://www-unix.mcs.anl.gov/mpi/">MPI</A> MPI is a library specification for message-passing, proposed as a standard by a broadly based committee of vendors, implementors, and users.
 * - <A href="http://www.cppreference.com/cppstl.html">C++ STL</A> The C++ STL (Standard Template Library) is a generic collection of class templates and algorithms that allow programmers to easily implement standard data structures like queues, lists, and stacks. 
 *
@@ -35,10 +35,11 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         
 GNU General Public License for more details.                                                             
 
-The GNU General Public License can be found <A href="http://www.cc.gatech.edu/csela/dendro/License.gpl"> here </A>.          
+The GNU General Public License can be found <A href="http://www.cc.gatech.edu/csela/dendro/License.gpl"> here </A>. 
+
+You can download Dendro using: "git clone http://www.cc.gatech.edu/~ilashuk/Dendro/"
 
 Other Links
-- <A href="http://www.cc.gatech.edu/csela/dendro/download-dendro.html"> Download Dendro </A>
 - <A href="http://www.cc.gatech.edu/csela/dendro/dendro-papers.html"> Related Publications </A>
 - <A href="http://www.cc.gatech.edu/csela/dendro/Manual.pdf"> Dendro Manual </A>
 - <A href="http://www.cc.gatech.edu/csela/dendro/FAQ.html"> FAQ </A> 

@@ -1,0 +1,12 @@
+\form#0:$\mathcal{O}( n / p )$
+\form#1:$\mathcal{O}( n / p \log n / p )$
+\form#2:$\Theta ( 2 n )$
+\form#3:$n$
+\form#4:$k$
+\form#5:$\mathcal{O}( \log n / k + k )$
+\form#6:$3 n / k$
+\form#7:$k = \log n$
+\form#8:$\mathcal{O}( \log n )$
+\form#9:$\Theta ( 2 n + 12 n / \log n )$
+\form#10:$\mu$
+\form#11:$\lambda$

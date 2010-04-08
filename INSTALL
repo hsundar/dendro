@@ -4,7 +4,7 @@ DENDRO v1.0
 --------
 
 DENDRO requires that PETSc be installed on the system. Because of frequent changes
-to the PETSc interface, we require that PETSc version 2.3.3 be installed. It
+to the PETSc interface, we require that PETSc version 3.0.0 be installed. It
 should be possible to make DENDRO work with older/newer versions of PETSc with minor
 changes to the code. 
 
@@ -12,11 +12,11 @@ The PETSc developers provide access to all
 versions of PETSc; see:
 http://www-unix.mcs.anl.gov/petsc/petsc-as/download/index.html
 
-Install PETSc (version 2.3.3) with the option '-with-clanguage=cxx'.  This will
+Install PETSc (version 3.0.0) with the option '-with-clanguage=cxx'.  This will
 build the PETSc library using a 'C++' compiler. After downloading
-PETSc, use "gunzip -c petsc-2.3.3.tar.gz | tar xf -" and open the
+PETSc, use "gunzip -c petsc-3.0.0.tar.gz | tar xf -" and open the
 docs/index.html file to find the PETSc installation instruction for
-petsc-2.3.3. Make sure that the environment variables PETSC_DIR and PETSC_ARCH point to
+petsc-3.0.0. Make sure that the environment variables PETSC_DIR and PETSC_ARCH point to
 the correct PETSc installation. You can do this by typing the following command
 at the command line.
 
