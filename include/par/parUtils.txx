@@ -258,6 +258,12 @@ namespace par {
 #endif
       PROF_PAR_ALL2ALLV_SPARSE_BEGIN
 
+#ifndef ALLTOALLV_FIX
+      Mpi_Alltoallv
+	(sendbuf, sendcnts, sdispls, 
+	 recvbuf, recvcnts, rdispls, comm);
+#else
+
         int npes, rank;
       MPI_Comm_size(comm, &npes);
       MPI_Comm_rank(comm, &rank);
@@ -341,6 +347,7 @@ namespace par {
 
         delete [] requests;
       delete [] statuses;
+#endif
 
       PROF_PAR_ALL2ALLV_SPARSE_END
     }
@@ -353,7 +360,7 @@ namespace par {
 #endif
       PROF_PAR_ALL2ALLV_DENSE_BEGIN
 
-#ifndef ALLTOALL_FIX
+#ifndef ALLTOALLV_FIX
       Mpi_Alltoallv
 	(sendbuf, sendcnts, sdispls, 
 	 recvbuf, recvcnts, rdispls, comm);
