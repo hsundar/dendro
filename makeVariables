@@ -1,5 +1,5 @@
 
 DENDRO_LIB	    = -L${DENDRO_DIR}/lib -lOMG -lODA -lOct -lPar -lPoint -lTest -lBinOps -lSys -lPC
 
-DENDRO_INCLUDE	    = -I${DENDRO_DIR}/include -I${DENDRO_DIR}/include/oct -I${DENDRO_DIR}/include/fem -I${DENDRO_DIR}/include/oda  -I${DENDRO_DIR}/include/omg  -I${DENDRO_DIR}/include/seq  -I${DENDRO_DIR}/include/par -I${DENDRO_DIR}/include/point  -I${DENDRO_DIR}/include/test -I${DENDRO_DIR}/include/binOps -I${DENDRO_DIR}/include/pc -I${DENDRO_DIR}/include/sys
+DENDRO_INCLUDE	    = -I${DENDRO_DIR}/include -I${DENDRO_DIR}/include/oct -I${DENDRO_DIR}/include/fem -I${DENDRO_DIR}/include/oda  -I${DENDRO_DIR}/include/omg  -I${DENDRO_DIR}/include/seq  -I${DENDRO_DIR}/include/par -I${DENDRO_DIR}/include/omp_par -I${DENDRO_DIR}/include/point  -I${DENDRO_DIR}/include/test -I${DENDRO_DIR}/include/binOps -I${DENDRO_DIR}/include/pc -I${DENDRO_DIR}/include/sys
 

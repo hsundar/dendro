@@ -1,5 +1,5 @@
 PCC =$(CXX)
-INCLUDE = -I./include -I./include/oct -I./include/fem -I./include/oda  -I./include/omg  -I./include/seq  -I./include/par -I./include/point  -I./include/test -I./include/binOps -I./include/pc -I./include/sys -I./examples/include ${PETSC_INCLUDE}
+INCLUDE = -I./include -I./include/oct -I./include/fem -I./include/oda  -I./include/omg  -I./include/seq  -I./include/par  -I./include/omp_par  -I./include/point  -I./include/test -I./include/binOps -I./include/pc -I./include/sys -I./examples/include ${PETSC_INCLUDE}
 
 ARCHIVES = ./lib/libOMG.a ./lib/libODA.a ./lib/libOct.a ./lib/libPar.a ./lib/libPoint.a ./lib/libTest.a ./lib/libBinOps.a ./lib/libSys.a ./lib/libPC.a 
 

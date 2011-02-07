@@ -15,7 +15,6 @@
 #include <iostream>
 #include <algorithm>
 #include "dendro.h"
-#include "ompUtils.h"
 
 #ifdef __DEBUG__
 #ifndef __DEBUG_PAR__
@@ -190,7 +189,6 @@ namespace par {
       T* dummySendBuf = new T[maxSendCount*npes];
       assert(dummySendBuf);
 
-      #pragma omp parallel for
       for(int i = 0; i < npes; i++) {
         for(int j = 0; j < sendCount; j++) {
           dummySendBuf[(i*maxSendCount) + j] = sendBuf[j];
@@ -202,7 +200,6 @@ namespace par {
 
       par::Mpi_Alltoall<T>(dummySendBuf, dummyRecvBuf, maxSendCount, comm);
 
-      #pragma omp parallel for
       for(int i = 0; i < npes; i++) {
         for(int j = 0; j < recvCounts[i]; j++) {
           recvBuf[displs[i] + j] = dummyRecvBuf[(i*maxSendCount) + j];
@@ -235,7 +232,6 @@ namespace par {
       MPI_Comm_size(comm, &npes);
       T* dummySendBuf = new T[count*npes];
       assert(dummySendBuf);
-      #pragma omp parallel for
       for(int i = 0; i < npes; i++) {
         for(int j = 0; j < count; j++) {
           dummySendBuf[(i*count) + j] = sendBuf[j];
@@ -274,7 +270,6 @@ namespace par {
 
       int commCnt = 0;
 
-      #pragma omp parallel for reduction(+:commCnt)
       for(int i = 0; i < rank; i++) {
         if(sendcnts[i] > 0) {
           commCnt++;
@@ -284,7 +279,6 @@ namespace par {
         }
       }
 
-      #pragma omp parallel for reduction(+:commCnt)
       for(int i = (rank+1); i < npes; i++) {
         if(sendcnts[i] > 0) {
           commCnt++;
@@ -341,7 +335,6 @@ namespace par {
       assert(sendcnts[rank] == recvcnts[rank]);
 #endif
 
-      #pragma omp parallel for
       for(int i = 0; i < sendcnts[rank]; i++) {
         recvbuf[rdispls[rank] + i] = sendbuf[sdispls[rank] + i];
       }
@@ -352,7 +345,7 @@ namespace par {
 
       PROF_A2AV_WAIT_END
 
-      delete [] requests;
+        delete [] requests;
       delete [] statuses;
 #endif
 
@@ -372,7 +365,7 @@ namespace par {
 	(sendbuf, sendcnts, sdispls, 
 	 recvbuf, recvcnts, rdispls, comm);
 #else
-      int npes, rank;
+	int npes, rank;
       MPI_Comm_size(comm, &npes);
       MPI_Comm_rank(comm, &rank);
 
@@ -1013,7 +1006,7 @@ namespace par {
 #endif
       PROF_PARTW_BEGIN
 
-      int npes;
+        int npes;
 
       MPI_Comm_size(comm, &npes);
 
@@ -1047,10 +1040,9 @@ namespace par {
       }
 
       // First construct arrays of id and wts.
-      #pragma omp parallel for reduction(+:localWt)
-      for (DendroIntL i = 0; i < nlSize; i++){
+      for (DendroIntL i = 0; i < nlSize; i++) {
         wts[i] = (*getWeight)( &(nodeList[i]) );
-        localWt+=wts[i];
+        localWt += wts[i];
       }
 
 #ifdef __DEBUG_PAR__
@@ -1068,10 +1060,9 @@ namespace par {
       DendroIntL zero = 0;
       if(!nEmpty) {
         lscn[0]=wts[0];
-//        for (DendroIntL i = 1; i < nlSize; i++) {
-//          lscn[i] = wts[i] + lscn[i-1];
-//        }//end for
-        omp_par::scan(&wts[1],lscn,nlSize);
+        for (DendroIntL i = 1; i < nlSize; i++) {
+          lscn[i] = wts[i] + lscn[i-1];
+        }//end for
         // now scan with the final members of 
         par::Mpi_Scan<DendroIntL>(lscn+nlSize-1, &off1, 1, MPI_SUM, comm ); 
       } else{
@@ -1090,7 +1081,6 @@ namespace par {
       }
 
       // add offset to local array
-      #pragma omp parallel for
       for (DendroIntL i = 0; i < nlSize; i++) {
         lscn[i] = lscn[i] + off2;       // This has the global scan results now ...
       }//end for
@@ -1120,7 +1110,6 @@ namespace par {
       // compute the partition offsets and sizes so that All2Allv can be performed.
       // initialize ...
 
-      #pragma omp parallel for
       for (int i = 0; i < npes; i++) {
         sendSz[i] = 0;
       }
@@ -1133,7 +1122,6 @@ namespace par {
 
       //The Heart of the algorithm....
       if(avgLoad > 0) {
-/*
         for (DendroIntL i = 0; i < nlSize; i++) {
           if(lscn[i] == 0) {		
             sendSz[0]++;
@@ -1147,35 +1135,7 @@ namespace par {
             assert(ind < npes);
             sendSz[ind]++;
           }//end if-else
-        }//end for */ 
-
-        //This is more effecient and parallelizable than the above.
-        int ind_min,ind_max;
-        if ( lscn[0] <= (extra*(avgLoad + 1)) ){
-          ind_min = ((lscn[0] - 1)/(avgLoad + 1));
-        }else{
-          ind_min = ((lscn[0] - (1 + extra))/avgLoad);
-        }
-        if ( lscn[0] <= (extra*(avgLoad + 1)) ){
-          ind_max = ((lscn[nlSize-1] - 1)/(avgLoad + 1));
-        }else{
-          ind_max = ((lscn[nlSize-1] - (1 + extra))/avgLoad);
-        }
-        #pragma omp parallel for
-        for(int i=ind_min; i<=ind_max; i++){
-          DendroIntL wt1=(i  )*(avgLoad+1)-(i  <extra?0:(i  )-extra)+1;
-          DendroIntL wt2=(i+1)*(avgLoad+1)-(i+1<extra?0:(i+1)-extra)+1;
-          //sendSz[i]=seq::BinSearch(&lscn[0], &lscn[nlSize], wt2, std::less<DendroIntL>())
-          //    - seq::BinSearch(&lscn[0], &lscn[nlSize], wt1, std::less<DendroIntL>());
-          int end = std::lower_bound(&lscn[0], &lscn[nlSize], wt2, std::less<DendroIntL>())-&lscn[0];
-          int start = std::lower_bound(&lscn[0], &lscn[nlSize], wt1, std::less<DendroIntL>())-&lscn[0];
-          if(i==0)
-            start=0;
-          if(i==npes-1)
-            end=nlSize;
-          sendSz[i]=end-start;
-        }
-
+        }//end for 
       }else {
         sendSz[0]+= nlSize;
       }//end if-else
@@ -1209,18 +1169,15 @@ namespace par {
 #endif
 
       DendroIntL nn=0; // new value of nlSize, ie the local nodes.
-      #pragma omp parallel for reduction(+:nn)
       for (int i = 0; i < npes; i++) {
         nn += recvSz[i];
       }
 
       // compute offsets ...
-//      for (int i = 1; i < npes; i++) {
-//        sendOff[i] = sendOff[i-1] + sendSz[i-1];
-//        recvOff[i] = recvOff[i-1] + recvSz[i-1];
-//      }
-      omp_par::scan(sendSz,sendOff,npes);
-      omp_par::scan(recvSz,recvOff,npes);
+      for (int i = 1; i < npes; i++) {
+        sendOff[i] = sendOff[i-1] + sendSz[i-1];
+        recvOff[i] = recvOff[i-1] + recvSz[i-1];
+      }
 
 #ifdef __DEBUG_PAR__
       MPI_Barrier(comm);
@@ -1423,8 +1380,7 @@ namespace par {
       if (npes == 1) {
         std::cout <<" have to use seq. sort"
           <<" since npes = 1 . inpSize: "<<(arr.size()) <<std::endl;
-//        std::sort(arr.begin(), arr.end());
-        omp_par::merge_sort(arr.begin(),arr.end());
+        std::sort(arr.begin(), arr.end());
         SortedElem  = arr;
         PROF_SORT_END
       } 
@@ -1504,13 +1460,11 @@ namespace par {
 
       nelem = arr.size();
 
-//      std::sort(arr.begin(),arr.end());
-      omp_par::merge_sort(arr.begin(),arr.end());
+      std::sort(arr.begin(),arr.end());
 
       std::vector<T> sendSplits(npes-1);
       splitters.resize(npes);
 
-      #pragma omp parallel for
       for(int i = 1; i < npes; i++)	 {
         sendSplits[i-1] = arr[i*nelem/npes];	
       }//end for i
@@ -1543,13 +1497,12 @@ namespace par {
       int * rdispls = new int[npes];
       assert(rdispls);
 
-      #pragma omp parallel for
       for(int k = 0; k < npes; k++){
         sendcnts[k] = 0;
       }
 
-      //To be parallelized
-/*      int k = 0;
+      int k = 0;
+
       for (DendroIntL j = 0; j < nelem; j++) {
         if (arr[j] <= splitters[k]) {
           sendcnts[k]++;
@@ -1566,66 +1519,14 @@ namespace par {
           }
         }//end if-else
       }//end for j
-*/
-
-      {
-	int omp_p=omp_get_max_threads();
-	int* proc_split = new int[omp_p+1];
-	DendroIntL* lst_split_indx = new DendroIntL[omp_p+1];
-	proc_split[0]=0;
-        lst_split_indx[0]=0;
-	lst_split_indx[omp_p]=nelem;
-	#pragma omp parallel for
-	for(int i=1;i<omp_p;i++){
-	  //proc_split[i] = seq::BinSearch(&splittersPtr[0],&splittersPtr[npes-1],arr[i*nelem/omp_p],std::less<T>());
-	  proc_split[i] = std::upper_bound(&splittersPtr[0],&splittersPtr[npes-1],arr[i*nelem/omp_p],std::less<T>())-&splittersPtr[0];
-	  if(proc_split[i]<npes-1){
-            //lst_split_indx[i]=seq::BinSearch(&arr[0],&arr[nelem],splittersPtr[proc_split[i]],std::less<T>());
-            lst_split_indx[i]=std::upper_bound(&arr[0],&arr[nelem],splittersPtr[proc_split[i]],std::less<T>())-&arr[0];
-	  }else{
-	    proc_split[i]=npes-1;
-	    lst_split_indx[i]=nelem;
-	  }
-	}
-	#pragma omp parallel for
-	for (int i=0;i<omp_p;i++){
-	  int sendcnts_=0;
-	  int k=proc_split[i];
-	  for (DendroIntL j = lst_split_indx[i]; j < lst_split_indx[i+1]; j++) {
-            if (arr[j] <= splitters[k]) {
-              sendcnts_++;
-            } else{
-	      if(sendcnts_>0)
-	        sendcnts[k]=sendcnts_;
-	      sendcnts_=0;
-              k = seq::UpperBound<T>(npes-1, splittersPtr, k+1, arr[j]);
-              if (k == (npes-1) ){
-                //could not find any splitter >= arr[j]
-                sendcnts_ = (nelem - j);
-                break;
-              } else {
-                assert(k < (npes-1));
-                assert(splitters[k] >= arr[j]);
-                sendcnts_++;
-              }
-            }//end if-else
-          }//end for j
-	  if(sendcnts_>0)
-	    sendcnts[k]=sendcnts_;
-	}
-	delete [] lst_split_indx;
-	delete [] proc_split;
-      }
 
       par::Mpi_Alltoall<int>(sendcnts, recvcnts, 1, comm);
 
       sdispls[0] = 0; rdispls[0] = 0;
-//      for (int j = 1; j < npes; j++){
-//        sdispls[j] = sdispls[j-1] + sendcnts[j-1];
-//        rdispls[j] = rdispls[j-1] + recvcnts[j-1];
-//      }
-      omp_par::scan(sendcnts,sdispls,npes);
-      omp_par::scan(recvcnts,rdispls,npes);
+      for (int j = 1; j < npes; j++){
+        sdispls[j] = sdispls[j-1] + sendcnts[j-1];
+        rdispls[j] = rdispls[j-1] + recvcnts[j-1];
+      }
 
       DendroIntL nsorted = rdispls[npes-1] + recvcnts[npes-1];
       SortedElem.resize(nsorted);
@@ -1655,8 +1556,7 @@ namespace par {
       delete [] rdispls;
       rdispls = NULL;
 
-//      sort(SortedElem.begin(), SortedElem.end());
-      omp_par::merge_sort(&SortedElem[0], &SortedElem[nsorted]);
+      sort(SortedElem.begin(), SortedElem.end());
 
       PROF_SORT_END
     }//end function
@@ -1825,8 +1725,7 @@ namespace par {
       assert(!(in.empty()));
 
       //Local Sort first
-      //std::sort(in.begin(),in.end());
-      omp_par::merge_sort(in.begin(),in.end());
+      std::sort(in.begin(),in.end());
 
       if(npes > 1) {
 
