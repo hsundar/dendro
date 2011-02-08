@@ -9,6 +9,7 @@
 #include "parUtils.h"
 #include "TreeNode.h"
 #include <cassert>
+#include <list>
 #include "nodeAndValues.h"
 #include "binUtils.h"
 #include "dendro.h"
@@ -908,6 +909,57 @@ namespace ot {
 
   }//end function
 
+
+  /**
+   * @author Dhairya Malhotra, dhairya.malhotra88@gmail.com
+   * @date 08 Feb 2010
+   */
+  int p2oLocal(std::vector<TreeNode> & nodes, std::vector<TreeNode>& leaves, 
+      unsigned int maxNumPts, unsigned int dim, unsigned int maxDepth) {
+    PROF_P2O_LOCAL_BEGIN;
+
+    std::list<TreeNode> leaves_lst;
+
+    unsigned int init_size=leaves.size();
+    unsigned int num_pts=nodes.size();
+
+    TreeNode curr_node=leaves[0];
+    TreeNode last_node=leaves[init_size-1].getDLD();
+    TreeNode next_node=curr_node.getNext();
+    
+    unsigned int curr_pt=0;
+    unsigned int next_pt=curr_pt+maxNumPts;
+    if(next_pt>=num_pts) next_pt=num_pts-1;
+
+    while(curr_node<=last_node){
+      while( next_node > nodes[next_pt] && next_node.getLevel() < maxDepth ){
+	curr_node = curr_node.getFirstChild();
+	next_node = curr_node.getNext();
+      }
+      next_pt = curr_pt + (std::lower_bound(&nodes[curr_pt],&nodes[next_pt],next_node,std::less<TreeNode>())-&nodes[curr_pt]);
+      if(next_pt>=num_pts) next_pt=num_pts-1;
+
+      leaves_lst.push_back(curr_node);
+      curr_node = next_node;
+      next_node = curr_node.getNext();
+      if(next_pt>curr_pt)
+        curr_pt = next_pt;
+      next_pt = curr_pt+maxNumPts;
+    }
+
+    nodes.resize(leaves_lst.size());
+    unsigned int i=0;
+    for(std::list<TreeNode>::iterator it=leaves_lst.begin(); it!=leaves_lst.end(); it++){
+      nodes[i]=(*it);
+      i++;
+    }
+    leaves_lst.clear();
+    
+    PROF_P2O_LOCAL_END
+  }
+
+
+/*//Older version
   int p2oLocal(std::vector<TreeNode> & nodes, std::vector<TreeNode>& leaves,
       unsigned int maxNumPts, unsigned int dim, unsigned int maxDepth) {
     PROF_P2O_LOCAL_BEGIN
@@ -1021,7 +1073,7 @@ namespace ot {
     }
 
     PROF_P2O_LOCAL_END
-  }
+  }//*/
 
   //New Implementation. Written on April 19th, 2008
   //Both ends are inclusive. The output is sorted.

@@ -222,6 +222,35 @@ namespace ot {
     return dld;
   }//end function
 
+  inline TreeNode TreeNode::getNext() const {
+
+    TreeNode m=*this;
+    unsigned int mask = (1u << (m_uiMaxDepth - getLevel()));
+
+    int i;
+    for(i=m.m_uiLevel;i>=0;i--){
+      m.m_uiX=(m.m_uiX^mask);
+      if((m.m_uiX & mask))
+	break;
+      m.m_uiY=(m.m_uiY^mask);
+      if((m.m_uiY & mask))
+	break;
+      m.m_uiZ=(m.m_uiZ^mask);
+      if((m.m_uiZ & mask))
+	break;
+      mask=(mask<<1);
+    }
+    m.m_uiLevel=i;
+    return m;
+
+  }
+
+  inline TreeNode TreeNode::getFirstChild() const{
+    TreeNode m=*this;
+    m.m_uiLevel++;
+    return m;
+  }
+
   inline bool TreeNode :: isAncestor(TreeNode const & other) const {
 #ifdef __DEBUG_TN__
     if( ((this->m_uiDim) != (other.m_uiDim)) || ((this->m_uiMaxDepth) != (other.m_uiMaxDepth)) )  {

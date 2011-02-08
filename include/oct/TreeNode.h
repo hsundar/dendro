@@ -294,6 +294,18 @@ namespace ot {
       TreeNode getDLD() const;
 
       /**
+       *@author Dhairya Malhotra
+       *@return the next octant in morton order at the same level
+       */
+      TreeNode getNext() const;
+
+      /**
+       *@author Dhairya Malhotra
+       *@return the smallest (in morton id) of this octant
+       */
+      TreeNode getFirstChild() const;
+
+      /**
         @author Rahul Sampath
         @return the Morton encoding for this octant
         */
