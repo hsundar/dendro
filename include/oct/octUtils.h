@@ -667,6 +667,8 @@ Note: first must be different from second.
     */
   int p2oLocal(std::vector<TreeNode> & nodes, std::vector<TreeNode>& leaves,
       unsigned int maxNumPts, unsigned int dim, unsigned int maxDepth);
+  int p2oLocal1(std::vector<TreeNode> & nodes, std::vector<TreeNode>& leaves,
+      unsigned int maxNumPts, unsigned int dim, unsigned int maxDepth);
 
   /**
     @author Rahul Sampath

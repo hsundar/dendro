@@ -295,7 +295,7 @@ namespace ot {
 
       /**
        *@author Dhairya Malhotra
-       *@return the next octant in morton order at the same level
+       *@return the next octant in morton order which has the least depth.
        */
       TreeNode getNext() const;
 

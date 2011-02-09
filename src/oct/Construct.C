@@ -848,6 +848,15 @@ namespace ot {
     //leaves will be sorted.
 
     p2oLocal(nodes, leaves, maxNumPts, dim, maxDepth);
+/*
+    std::vector<TreeNode> nodes_cpy=nodes;
+    std::vector<TreeNode> leaves_cpy=leaves;
+    p2oLocal(nodes, leaves, maxNumPts, dim, maxDepth);
+    p2oLocal1(nodes_cpy, leaves, maxNumPts, dim, maxDepth);
+    std::cout<<"size:"<<nodes.size()<<" "<<nodes_cpy.size()<<'\n';
+    for(int i=0;i<nodes.size();i++)
+      if(nodes[i]!=nodes_cpy[i])
+	std::cout<<'\n'<<nodes[i]<<'\n'<<nodes_cpy[i]<<'\n';//*/
 
     PROF_P2O_END
 
@@ -929,22 +938,28 @@ namespace ot {
     
     unsigned int curr_pt=0;
     unsigned int next_pt=curr_pt+maxNumPts;
-    if(next_pt>=num_pts) next_pt=num_pts-1;
 
-    while(curr_node<=last_node){
+    while(next_pt<num_pts){
       while( next_node > nodes[next_pt] && next_node.getLevel() < maxDepth ){
 	curr_node = curr_node.getFirstChild();
 	next_node = curr_node.getNext();
       }
       next_pt = curr_pt + (std::lower_bound(&nodes[curr_pt],&nodes[next_pt],next_node,std::less<TreeNode>())-&nodes[curr_pt]);
-      if(next_pt>=num_pts) next_pt=num_pts-1;
-
       leaves_lst.push_back(curr_node);
+
       curr_node = next_node;
       next_node = curr_node.getNext();
       if(next_pt>curr_pt)
         curr_pt = next_pt;
       next_pt = curr_pt+maxNumPts;
+    }
+    while(curr_node<last_node){
+      while(curr_node.getDLD()>last_node && curr_node.getLevel()<maxDepth)
+	curr_node = curr_node.getFirstChild();
+      leaves_lst.push_back(curr_node);
+      if(curr_node.getDLD()==last_node)
+	break;
+      curr_node = curr_node.getNext();
     }
 
     nodes.resize(leaves_lst.size());
@@ -956,11 +971,11 @@ namespace ot {
     leaves_lst.clear();
     
     PROF_P2O_LOCAL_END
-  }
+  }//*/
 
 
-/*//Older version
-  int p2oLocal(std::vector<TreeNode> & nodes, std::vector<TreeNode>& leaves,
+  //Older version
+  int p2oLocal1(std::vector<TreeNode> & nodes, std::vector<TreeNode>& leaves,
       unsigned int maxNumPts, unsigned int dim, unsigned int maxDepth) {
     PROF_P2O_LOCAL_BEGIN
 

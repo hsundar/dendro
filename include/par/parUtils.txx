@@ -130,6 +130,7 @@ namespace par {
 	    sendbuf, sendcnts, sdispls, par::Mpi_datatype<T>::value(), 
 	    recvbuf, recvcnts, rdispls, par::Mpi_datatype<T>::value(), 
 	    comm);
+	return 0;
     }
 
   template <typename T>
