@@ -817,20 +817,18 @@ namespace ot {
 
     nodes.resize(numNodes);
 
+    double scale[3]={0,0,0};
+    for(int i=0;i<dim;i++)
+      scale[i]=((double)(1u << maxDepth))/(gLens[i]);
+    #pragma omp parallel for
     for (DendroIntL i = 0; i < numNodes; i++) {
       //The constructor will ignore unnecessary arguments (for lower
       //dimensions).
-      unsigned int px = (unsigned int)(pts[i*dim]*((double)(1u << maxDepth))/(gLens[0]));
-      unsigned int py, pz = 0;
-      if(dim > 1) {
-        py = (unsigned int)(pts[(i*dim)+1]*((double)(1u << maxDepth))/gLens[1]);
-        if(dim > 2) {
-          pz = (unsigned int)(pts[(i*dim)+2]*((double)(1u << maxDepth))/gLens[2]);
-        }
-      }
-      nodes[i] = TreeNode(px, py, pz, maxDepth, dim, maxDepth);
+      unsigned int p_int[3]={0,0,0};
+      for(int j=0;j<dim;j++)
+        p_int[j] = (unsigned int)(pts[i*dim+j]*scale[j]);
+      nodes[i] = TreeNode(p_int[0], p_int[1], p_int[2], maxDepth, dim, maxDepth);
     }//end for
-
     pts.clear(); 
 
     std::vector<ot::TreeNode> tmpNodes ;
