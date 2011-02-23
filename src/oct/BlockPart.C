@@ -8,7 +8,8 @@
 
 #include "TreeNode.h"
 #include "parUtils.h"
-
+#include <omp.h>
+#include <ompUtils.h>
 #ifdef __DEBUG__
 #ifndef __DEBUG_OCT__
 #define __DEBUG_OCT__
@@ -88,6 +89,7 @@ namespace ot {
   int blockPartStage2_p2o(std::vector<TreeNode> &nodes, std::vector<TreeNode> &globalCoarse,
       std::vector<ot::TreeNode>& minsAllBlocks, unsigned int dim, unsigned int maxDepth,
       MPI_Comm comm) {
+
 #ifdef __PROF_WITH_BARRIER__
     MPI_Barrier(comm);
 #endif
@@ -150,6 +152,7 @@ namespace ot {
 
     _mins_maxs.clear();
 
+
     //2. Send nodes to all cells to compute the wts ... locally ...
 
     //    a. Communicate how many you'll be sending and how many will be
@@ -157,6 +160,7 @@ namespace ot {
 
     // Now do an All2All to get numKeysRecv
     par::Mpi_Alltoall<int>( sendCnt, recvCnt, 1, comm);
+
 
     //    b. Concatenate all nodes into one single Carray ...
     unsigned int totalSend = 0;
@@ -245,6 +249,8 @@ namespace ot {
     if(totalRecv) {
       wts = new unsigned int [totalRecv];
     }
+/*
+    #pragma omp parallel for
     for (unsigned int i=0; i<totalRecv; i++) {
       wts[i] = 0;
     }
@@ -264,13 +270,23 @@ namespace ot {
         nextPt++;
       } else {
         nextNode++;
-        if (nextNode == totalRecv) {
-          //If this fails then either recvK and nodes are not sorted or
-          //Some pt in nodes is not in any of recvK
-          assert(false);
-        }
+
+        //If this fails then either recvK and nodes are not sorted or
+        //Some pt in nodes is not in any of recvK
+        assert(nextNode != totalRecv);
       }//end if-else
     }//end while
+*/
+    #pragma omp parallel for
+    for(int i=0;i<totalRecv;i++){
+      TreeNode* a=std::lower_bound(&nodes[0],&nodes[nodes.size()],recvK[i]);
+      TreeNode* b=(i<totalRecv-1?std::lower_bound(&nodes[0],&nodes[nodes.size()],recvK[i+1]):&nodes[nodes.size()]);
+//      int wts1=b-a;
+//      wts1[i]=b-a;
+//      if(wts1[i] > 0) assert(recvK[i].isAncestor(b[-1]) || recvK[i]==b[-1]);
+//      assert(wts1[i]==wts[i]);
+      wts[i]=b-a;
+    }
 
     recvK.clear();
 
@@ -318,6 +334,7 @@ namespace ot {
       globalCoarse[i].setWeight(1);
     }
 
+
     // Now communicate the nodes ...
 
     //7. Determine locally which keys to send to which proc ...
@@ -347,15 +364,19 @@ namespace ot {
       }
     }//end for j
 
+
+    int max_non_root=npes;
     // correct dist ...
     if (npes>1) {
       if (vtkDist[npes-1] == vtkDist[npes-2]) {
         vtkDist[npes-1] = rootNode;
+	max_non_root=npes-1;
       }//end if
 
       for (unsigned int i=npes-2; i>0; i--) {
         if (vtkDist[i] == vtkDist[i-1]) {
           vtkDist[i] = vtkDist[i+1];
+          max_non_root=(vtkDist[i]==rootNode?i:max_non_root);
         }//end if
       }//end for
     }//end if npes > 1
@@ -366,7 +387,7 @@ namespace ot {
     }
 
     if (npes > 1) {
-      unsigned int pCnt=0;
+/*      unsigned int pCnt=0;
       for (unsigned int i=0; i< nodes.size(); i++) {
         if ( (nodes[i] >= vtkDist[pCnt]) && ( (pCnt == (npes-1)) 
               || ( nodes[i] < vtkDist[pCnt+1] ) || (vtkDist[pCnt+1] == rootNode) ) ) {
@@ -378,7 +399,28 @@ namespace ot {
           }//end while
           part[i] = pCnt;
         }//end if-else
-      }//end for i
+      }//end for i  */
+
+      int omp_p=omp_get_max_threads();
+      #pragma omp parallel for
+      for(int j=0;j<omp_p;j++){
+	int a=(nodes.size()*j)/omp_p;
+	int b=(nodes.size()*(j+1))/omp_p;
+
+        int pCnt=std::lower_bound(&vtkDist[0],&vtkDist[max_non_root],nodes[a])-&vtkDist[0]-1;
+	pCnt=(pCnt>=0?pCnt:0);
+
+        for (unsigned int i=a; i< b; i++) {
+          if ( (nodes[i] >= vtkDist[pCnt]) && ( (pCnt == (npes-1)) 
+                || ( nodes[i] < vtkDist[pCnt+1] ) || (vtkDist[pCnt+1] == rootNode) ) ) {
+            part[i] = pCnt;
+          } else {
+            while ( (pCnt < (npes -1)) && (nodes[i] >= vtkDist[pCnt+1]) && (vtkDist[pCnt+1] != rootNode)  )
+              pCnt++;
+            part[i] = pCnt;
+          }//end if-else
+        }//end for i
+      }
     }//end if np>1
 
     vtkDist.clear();
@@ -388,15 +430,22 @@ namespace ot {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     //compute the total number of nodes being sent to each proc ...
+    #pragma omp parallel for
     for (int i=0; i<npes; i++) {
       sendCnt[i]=0;
       recvCnt[i]=0;
     }
 
     if (npes > 1) {
-      for (unsigned int i=0; i<nodes.size(); i++) {
+/*      for (unsigned int i=0; i<nodes.size(); i++) {
         sendCnt[part[i]]++;
-      }//end for i
+      }//end for i  */
+      #pragma omp parallel for
+      for(int i=part[0];i<=part[nodes.size()-1];i++){
+	sendCnt[i]=std::lower_bound(&part[0],&part[nodes.size()],i+1) - 
+	  std::lower_bound(&part[0],&part[nodes.size()],i);
+      }
+
     } else {
       sendCnt[0] += (nodes.size());
     }//end if-else
@@ -408,22 +457,18 @@ namespace ot {
 
     // communicate with other procs how many you shall be sending and get how
     // many to recieve from whom.
-
     par::Mpi_Alltoall<int>( sendCnt, recvCnt, 1, comm);
-
-    totalRecv=0;
-    for (unsigned int i=0; i<npes; i++) {
-      totalRecv += recvCnt[i];
-    }//end for i
 
     sendOffsets[0] = 0;
     recvOffsets[0] = 0;
-
     // compute offsets ...
-    for (int i=1; i<npes; i++) {
-      sendOffsets[i] = sendOffsets[i-1] + sendCnt[i-1];
-      recvOffsets[i] = recvOffsets[i-1] + recvCnt[i-1];
-    }//end for i
+//    for (int i=1; i<npes; i++) {
+//      sendOffsets[i] = sendOffsets[i-1] + sendCnt[i-1];
+//      recvOffsets[i] = recvOffsets[i-1] + recvCnt[i-1];
+//    }//end for i
+    omp_par::scan(&sendCnt[0],&sendOffsets[0],npes);
+    omp_par::scan(&recvCnt[0],&recvOffsets[0],npes);
+    totalRecv=recvOffsets[npes-1]+recvCnt[npes-1];
 
     // Allocate for new array ...
     std::vector<ot::TreeNode > newNodes(totalRecv);

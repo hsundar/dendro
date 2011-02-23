@@ -831,11 +831,11 @@ namespace ot {
     }//end for
     pts.clear(); 
 
-    std::vector<ot::TreeNode> tmpNodes ;
-
     //Sort nodes (pts.) and partition them.
+    std::vector<ot::TreeNode> tmpNodes ;
     par::sampleSort<ot::TreeNode>(nodes, tmpNodes, comm); 
-    nodes = tmpNodes;
+
+    nodes=tmpNodes;
     tmpNodes.clear();
 
     std::vector<ot::TreeNode> leaves;
