@@ -670,7 +670,7 @@ namespace ot {
     if (!isUnique) {
       seq::makeVectorUnique<TreeNode>(out, isSorted) ;
     } else if (!isSorted) {
-      sort(out.begin(),out.end());
+      omp_par::merge_sort(out.begin(),out.end());
     }
 
     if (!out.empty()) {
@@ -905,7 +905,7 @@ namespace ot {
     }//end if
 
     //Sort nodes (pts.) and partition them.  
-    sort(nodes.begin(), nodes.end());
+    omp_par::merge_sort(nodes.begin(), nodes.end());
 
     std::vector<TreeNode> leaves;
     leaves.push_back(root);
