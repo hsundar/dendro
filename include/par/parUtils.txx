@@ -1151,7 +1151,9 @@ namespace par {
         }//end for */ 
 
         //This is more effecient and parallelizable than the above.
+	//This has a bug trying a simpler approach below.
         int ind_min,ind_max;
+	/*
         if ( lscn[0] <= (extra*(avgLoad + 1)) ){
           ind_min = ((lscn[0] - 1)/(avgLoad + 1));
         }else{
@@ -1175,7 +1177,26 @@ namespace par {
           if(i==npes-1)
             end=nlSize;
           sendSz[i]=end-start;
-        }
+        }*/
+
+	ind_min=(lscn[0]*npesLong)/totalWt;
+	ind_max=(lscn[nlSize-1]*npesLong)/totalWt+2;
+	if(ind_max>=npesLong)ind_max=npesLong;
+	#pragma omp parallel for
+	for(int i=ind_min;i<ind_max;i++){
+          DendroIntL wt1=(totalWt*i)/npesLong;
+          DendroIntL wt2=(totalWt*(i+1))/npesLong;
+          int end = std::lower_bound(&lscn[0], &lscn[nlSize], wt2, std::less<DendroIntL>())-&lscn[0];
+          int start = std::lower_bound(&lscn[0], &lscn[nlSize], wt1, std::less<DendroIntL>())-&lscn[0];
+	  if(i==npesLong-1)end=nlSize;
+          sendSz[i]=end-start;
+	}
+
+#ifdef __DEBUG_PAR__
+	int tmp_sum=0;
+	for(int i=0;i<npes;i++) tmp_sum+=sendSz[i];
+	assert(tmp_sum==nlSize);
+#endif
 
       }else {
         sendSz[0]+= nlSize;
