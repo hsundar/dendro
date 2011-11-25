@@ -1151,44 +1151,19 @@ namespace par {
         }//end for */ 
 
         //This is more effecient and parallelizable than the above.
-	//This has a bug trying a simpler approach below.
         int ind_min,ind_max;
-	/*
-        if ( lscn[0] <= (extra*(avgLoad + 1)) ){
-          ind_min = ((lscn[0] - 1)/(avgLoad + 1));
-        }else{
-          ind_min = ((lscn[0] - (1 + extra))/avgLoad);
-        }
-        if ( lscn[0] <= (extra*(avgLoad + 1)) ){
-          ind_max = ((lscn[nlSize-1] - 1)/(avgLoad + 1));
-        }else{
-          ind_max = ((lscn[nlSize-1] - (1 + extra))/avgLoad);
-        }
-        #pragma omp parallel for
-        for(int i=ind_min; i<=ind_max; i++){
-          DendroIntL wt1=(i  )*(avgLoad+1)-(i  <extra?0:(i  )-extra)+1;
-          DendroIntL wt2=(i+1)*(avgLoad+1)-(i+1<extra?0:(i+1)-extra)+1;
-          //sendSz[i]=seq::BinSearch(&lscn[0], &lscn[nlSize], wt2, std::less<DendroIntL>())
-          //    - seq::BinSearch(&lscn[0], &lscn[nlSize], wt1, std::less<DendroIntL>());
-          int end = std::lower_bound(&lscn[0], &lscn[nlSize], wt2, std::less<DendroIntL>())-&lscn[0];
-          int start = std::lower_bound(&lscn[0], &lscn[nlSize], wt1, std::less<DendroIntL>())-&lscn[0];
-          if(i==0)
-            start=0;
-          if(i==npes-1)
-            end=nlSize;
-          sendSz[i]=end-start;
-        }*/
-
-	ind_min=(lscn[0]*npesLong)/totalWt;
+	ind_min=(lscn[0]*npesLong)/totalWt-1;
 	ind_max=(lscn[nlSize-1]*npesLong)/totalWt+2;
+	if(ind_min< 0       )ind_min=0;
 	if(ind_max>=npesLong)ind_max=npesLong;
 	#pragma omp parallel for
 	for(int i=ind_min;i<ind_max;i++){
           DendroIntL wt1=(totalWt*i)/npesLong;
           DendroIntL wt2=(totalWt*(i+1))/npesLong;
-          int end = std::lower_bound(&lscn[0], &lscn[nlSize], wt2, std::less<DendroIntL>())-&lscn[0];
-          int start = std::lower_bound(&lscn[0], &lscn[nlSize], wt1, std::less<DendroIntL>())-&lscn[0];
-	  if(i==npesLong-1)end=nlSize;
+          int end = std::upper_bound(&lscn[0], &lscn[nlSize], wt2, std::less<DendroIntL>())-&lscn[0];
+          int start = std::upper_bound(&lscn[0], &lscn[nlSize], wt1, std::less<DendroIntL>())-&lscn[0];
+	  if(i==npesLong-1)end  =nlSize;
+	  if(i==         0)start=0     ;
           sendSz[i]=end-start;
 	}
 
