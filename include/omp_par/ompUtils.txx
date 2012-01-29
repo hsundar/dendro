@@ -81,6 +81,10 @@ void omp_par::merge_sort(T A,T A_last,StrictWeakOrdering comp){
 
   int p=omp_get_max_threads();
   _DiffType N=A_last-A; 
+  if(N<2*p){
+    std::sort(A,A_last,comp);
+    return;
+  }
 
   //Split the array A into p equal parts.
   _DiffType* split=new _DiffType[p+1];

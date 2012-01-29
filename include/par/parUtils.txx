@@ -126,11 +126,11 @@ namespace par {
       MPI_Barrier(comm);
 #endif
 
-	MPI_Alltoallv(
-	    sendbuf, sendcnts, sdispls, par::Mpi_datatype<T>::value(), 
-	    recvbuf, recvcnts, rdispls, par::Mpi_datatype<T>::value(), 
-	    comm);
-	return 0;
+        MPI_Alltoallv(
+            sendbuf, sendcnts, sdispls, par::Mpi_datatype<T>::value(), 
+            recvbuf, recvcnts, rdispls, par::Mpi_datatype<T>::value(), 
+            comm);
+        return 0;
     }
 
   template <typename T>
@@ -265,8 +265,8 @@ namespace par {
 
 #ifndef ALLTOALLV_FIX
       Mpi_Alltoallv
-	(sendbuf, sendcnts, sdispls, 
-	 recvbuf, recvcnts, rdispls, comm);
+        (sendbuf, sendcnts, sdispls, 
+         recvbuf, recvcnts, rdispls, comm);
 #else
 
         int npes, rank;
@@ -370,8 +370,8 @@ namespace par {
 
 #ifndef ALLTOALLV_FIX
       Mpi_Alltoallv
-	(sendbuf, sendcnts, sdispls, 
-	 recvbuf, recvcnts, rdispls, comm);
+        (sendbuf, sendcnts, sdispls, 
+         recvbuf, recvcnts, rdispls, comm);
 #else
       int npes, rank;
       MPI_Comm_size(comm, &npes);
@@ -887,7 +887,7 @@ namespace par {
       // Now do an All2All to get numKeysRecv
       par::Mpi_Alltoall<int>(numKeysSend, numKeysRecv, 1, comm);
 
-      unsigned int totalKeys=0;	// total number of local keys ...
+      unsigned int totalKeys=0;        // total number of local keys ...
       for ( int i=0; i<npes; i++ ) {
         totalKeys += numKeysRecv[i];
       }
@@ -1134,9 +1134,9 @@ namespace par {
 
       //The Heart of the algorithm....
       if(avgLoad > 0) {
-/*
+//*
         for (DendroIntL i = 0; i < nlSize; i++) {
-          if(lscn[i] == 0) {		
+          if(lscn[i] == 0) {
             sendSz[0]++;
           }else {
             int ind=0;
@@ -1149,28 +1149,28 @@ namespace par {
             sendSz[ind]++;
           }//end if-else
         }//end for */ 
-
+/*
         //This is more effecient and parallelizable than the above.
         int ind_min,ind_max;
-	ind_min=(lscn[0]*npesLong)/totalWt-1;
-	ind_max=(lscn[nlSize-1]*npesLong)/totalWt+2;
-	if(ind_min< 0       )ind_min=0;
-	if(ind_max>=npesLong)ind_max=npesLong;
-	#pragma omp parallel for
-	for(int i=ind_min;i<ind_max;i++){
+        ind_min=(lscn[0]*npesLong)/totalWt-1;
+        ind_max=(lscn[nlSize-1]*npesLong)/totalWt+2;
+        if(ind_min< 0       )ind_min=0;
+        if(ind_max>=npesLong)ind_max=npesLong;
+        #pragma omp parallel for
+        for(int i=ind_min;i<ind_max;i++){
           DendroIntL wt1=(totalWt*i)/npesLong;
           DendroIntL wt2=(totalWt*(i+1))/npesLong;
           int end = std::upper_bound(&lscn[0], &lscn[nlSize], wt2, std::less<DendroIntL>())-&lscn[0];
           int start = std::upper_bound(&lscn[0], &lscn[nlSize], wt1, std::less<DendroIntL>())-&lscn[0];
-	  if(i==npesLong-1)end  =nlSize;
-	  if(i==         0)start=0     ;
+          if(i==npesLong-1)end  =nlSize;
+          if(i==         0)start=0     ;
           sendSz[i]=end-start;
-	}
+        }// */
 
 #ifdef __DEBUG_PAR__
-	int tmp_sum=0;
-	for(int i=0;i<npes;i++) tmp_sum+=sendSz[i];
-	assert(tmp_sum==nlSize);
+        int tmp_sum=0;
+        for(int i=0;i<npes;i++) tmp_sum+=sendSz[i];
+        assert(tmp_sum==nlSize);
 #endif
 
       }else {
@@ -1307,9 +1307,9 @@ namespace par {
       MPI_Comm_rank(comm,&rank);
 
       std::vector<T> tmpVec;
-      if(!isSorted) {	  	
+      if(!isSorted) {                  
         //Sort partitions vecT and tmpVec internally.
-        par::sampleSort<T>(vecT, tmpVec, comm);	  		  	
+        par::sampleSort<T>(vecT, tmpVec, comm);                                    
       }else {
         tmpVec = vecT;
       }
@@ -1365,7 +1365,7 @@ namespace par {
 
       //Checking boundaries... 
       if(!tmpVec.empty()) {
-        T end = tmpVec[tmpVec.size()-1];	  
+        T end = tmpVec[tmpVec.size()-1];          
         T endRecv;
 
         //communicate end to the next processor.
@@ -1380,7 +1380,7 @@ namespace par {
           if(Iter != tmpVec.end()) {
             tmpVec.erase(Iter);
           }//end if found    
-        }//end if p not 0	  
+        }//end if p not 0          
       }//end if not empty
 
 #ifdef __DEBUG_PAR__
@@ -1508,8 +1508,8 @@ namespace par {
       splitters.resize(npes);
 
       #pragma omp parallel for
-      for(int i = 1; i < npes; i++)	 {
-        sendSplits[i-1] = arr[i*nelem/npes];	
+      for(int i = 1; i < npes; i++)         {
+        sendSplits[i-1] = arr[i*nelem/npes];        
       }//end for i
 
       // sort sendSplits using bitonic ...
@@ -1566,35 +1566,35 @@ namespace par {
 */
 
       {
-	int omp_p=omp_get_max_threads();
-	int* proc_split = new int[omp_p+1];
-	DendroIntL* lst_split_indx = new DendroIntL[omp_p+1];
-	proc_split[0]=0;
+        int omp_p=omp_get_max_threads();
+        int* proc_split = new int[omp_p+1];
+        DendroIntL* lst_split_indx = new DendroIntL[omp_p+1];
+        proc_split[0]=0;
         lst_split_indx[0]=0;
-	lst_split_indx[omp_p]=nelem;
-	#pragma omp parallel for
-	for(int i=1;i<omp_p;i++){
-	  //proc_split[i] = seq::BinSearch(&splittersPtr[0],&splittersPtr[npes-1],arr[i*nelem/omp_p],std::less<T>());
-	  proc_split[i] = std::upper_bound(&splittersPtr[0],&splittersPtr[npes-1],arr[i*nelem/omp_p],std::less<T>())-&splittersPtr[0];
-	  if(proc_split[i]<npes-1){
+        lst_split_indx[omp_p]=nelem;
+        #pragma omp parallel for
+        for(int i=1;i<omp_p;i++){
+          //proc_split[i] = seq::BinSearch(&splittersPtr[0],&splittersPtr[npes-1],arr[i*nelem/omp_p],std::less<T>());
+          proc_split[i] = std::upper_bound(&splittersPtr[0],&splittersPtr[npes-1],arr[i*nelem/omp_p],std::less<T>())-&splittersPtr[0];
+          if(proc_split[i]<npes-1){
             //lst_split_indx[i]=seq::BinSearch(&arr[0],&arr[nelem],splittersPtr[proc_split[i]],std::less<T>());
             lst_split_indx[i]=std::upper_bound(&arr[0],&arr[nelem],splittersPtr[proc_split[i]],std::less<T>())-&arr[0];
-	  }else{
-	    proc_split[i]=npes-1;
-	    lst_split_indx[i]=nelem;
-	  }
-	}
-	#pragma omp parallel for
-	for (int i=0;i<omp_p;i++){
-	  int sendcnts_=0;
-	  int k=proc_split[i];
-	  for (DendroIntL j = lst_split_indx[i]; j < lst_split_indx[i+1]; j++) {
+          }else{
+            proc_split[i]=npes-1;
+            lst_split_indx[i]=nelem;
+          }
+        }
+        #pragma omp parallel for
+        for (int i=0;i<omp_p;i++){
+          int sendcnts_=0;
+          int k=proc_split[i];
+          for (DendroIntL j = lst_split_indx[i]; j < lst_split_indx[i+1]; j++) {
             if (arr[j] <= splitters[k]) {
               sendcnts_++;
             } else{
-	      if(sendcnts_>0)
-	        sendcnts[k]=sendcnts_;
-	      sendcnts_=0;
+              if(sendcnts_>0)
+                sendcnts[k]=sendcnts_;
+              sendcnts_=0;
               k = seq::UpperBound<T>(npes-1, splittersPtr, k+1, arr[j]);
               if (k == (npes-1) ){
                 //could not find any splitter >= arr[j]
@@ -1607,11 +1607,11 @@ namespace par {
               }
             }//end if-else
           }//end for j
-	  if(sendcnts_>0)
-	    sendcnts[k]=sendcnts_;
-	}
-	delete [] lst_split_indx;
-	delete [] proc_split;
+          if(sendcnts_>0)
+            sendcnts[k]=sendcnts_;
+        }
+        delete [] lst_split_indx;
+        delete [] proc_split;
       }
 
       par::Mpi_Alltoall<int>(sendcnts, recvcnts, 1, comm);
@@ -1783,10 +1783,10 @@ namespace par {
 
   template <typename T>
     void bitonicSort_binary(std::vector<T> & in, MPI_Comm comm) {
-      int       	    proc_set_size;
-      unsigned int	    and_bit;
-      int       	rank;
-      int       	npes;
+      int                   proc_set_size;
+      unsigned int            and_bit;
+      int               rank;
+      int               npes;
 
       MPI_Comm_size(comm, &npes);
 
@@ -1813,8 +1813,8 @@ namespace par {
 
   template <typename T>
     void bitonicSort(std::vector<T> & in, MPI_Comm comm) {
-      int       	rank;
-      int       	npes;
+      int               rank;
+      int               npes;
 
       MPI_Comm_size(comm, &npes);
       MPI_Comm_rank(comm, &rank);
@@ -1893,7 +1893,7 @@ namespace par {
           index1++;
         } else {
           scratch_list[i] = listB[index2];
-          index2++;	
+          index2++;        
         }
       }
 
@@ -1906,7 +1906,7 @@ namespace par {
         while ( ( (scratch_list[ii] < _low) ||
               (ii < (list_size/2)) )
             && (scratch_list[ii] <= _high) ) {
-          ii++;	
+          ii++;        
         }
         if(ii) {
           listA.insert(listA.end(), scratch_list.begin(),
@@ -1917,7 +1917,7 @@ namespace par {
         while ( ( (ii >= (list_size/2)) 
               && (scratch_list[ii] >= _low) )
             || (scratch_list[ii] > _high) ) {
-          ii--;	
+          ii--;        
         }
         if(ii < (list_size - 1) ) {
           listA.insert(listA.begin(), (scratch_list.begin() + (ii + 1)),
