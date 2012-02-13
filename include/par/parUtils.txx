@@ -1134,7 +1134,7 @@ namespace par {
 
       //The Heart of the algorithm....
       if(avgLoad > 0) {
-/*
+
         for (DendroIntL i = 0; i < nlSize; i++) {
           if(lscn[i] == 0) {		
             sendSz[0]++;
@@ -1149,7 +1149,7 @@ namespace par {
             sendSz[ind]++;
           }//end if-else
         }//end for */ 
-
+/*
         //This is more effecient and parallelizable than the above.
         int ind_min,ind_max;
 	ind_min=(lscn[0]*npesLong)/totalWt-1;
@@ -1165,7 +1165,7 @@ namespace par {
 	  if(i==npesLong-1)end  =nlSize;
 	  if(i==         0)start=0     ;
           sendSz[i]=end-start;
-	}
+	}// */
 
 #ifdef __DEBUG_PAR__
 	int tmp_sum=0;
