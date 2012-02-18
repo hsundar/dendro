@@ -937,19 +937,23 @@ namespace ot {
     unsigned int curr_pt=0;
     unsigned int next_pt=curr_pt+maxNumPts;
 
-    while(next_pt<num_pts){
-      while( next_node > nodes[next_pt] && next_node.getLevel() < maxDepth ){
+    while(next_pt < num_pts){
+      while( next_node > nodes[next_pt] && curr_node.getLevel() < maxDepth ){
 	curr_node = curr_node.getFirstChild();
 	next_node = curr_node.getNext();
       }
+      while(next_node > nodes[next_pt] && next_pt < num_pts) 
+        next_pt += maxNumPts; // We must have more than maxNumPts points per octant because the node can not be refined any further.
+      if(next_pt > num_pts) next_pt = num_pts;
+
       next_pt = curr_pt + (std::lower_bound(&nodes[curr_pt],&nodes[next_pt],next_node,std::less<TreeNode>())-&nodes[curr_pt]);
       leaves_lst.push_back(curr_node);
 
       curr_node = next_node;
       next_node = curr_node.getNext();
-      if(next_pt>curr_pt)
+      if(next_pt > curr_pt)
         curr_pt = next_pt;
-      next_pt = curr_pt+maxNumPts;
+      next_pt = curr_pt + maxNumPts;
     }
     while(curr_node<last_node){
       while(curr_node.getDLD()>last_node && curr_node.getLevel()<maxDepth)
