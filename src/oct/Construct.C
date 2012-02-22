@@ -942,9 +942,8 @@ namespace ot {
 	curr_node = curr_node.getFirstChild();
 	next_node = curr_node.getNext();
       }
-      while(next_node > nodes[next_pt] && next_pt < num_pts) 
-        next_pt += maxNumPts; // We must have more than maxNumPts points per octant because the node can not be refined any further.
-      if(next_pt > num_pts) next_pt = num_pts;
+      if(next_node <= nodes[next_pt]) // We have more than maxNumPts points per octant because the node can not be refined any further.
+        next_pt = num_pts-1; 
 
       next_pt = curr_pt + (std::lower_bound(&nodes[curr_pt],&nodes[next_pt],next_node,std::less<TreeNode>())-&nodes[curr_pt]);
       leaves_lst.push_back(curr_node);
