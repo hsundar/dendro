@@ -939,11 +939,20 @@ namespace ot {
 
     while(next_pt < num_pts){
       while( next_node > nodes[next_pt] && curr_node.getLevel() < maxDepth ){
-	curr_node = curr_node.getFirstChild();
-	next_node = curr_node.getNext();
+        curr_node = curr_node.getFirstChild();
+        next_node = curr_node.getNext();
       }
-      if(next_node <= nodes[next_pt]) // We have more than maxNumPts points per octant because the node can not be refined any further.
-        next_pt = num_pts-1; 
+      unsigned int inc=maxNumPts;
+      while(next_node > nodes[next_pt]){ 
+        // We have more than maxNumPts points per octant because the node can 
+        // not be refined any further.
+        inc=inc<<1;
+        next_pt+=inc;
+        if(next_pt > num_pts){
+          next_pt = num_pts;
+          break;
+        }
+      }
 
       next_pt = curr_pt + (std::lower_bound(&nodes[curr_pt],&nodes[next_pt],next_node,std::less<TreeNode>())-&nodes[curr_pt]);
       leaves_lst.push_back(curr_node);
@@ -956,10 +965,10 @@ namespace ot {
     }
     while(curr_node<last_node){
       while(curr_node.getDLD()>last_node && curr_node.getLevel()<maxDepth)
-	curr_node = curr_node.getFirstChild();
+        curr_node = curr_node.getFirstChild();
       leaves_lst.push_back(curr_node);
       if(curr_node.getDLD()==last_node)
-	break;
+        break;
       curr_node = curr_node.getNext();
     }
 
