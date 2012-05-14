@@ -1,10 +1,13 @@
 
 SHELL = /bin/sh
-include ${PETSC_DIR}/conf/base
-# include ${PETSC_DIR}/bmake/${PETSC_ARCH}/petscconf
-# include ${PETSC_DIR}/bmake/common/variables
+# include ${PETSC_DIR}/conf/base
+include ${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables
+include ${PETSC_DIR}/conf/variables
+
 CEXT = C
-CFLAGS = -g -fopenmp -D__USE_PVT_DA_IN_MG__ -D__USE_64_BIT_INT__ -DPETSC_USE_LOG # -D__USE_A2A_FOR_MPI_ALLGATHER__ 
+CFLAGS = -g -fopenmp -D__USE_PVT_DA_IN_MG__ 
+# -D__USE_64_BIT_INT__ -DPETSC_USE_LOG 
+# -D__USE_A2A_FOR_MPI_ALLGATHER__ 
 
 #-D__USE_64_BIT_INT__
 #-g -O0 
@@ -32,7 +35,7 @@ CFLAGS = -g -fopenmp -D__USE_PVT_DA_IN_MG__ -D__USE_64_BIT_INT__ -DPETSC_USE_LOG
 #-D__MEASURE_BAL_COMM__ 
 #-Wall -Wold-style-cast -Woverloaded-virtual -Weffc++ -Wp64
 
-GC = g++
+GC = icpc
 
 include ./makefileCore
 
