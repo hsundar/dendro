@@ -1252,8 +1252,7 @@ namespace par {
       if(!newNodes.empty()) {
         newNodesPtr = &(*(newNodes.begin()));
       }
-
-      par::Mpi_Alltoallv_dense<T>(nodeListPtr, sendSz, sendOff, 
+      par::Mpi_Alltoallv_sparse<T>(nodeListPtr, sendSz, sendOff, 
           newNodesPtr, recvSz, recvOff, comm);
 
 #ifdef __DEBUG_PAR__
@@ -1265,7 +1264,7 @@ namespace par {
 #endif
 
       // reset the pointer ...
-      nodeList = newNodes;
+      swap(nodeList, newNodes);
       newNodes.clear();
 
       // clean up...
@@ -1311,7 +1310,7 @@ namespace par {
         //Sort partitions vecT and tmpVec internally.
         par::sampleSort<T>(vecT, tmpVec, comm);                                    
       }else {
-        tmpVec = vecT;
+        swap(tmpVec, vecT);
       }
 
 #ifdef __DEBUG_PAR__
@@ -1391,7 +1390,7 @@ namespace par {
       MPI_Barrier(comm);
 #endif
 
-      vecT = tmpVec;
+      swap(vecT, tmpVec);
       tmpVec.clear();
       par::partitionW<T>(vecT, NULL, comm);
 
@@ -1416,6 +1415,8 @@ namespace par {
         int npes;
 
       MPI_Comm_size(comm, &npes);
+
+      assert(arr.size());
 
       if (npes == 1) {
         std::cout <<" have to use seq. sort"
@@ -1876,14 +1877,14 @@ namespace par {
           listA[listA.size()-1] : listB[listB.size()-1]);
 
       // We will do a full merge first ...
-      unsigned int list_size = static_cast<unsigned int>(listA.size() + listB.size());
+      size_t list_size = listA.size() + listB.size();
 
       std::vector<T> scratch_list(list_size);
 
       unsigned int  index1 = 0;
       unsigned int  index2 = 0; 
 
-      for (int i = 0; i < list_size; i++) {
+      for (size_t i = 0; i < list_size; i++) {
         //The order of (A || B) is important here, 
         //so that index2 remains within bounds
         if ( (index1 < listA.size()) && 

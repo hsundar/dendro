@@ -6,7 +6,9 @@
  */
 
 #include <cmath>
+#include <vector>
 #include <cstdlib>
+#include <algorithm>
 
 namespace seq {
 
@@ -97,7 +99,7 @@ namespace seq {
 
   template<typename T> void makeVectorUnique(std::vector<T>& vecT, bool isSorted) {
     if(vecT.size() < 2) { return;}
-    if(!isSorted) { sort(vecT.begin(),vecT.end()); }
+    if(!isSorted) { std::sort( (&(vecT[0])), ( (&(vecT[0])) + (vecT.size()) ) ); }
     std::vector<T> tmp(vecT.size());
     //Using the array [] is faster than the vector version
     T* tmpPtr = (&(*(tmp.begin())));
@@ -111,9 +113,8 @@ namespace seq {
         tmpSize++;
       }
     }//end for
-    vecT.clear();
-    vecT.insert(vecT.begin(), tmp.begin(), (tmp.begin() + tmpSize));
-    tmp.clear();
+    tmp.resize(tmpSize);
+    swap(vecT, tmp);
   }//end function
 
   template <typename T>

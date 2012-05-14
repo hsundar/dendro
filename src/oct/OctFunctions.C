@@ -2083,6 +2083,7 @@ namespace ot {
     delete [] numKeysRecv;
     delete [] requests1;
     delete [] requests2;
+    delete [] isHanging;
 
     PROF_FLN_STAGE11_END
 

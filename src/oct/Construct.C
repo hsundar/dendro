@@ -846,15 +846,6 @@ namespace ot {
     //leaves will be sorted.
 
     p2oLocal(nodes, leaves, maxNumPts, dim, maxDepth);
-/*
-    std::vector<TreeNode> nodes_cpy=nodes;
-    std::vector<TreeNode> leaves_cpy=leaves;
-    p2oLocal(nodes, leaves, maxNumPts, dim, maxDepth);
-    p2oLocal1(nodes_cpy, leaves, maxNumPts, dim, maxDepth);
-    std::cout<<"size:"<<nodes.size()<<" "<<nodes_cpy.size()<<'\n';
-    for(int i=0;i<nodes.size();i++)
-      if(nodes[i]!=nodes_cpy[i])
-	std::cout<<'\n'<<nodes[i]<<'\n'<<nodes_cpy[i]<<'\n';//*/
 
     PROF_P2O_END
 
@@ -980,123 +971,6 @@ namespace ot {
     }
     leaves_lst.clear();
     
-    PROF_P2O_LOCAL_END
-  }//*/
-
-
-  //Older version
-  int p2oLocal1(std::vector<TreeNode> & nodes, std::vector<TreeNode>& leaves,
-      unsigned int maxNumPts, unsigned int dim, unsigned int maxDepth) {
-    PROF_P2O_LOCAL_BEGIN
-
-      std::vector<TreeNode> nodesDup = nodes;
-    nodes.clear();
-
-    std::vector<TreeNode> addList;
-    std::vector<TreeNode> nodesTmp;
-
-    std::vector<TreeNode> *nodeSrc = &nodes;
-    std::vector<TreeNode> *nodeDest = &nodesTmp;
-    std::vector<TreeNode> *leafSrc = &leaves;
-    std::vector<TreeNode> *leafDest = &addList;
-
-    //The source and destination alternate for each iteration.
-    do {
-      //Leaves remain sorted inside this loop!
-      //Reset all wts to 0.
-      for (unsigned int i = 0; i < leafSrc->size(); i++) {
-        (*leafSrc)[i].setWeight(0);
-      }
-
-      //nodesDup and leaves are both sorted at this point.
-      unsigned int nextNode = 0;
-      unsigned int nextPt = 0;
-      //Some elements of nodesDup are not inside any element in leaves.
-      //Note, this is different from other similar loops.
-      //Here, nodesDup is merely  a counter and remains unchanged for all
-      //outer do-while iterations, if a box had less than maxNumpts, it will
-      //be removed from leaves and placed in nodeDest. However, all its
-      //decendants in nodesDup still remain.
-      //Also, note the first pt. need not be in any block. Hence, there is an
-      //extra if-else wrapper to skip pts, that lie outside all blocks and
-      //are lesser than them in the Morton order.
-      while (nextPt < nodesDup.size()) {
-        if (nodesDup[nextPt] >= (*leafSrc)[nextNode]) {
-#ifdef __DEBUG_OCT__
-          assert(areComparable((*leafSrc)[nextNode], nodesDup[nextPt]));
-#endif
-          if (((*leafSrc)[nextNode].isAncestor(nodesDup[nextPt])) ||
-              ((*leafSrc)[nextNode] == nodesDup[nextPt])) {
-            (*leafSrc)[nextNode].addWeight(1);
-            nextPt++;
-          } else {
-            nextNode++;
-            if (nextNode == leafSrc->size()) {
-              //Note: No assert(false) here. 
-              break;
-            }
-          }
-        } else {
-          nextPt++;
-        }
-      }//end while
-
-      leafDest->resize((1 << dim)*(leafSrc->size()));
-      unsigned int addListSz=0;     
-      unsigned int nodesPrevSz = nodeSrc->size();
-      nodeSrc->resize(nodesPrevSz + (leafSrc->size()));
-      nodeDest->resize(nodeSrc->size());
-      unsigned int tmpCtr=0;
-      unsigned int nodesCtr=0;
-      // int cntX=0;
-      for (unsigned int i = 0; i < leafSrc->size(); i++) {
-        if ( ((*leafSrc)[i].getWeight() > maxNumPts) &&
-            ((*leafSrc)[i].getLevel() < maxDepth) ) {
-          TreeNode thisNode = (*leafSrc)[i];
-          std::vector<TreeNode> children;
-          thisNode.addChildren(children);
-          for (int ci = 0; ci < (1 << dim); ci++) {
-            (*leafDest)[addListSz] = children[ci];
-            addListSz++;
-          }
-          children.clear();
-        } else {
-          while ((nodesCtr < nodesPrevSz) &&
-              ((*nodeSrc)[nodesCtr] < (*leafSrc)[i]) ) {
-            (*nodeDest)[tmpCtr++] = (*nodeSrc)[nodesCtr++];
-          }
-          (*nodeDest)[tmpCtr++] = (*leafSrc)[i];
-        }//end if-else
-      }//end for i
-
-      for (unsigned int i = nodesCtr; i < nodesPrevSz; i++) {
-        (*nodeDest)[tmpCtr++] = (*nodeSrc)[i];
-      }
-
-      leafDest->resize(addListSz);
-      nodeDest->resize(tmpCtr);
-
-      // swap pointers ...
-      std::vector<TreeNode> *tmpPtr = nodeSrc;
-      nodeSrc = nodeDest;
-      nodeDest = tmpPtr;
-      tmpPtr = leafSrc;
-      leafSrc = leafDest;
-      leafDest = tmpPtr;
-      leafDest->clear();
-      nodeDest->clear();  
-    } while (!leafSrc->empty());
-
-    if ( nodeSrc != &nodes ) {
-      nodes = nodesTmp;
-    }
-    nodesTmp.clear();
-
-    //Reset All weights to 1.
-    for (unsigned int i = 0; i < nodes.size(); i++) {
-      nodes[i].setWeight(1);
-    }
-
     PROF_P2O_LOCAL_END
   }//*/
 

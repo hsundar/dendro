@@ -602,8 +602,8 @@ namespace ot {
   /**
     @author Rahul Sampath
     @return the nearest common ancestor of first and second.
-    If one of them is the ancestor of the other it is returned.
-Note: first must be different from second.
+    This works even if both the inputs are equal or if one 
+    of them is the ancestor of the other.
 */
   TreeNode getNCA(TreeNode first, TreeNode second);
 
@@ -666,8 +666,6 @@ Note: first must be different from second.
     @see points2Octree
     */
   int p2oLocal(std::vector<TreeNode> & nodes, std::vector<TreeNode>& leaves,
-      unsigned int maxNumPts, unsigned int dim, unsigned int maxDepth);
-  int p2oLocal1(std::vector<TreeNode> & nodes, std::vector<TreeNode>& leaves,
       unsigned int maxNumPts, unsigned int dim, unsigned int maxDepth);
 
   /**

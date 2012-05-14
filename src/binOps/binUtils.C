@@ -17,7 +17,7 @@ namespace binOp {
       return (binLength(num) - 1);
     } else {
       assert(false);
-      return -1;
+      return 1; 
     }
   }//end function
 
