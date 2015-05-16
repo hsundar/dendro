@@ -605,7 +605,7 @@ namespace ot {
     */
 #define DAMGGetDAMG(ctx)              (ctx)[(ctx)[0]->nlevels-1]
 
-  PetscErrorCode DAMGSetNullSpace(DAMG* damg, PetscTruth, int, PetscErrorCode (*)(DAMG,Vec[]));
+  PetscErrorCode DAMGSetNullSpace(DAMG* damg, PetscBool, int, PetscErrorCode (*)(DAMG,Vec[]));
 
   /** @name Private Functions */
   //@{

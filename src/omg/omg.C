@@ -6,9 +6,10 @@
 
 #include "dtypes.h"
 #include "petscpc.h"
-#include "petscmg.h"
+// #include "petscpcmg.h"
+#include "petscksp.h"
 #include "petscmat.h"
-#include "private/pcimpl.h"
+#include "petsc/private/pcimpl.h"
 #include "omg.h"
 #include "oda.h"
 #include "odaUtils.h" 
@@ -690,28 +691,28 @@ namespace ot {
     int rank;
     MPI_Comm_rank(damg[0]->comm,&rank);
 
-    if (!damg) SETERRQ(PETSC_ERR_ARG_NULL,"Passing null as DAMG");
+    if (!damg) SETERRQ(damg[0]->comm,PETSC_ERR_ARG_NULL,"Passing null as DAMG");
 
     for (i = 1; i < nlevels; i++) {
       if (damg[i]->R) {
-        ierr = MatDestroy(damg[i]->R);
+        ierr = MatDestroy(&(damg[i]->R));
         CHKERRQ(ierr);
       }
     }
 
     for (i = 0; i < nlevels; i++) {
       if (damg[i]->x)       {
-        ierr = VecDestroy(damg[i]->x);
+        ierr = VecDestroy(&(damg[i]->x));
         CHKERRQ(ierr);
       }
 
       if (damg[i]->b)       {
-        ierr = VecDestroy(damg[i]->b);
+        ierr = VecDestroy(&(damg[i]->b));
         CHKERRQ(ierr);
       }
 
       if (damg[i]->r)       {
-        ierr = VecDestroy(damg[i]->r);
+        ierr = VecDestroy(&(damg[i]->r));
         CHKERRQ(ierr);
       }
 
@@ -726,15 +727,15 @@ namespace ot {
       }
 
       if (damg[i]->B && (damg[i]->B != damg[i]->J)) {
-        ierr = MatDestroy(damg[i]->B);CHKERRQ(ierr);
+        ierr = MatDestroy(&(damg[i]->B));CHKERRQ(ierr);
       }
 
       if (damg[i]->J)         {
-        ierr = MatDestroy(damg[i]->J);CHKERRQ(ierr);
+        ierr = MatDestroy(&(damg[i]->J));CHKERRQ(ierr);
       }
 
       if (damg[i]->ksp) {
-        ierr = KSPDestroy(damg[i]->ksp);CHKERRQ(ierr);
+        ierr = KSPDestroy(&(damg[i]->ksp));CHKERRQ(ierr);
       }
 
       if (damg[i]->da)      {
@@ -765,7 +766,7 @@ namespace ot {
     if(crjac){
       ierr = (*crjac)(damg,&(damg->J)); CHKERRQ(ierr);
     }else{
-      SETERRQ(PETSC_ERR_ARG_NULL,"ot::DA can not create a Matrix for you! Pass a function handle.");  
+      SETERRQ(damg->comm,PETSC_ERR_ARG_NULL,"ot::DA can not create a Matrix for you! Pass a function handle.");  
     }
     PetscFunctionReturn(0);
   }
@@ -786,8 +787,8 @@ namespace ot {
       int rank;
     MPI_Comm_rank(damg[0]->comm, &rank);
 
-    if (!damg) SETERRQ(PETSC_ERR_ARG_NULL,"Passing null as DAMG");  
-    if (!crjac) SETERRQ(PETSC_ERR_ARG_NULL,"ot::DA can not create a Matrix for you! Pass a function handle.");
+    if (!damg) SETERRQ(damg[0]->comm,PETSC_ERR_ARG_NULL,"Passing null as DAMG");  
+    if (!crjac) SETERRQ(damg[0]->comm,PETSC_ERR_ARG_NULL,"ot::DA can not create a Matrix for you! Pass a function handle.");
 
     if (!damg[0]->ksp) {
       /* create solvers for each level if they don't already exist*/
@@ -853,12 +854,12 @@ namespace ot {
             ierr = PetscOptionsClearValue(optionName); CHKERRQ(ierr);
             sprintf(optionName, "-%sksp_symmetric_pc",clearOptionPrefix);
             ierr = PetscOptionsClearValue(optionName); CHKERRQ(ierr);
-            ierr = KSPSetPreconditionerSide(damg[0]->ksp, PC_LEFT);
+            ierr = KSPSetPCSide(damg[0]->ksp, PC_LEFT);
             CHKERRQ(ierr);
 
             sprintf(optionName, "-%sksp_norm_type",clearOptionPrefix);
             ierr = PetscOptionsClearValue(optionName); CHKERRQ(ierr);
-            ierr = KSPSetNormType(damg[0]->ksp, KSP_NORM_NO);
+            ierr = KSPSetNormType(damg[0]->ksp, KSP_NORM_NONE);
             CHKERRQ(ierr);
 
             sprintf(optionName, "-%sksp_rtol",clearOptionPrefix);
@@ -1056,10 +1057,10 @@ namespace ot {
     PetscTruth     ismg,isred;
 
     PetscFunctionBegin;
-    if (!damg) SETERRQ(PETSC_ERR_ARG_NULL,"Passing null as DAMG");
-    if (!damg[0]->ksp) SETERRQ(PETSC_ERR_ORDER,"Must call AFTER DAMGSetKSP() or DAMGSetSNES()");
-    if ((n && !func) || (!n && func)) SETERRQ(PETSC_ERR_ARG_INCOMP,"Both n and func() must be set together");
-    if (n < 0) SETERRQ1(PETSC_ERR_ARG_OUTOFRANGE,"Cannot have negative number of vectors in null space n = %D",n)
+    if (!damg) SETERRQ(damg[0]->comm,PETSC_ERR_ARG_NULL,"Passing null as DAMG");
+    if (!damg[0]->ksp) SETERRQ(damg[0]->comm,PETSC_ERR_ORDER,"Must call AFTER DAMGSetKSP() or DAMGSetSNES()");
+    if ((n && !func) || (!n && func)) SETERRQ(damg[0]->comm,PETSC_ERR_ARG_INCOMP,"Both n and func() must be set together");
+    if (n < 0) SETERRQ1(damg[0]->comm,PETSC_ERR_ARG_OUTOFRANGE,"Cannot have negative number of vectors in null space n = %D",n)
 
       for (i = 0; i < nlevels; i++) {
         if (n) {
@@ -1173,7 +1174,7 @@ namespace ot {
     PetscViewer    ascii;
 
     PetscFunctionBegin;
-    if (!damg) SETERRQ(PETSC_ERR_ARG_NULL,"Passing null as DAMG");
+    if (!damg) SETERRQ(damg[0]->comm,PETSC_ERR_ARG_NULL,"Passing null as DAMG");
 
     ierr = PetscOptionsHasName(PETSC_NULL,"-damg_ksp_monitor",&monitor);CHKERRQ(ierr);
     ierr = PetscOptionsHasName(PETSC_NULL,"-damg_useRTLMG",&useRTLMG);CHKERRQ(ierr);
@@ -2608,7 +2609,7 @@ Type2: Use Aux. Coarse and Fine are not aligned.
     PetscTypeCompare((PetscObject)Amat, MATSHELL, &isshell);
 
     if(!isshell) {
-      SETERRQ(PETSC_ERR_SUP, " Expected a MATSHELL.");
+      SETERRQ(damg[0]->comm,PETSC_ERR_SUP, " Expected a MATSHELL.");
     }
 
     //Create ksp_private, rhs_private, sol_private,
@@ -2621,7 +2622,7 @@ Type2: Use Aux. Coarse and Fine are not aligned.
         (*getPrivateMatricesForKSP_Shell)(Amat, &Amat_private,
                                           &Pmat_private, &pFlag);
       } else {
-        SETERRQ(PETSC_ERR_USER,
+        SETERRQ(damg[0]->comm,PETSC_ERR_USER,
             " Expected function to be set:\
             getPrivateMatricesForKSP_Shell");
       }
