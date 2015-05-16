@@ -6,6 +6,7 @@
 
 #include "dtypes.h"
 #include "petscpc.h"
+#include "petscsys.h"
 // #include "petscpcmg.h"
 #include "petscksp.h"
 #include "petscmat.h"
@@ -874,7 +875,7 @@ namespace ot {
                 PETSC_DEFAULT, 1); 
             CHKERRQ(ierr);
 
-            ierr = KSPSetConvergenceTest(damg[0]->ksp, KSPSkipConverged,
+            ierr = KSPSetConvergenceTest(damg[0]->ksp, KSPConvergedSkip,
                 PETSC_NULL,PETSC_NULL);
             CHKERRQ(ierr);
 
@@ -905,11 +906,11 @@ namespace ot {
             ierr  = KSPGetPC(damg[i]->ksp, &pc); CHKERRQ(ierr);
           }
 
-          PetscTruth ismg;
+          PetscBool ismg;
           PetscTypeCompare((PetscObject)pc, PCMG, &ismg);
 
           if(ismg) {
-            PetscTruth useRTLMG;
+            PetscBool useRTLMG;
             ierr = PetscOptionsHasName(PETSC_NULL,"-damg_useRTLMG",&useRTLMG);
             CHKERRQ(ierr);
             KSP lksp;
@@ -943,12 +944,12 @@ namespace ot {
             ierr = PetscOptionsClearValue(optionName); CHKERRQ(ierr);
             sprintf(optionName, "-%sksp_symmetric_pc",clearOptionPrefix);
             ierr = PetscOptionsClearValue(optionName); CHKERRQ(ierr);
-            ierr = KSPSetPreconditionerSide(lksp, PC_LEFT);
+            ierr = KSPSetPCSide(lksp, PC_LEFT);
             CHKERRQ(ierr);
 
             sprintf(optionName, "-%sksp_norm_type",clearOptionPrefix);
             ierr = PetscOptionsClearValue(optionName); CHKERRQ(ierr);
-            ierr = KSPSetNormType(lksp, KSP_NORM_NO);
+            ierr = KSPSetNormType(lksp, KSP_NORM_NONE);
             CHKERRQ(ierr);
 
             sprintf(optionName, "-%sksp_rtol",clearOptionPrefix);
@@ -963,7 +964,7 @@ namespace ot {
                 PETSC_DEFAULT, 1); 
             CHKERRQ(ierr);
 
-            ierr = KSPSetConvergenceTest(lksp, KSPSkipConverged, PETSC_NULL, PETSC_NULL);
+            ierr = KSPSetConvergenceTest(lksp, KSPConvergedSkip, PETSC_NULL, PETSC_NULL);
             CHKERRQ(ierr);
 
             ierr = KSPSetInitialGuessNonzero(lksp, PETSC_FALSE);
@@ -1015,20 +1016,19 @@ namespace ot {
 
     //Set operators at each level.   
     for(int level = 0; level < nlevels; level++) {
-      KSPSetOperators(damg[level]->ksp, damg[level]->J,
-          damg[level]->B, SAME_NONZERO_PATTERN);
+      KSPSetOperators(damg[level]->ksp, damg[level]->J, damg[level]->B); // , SAME_NONZERO_PATTERN);
 
       PC pc;
       KSPGetPC(damg[level]->ksp, &pc);
 
-      PetscTruth ismg;
+      PetscBool ismg;
       PetscTypeCompare((PetscObject)pc, PCMG, &ismg);
 
       if(ismg) {
         for(int i = 0; i <= level; i++) {
           KSP lksp;
           PCMGGetSmoother(pc, i, &lksp);
-          KSPSetOperators(lksp, damg[i]->J, damg[i]->B, SAME_NONZERO_PATTERN);
+          KSPSetOperators(lksp, damg[i]->J, damg[i]->B); // , SAME_NONZERO_PATTERN);
         }//end for i
       }
     }//end for level
@@ -1045,7 +1045,7 @@ namespace ot {
     PROF_MG_SET_KSP_END
   }
 
-  PetscErrorCode DAMGSetNullSpace(DAMG* damg, PetscTruth has_cnst, PetscInt n,
+  PetscErrorCode DAMGSetNullSpace(DAMG* damg, PetscBool has_cnst, PetscInt n,
       PetscErrorCode (*func)(DAMG,Vec[]))
   {
     PetscErrorCode ierr;
@@ -1054,13 +1054,13 @@ namespace ot {
     MatNullSpace   nullsp;
     KSP            iksp;
     PC             pc,ipc;
-    PetscTruth     ismg,isred;
+    PetscBool     ismg,isred;
 
     PetscFunctionBegin;
     if (!damg) SETERRQ(damg[0]->comm,PETSC_ERR_ARG_NULL,"Passing null as DAMG");
     if (!damg[0]->ksp) SETERRQ(damg[0]->comm,PETSC_ERR_ORDER,"Must call AFTER DAMGSetKSP() or DAMGSetSNES()");
     if ((n && !func) || (!n && func)) SETERRQ(damg[0]->comm,PETSC_ERR_ARG_INCOMP,"Both n and func() must be set together");
-    if (n < 0) SETERRQ1(damg[0]->comm,PETSC_ERR_ARG_OUTOFRANGE,"Cannot have negative number of vectors in null space n = %D",n)
+    if (n < 0) SETERRQ1(damg[0]->comm,PETSC_ERR_ARG_OUTOFRANGE,"Cannot have negative number of vectors in null space n = %D",n);
 
       for (i = 0; i < nlevels; i++) {
         if (n) {
@@ -1117,7 +1117,7 @@ namespace ot {
   {
     PetscErrorCode ierr;
     int       i,nlevels = damg[0]->nlevels;
-    PetscTruth     gridseq,vecmonitor;
+    PetscBool     gridseq,vecmonitor;
 
     PetscFunctionBegin;
     ierr = PetscOptionsHasName(0,"-damg_grid_sequence",&gridseq);CHKERRQ(ierr);
@@ -1167,8 +1167,8 @@ namespace ot {
   {
     PetscErrorCode ierr;
     PC             pc;
-    PetscTruth     ismg,monitor,ismf,isshell,ismffd;
-    PetscTruth     useRTLMG;
+    PetscBool     ismg,monitor,ismf,isshell,ismffd;
+    PetscBool     useRTLMG;
     KSP            lksp; /* solver internal to the multigrid preconditioner */
     MPI_Comm       *comms,comm;
     PetscViewer    ascii;
@@ -1213,12 +1213,12 @@ namespace ot {
         if (ismg) {
           /*Finer Level*/
           PCMGGetSmoother(pc,1,&lksp);
-          KSPSetOperators(lksp,damg[i]->B,damg[i]->B,DIFFERENT_NONZERO_PATTERN);
+          KSPSetOperators(lksp,damg[i]->B,damg[i]->B); // ,DIFFERENT_NONZERO_PATTERN);
           PCMGSetR(pc,1,damg[i]->r);
           PCMGSetResidual(pc,1,PCMGDefaultResidual,damg[i]->B);
           /*Coarser Level*/
           PCMGGetSmoother(pc,0,&lksp);
-          KSPSetOperators(lksp,damg[i-1]->J,damg[i-1]->J,DIFFERENT_NONZERO_PATTERN);
+          KSPSetOperators(lksp,damg[i-1]->J,damg[i-1]->J); // ,DIFFERENT_NONZERO_PATTERN);
           PCMGSetX(pc,0,damg[i-1]->x);
           PCMGSetRhs(pc,0,damg[i-1]->b);
           /* Set interpolation/restriction between levels */
@@ -1252,8 +1252,8 @@ namespace ot {
         for (int i = 0; i < nlevels; i++) {
           ierr = PCMGGetSmoother(pc, i, &lksp);CHKERRQ(ierr);
 
-          ierr = KSPSetOperators(lksp, damg[i]->J, damg[i]->B,
-              DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+          ierr = KSPSetOperators(lksp, damg[i]->J, damg[i]->B); CHKERRQ(ierr);
+          // ierr = KSPSetOperators(lksp, damg[i]->J, damg[i]->B, DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
 
           if (i < nlevels-1) { /* don't set for finest level, they are set in PCApply_MG()*/
             ierr = PCMGSetX(pc,i,damg[i]->x);CHKERRQ(ierr); 
@@ -2356,15 +2356,15 @@ Type2: Use Aux. Coarse and Fine are not aligned.
         data->fineTouchedFlags = NULL;
       }
       if(data->tmp) { 
-        iC(VecDestroy(data->tmp));
+        iC(VecDestroy(&(data->tmp)));
         data->tmp = NULL;
       }  
       if(data->addRtmp) {
-        VecDestroy(data->addRtmp);
+        VecDestroy(&(data->addRtmp));
         data->addRtmp = NULL;
       }
       if(data->addPtmp) {
-        VecDestroy(data->addPtmp);
+        VecDestroy(&(data->addPtmp));
         data->addPtmp = NULL;
       }
       if(data->sendSzP) {
@@ -2605,11 +2605,11 @@ Type2: Use Aux. Coarse and Fine are not aligned.
 
     Mat Amat;
     PCGetOperators(pc, &Amat, NULL, NULL);      
-    PetscTruth isshell;
+    PetscBool isshell;
     PetscTypeCompare((PetscObject)Amat, MATSHELL, &isshell);
 
     if(!isshell) {
-      SETERRQ(damg[0]->comm,PETSC_ERR_SUP, " Expected a MATSHELL.");
+      SETERRQ(commActive, PETSC_ERR_SUP, " Expected a MATSHELL.");
     }
 
     //Create ksp_private, rhs_private, sol_private,
@@ -2622,7 +2622,7 @@ Type2: Use Aux. Coarse and Fine are not aligned.
         (*getPrivateMatricesForKSP_Shell)(Amat, &Amat_private,
                                           &Pmat_private, &pFlag);
       } else {
-        SETERRQ(damg[0]->comm,PETSC_ERR_USER,
+        SETERRQ(commActive, PETSC_ERR_USER,
             " Expected function to be set:\
             getPrivateMatricesForKSP_Shell");
       }
@@ -2698,7 +2698,7 @@ Type2: Use Aux. Coarse and Fine are not aligned.
         MatGetVecs(Amat_private, &(data->sol_private), &(data->rhs_private));
       }
 
-      KSPSetOperators(data->ksp_private, Amat_private, Pmat_private, pFlag);
+      KSPSetOperators(data->ksp_private, Amat_private, Pmat_private); // , pFlag);
 
     } else {
       data->sol_private = NULL;
@@ -2718,17 +2718,17 @@ Type2: Use Aux. Coarse and Fine are not aligned.
 
     if(data) {
       if(data->ksp_private) {
-        KSPDestroy(data->ksp_private);
+        KSPDestroy(&(data->ksp_private));
         data->ksp_private = NULL;
       }
 
       if(data->rhs_private) {
-        VecDestroy(data->rhs_private);
+        VecDestroy(&(data->rhs_private));
         data->rhs_private = NULL;
       }
 
       if(data->sol_private) {
-        VecDestroy(data->sol_private);
+        VecDestroy(&(data->sol_private));
         data->sol_private = NULL;
       }
 
