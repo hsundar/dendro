@@ -38,7 +38,7 @@ class Point{
     /** @name Constructors and Destructor */
     //@{
     Point();
-    virtual ~Point();
+    // virtual ~Point();
 
     Point(double newx, double newy, double newz);
     Point(int newx, int newy, int newz);

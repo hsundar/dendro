@@ -72,20 +72,23 @@ int main(int argc, char ** argv ) {
   ot::DAMG_Initialize(MPI_COMM_WORLD);
 
 #ifdef PETSC_USE_LOG
-  PetscLogEventRegister("ODAmatDiag",PETSC_VIEWER_COOKIE, &Jac1DiagEvent);
-  PetscLogEventRegister("ODAmatMult",PETSC_VIEWER_COOKIE, &Jac1MultEvent);
-  PetscLogEventRegister("ODAmatDiagFinest",PETSC_VIEWER_COOKIE, &Jac1FinestDiagEvent);
-  PetscLogEventRegister("ODAmatMultFinest",PETSC_VIEWER_COOKIE, &Jac1FinestMultEvent);
+  PetscClassId classid;
+  PetscClassIdRegister("Dendro",&classid);
+  
+  PetscLogEventRegister("ODAmatDiag",classid, &Jac1DiagEvent);
+  PetscLogEventRegister("ODAmatMult",classid, &Jac1MultEvent);
+  PetscLogEventRegister("ODAmatDiagFinest",classid, &Jac1FinestDiagEvent);
+  PetscLogEventRegister("ODAmatMultFinest",classid, &Jac1FinestMultEvent);
 
-  PetscLogEventRegister("OMGmatDiag-2",PETSC_VIEWER_COOKIE, &Jac2DiagEvent);
-  PetscLogEventRegister("OMGmatMult-2",PETSC_VIEWER_COOKIE, &Jac2MultEvent);
-  PetscLogEventRegister("OMGmatDiagFinest-2",PETSC_VIEWER_COOKIE, &Jac2FinestDiagEvent);
-  PetscLogEventRegister("OMGmatMultFinest-2",PETSC_VIEWER_COOKIE, &Jac2FinestMultEvent);
+  PetscLogEventRegister("OMGmatDiag-2",classid, &Jac2DiagEvent);
+  PetscLogEventRegister("OMGmatMult-2",classid, &Jac2MultEvent);
+  PetscLogEventRegister("OMGmatDiagFinest-2",classid, &Jac2FinestDiagEvent);
+  PetscLogEventRegister("OMGmatMultFinest-2",classid, &Jac2FinestMultEvent);
 
-  PetscLogEventRegister("OMGmatDiag-3",PETSC_VIEWER_COOKIE, &Jac3DiagEvent);
-  PetscLogEventRegister("OMGmatMult-3",PETSC_VIEWER_COOKIE, &Jac3MultEvent);
-  PetscLogEventRegister("OMGmatDiagFinest-3",PETSC_VIEWER_COOKIE, &Jac3FinestDiagEvent);
-  PetscLogEventRegister("OMGmatMultFinest-3",PETSC_VIEWER_COOKIE, &Jac3FinestMultEvent);
+  PetscLogEventRegister("OMGmatDiag-3",classid, &Jac3DiagEvent);
+  PetscLogEventRegister("OMGmatMult-3",classid, &Jac3MultEvent);
+  PetscLogEventRegister("OMGmatDiagFinest-3",classid, &Jac3FinestDiagEvent);
+  PetscLogEventRegister("OMGmatMultFinest-3",classid, &Jac3FinestMultEvent);
 
   int stages[3];
   PetscLogStageRegister("P2O.",&stages[0]);
@@ -171,7 +174,7 @@ int main(int argc, char ** argv ) {
   }
   MPI_Barrier(MPI_COMM_WORLD);	
 
-  PetscTruth setMatPropsUsingPts;
+  PetscBool setMatPropsUsingPts;
   PetscOptionsHasName(0,"-setMatPropsUsingPts",&setMatPropsUsingPts);
 
   std::vector<ot::TreeNode> matPropNodes;
@@ -192,7 +195,7 @@ int main(int argc, char ** argv ) {
   gSize[1] = 1.;
   gSize[2] = 1.;
 
-  PetscTruth usingRegularOctree;
+  PetscBool usingRegularOctree;
   PetscInt regLev;
   PetscOptionsHasName(0,"-useRegularOctreeAtLevel",&usingRegularOctree);
   PetscOptionsGetInt(0,"-useRegularOctreeAtLevel",&regLev,0);
@@ -412,7 +415,7 @@ int main(int argc, char ** argv ) {
   MPI_Barrier(MPI_COMM_WORLD);
 
   if(setMatPropsUsingPts) {
-    PetscTruth setMatPropsAtCoarsest;
+    PetscBool setMatPropsAtCoarsest;
     PetscOptionsHasName(0,"-setMatPropsAtCoarsest",&setMatPropsAtCoarsest);
     if(setMatPropsAtCoarsest) {
       //Coarsest is only 1 processor. So to align with coarse blocks, everything
@@ -438,7 +441,7 @@ int main(int argc, char ** argv ) {
       linOct.clear();
 
       PetscReal lapFac = 0.0;
-      PetscTruth optFound;
+      PetscBool optFound;
       PetscOptionsGetReal("lap","-MatPropFac",&lapFac,&optFound);
       std::vector<double> lapJumps((matPropPts.size()/3));
       for(int i=0;i<lapJumps.size();i++) {
@@ -568,7 +571,7 @@ int main(int argc, char ** argv ) {
       linOct.clear();
 
       PetscReal lapFac = 0.0;
-      PetscTruth optFound;
+      PetscBool optFound;
       PetscOptionsGetReal("lap","-MatPropFac",&lapFac,&optFound);
       std::vector<double> lapJumps((matPropPts.size()/3));
       for(int i=0;i<lapJumps.size();i++) {
@@ -683,7 +686,7 @@ int main(int argc, char ** argv ) {
   PetscReal norm2;
   PetscReal normInf;
 
-  PetscTruth setRandomGuess = PETSC_FALSE;
+  PetscBool setRandomGuess = PETSC_FALSE;
   PetscOptionsHasName(0,"-setRandomGuess",&setRandomGuess);
 
   if(setRandomGuess) { 
@@ -703,7 +706,7 @@ int main(int argc, char ** argv ) {
 
     VecSetRandom((DAMGGetx(damg)),rctx);
 
-    PetscRandomDestroy(rctx);
+    PetscRandomDestroy(&rctx);
 
     VecNorm((DAMGGetx(damg)),NORM_INFINITY,&normInf);
     VecNorm((DAMGGetx(damg)),NORM_2,&norm2);

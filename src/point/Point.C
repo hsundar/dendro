@@ -41,10 +41,12 @@ Point::Point(const Point &newposition) :
   _x(newposition._x), _y(newposition._y), _z(newposition._z)
 {
 }
-
+/*
 Point::~Point()
 {
+
 }
+*/
 
 Point Point::operator - () const {
 	return Point(-_x, -_y, -_z);

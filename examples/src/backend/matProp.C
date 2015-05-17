@@ -403,7 +403,7 @@ void SetUserContexts(ot::DAMG* damg) {
 
   if(jacType == 1) { return; }
 
-  PetscTruth setMatPropsAtCoarsest;
+  PetscBool setMatPropsAtCoarsest;
   PetscOptionsHasName(0,"-setMatPropsAtCoarsest",&setMatPropsAtCoarsest);
 
   if(setMatPropsAtCoarsest) {
@@ -454,7 +454,7 @@ void SetUserContexts(ot::DAMG* damg) {
   PetscReal lapFac = 0.0;
   PetscReal massFac = 0.0;
   PetscReal massBase = 1.0;
-  PetscTruth optFound;
+  PetscBool optFound;
   PetscOptionsGetReal("lap","-MatPropFac",&lapFac,&optFound);
   PetscOptionsGetReal("mass","-MatPropFac",&massFac,&optFound);
   PetscOptionsGetReal("mass","-BaseMatProp",&massBase,&optFound);
@@ -462,7 +462,7 @@ void SetUserContexts(ot::DAMG* damg) {
   double *matPropArr = NULL;
   ot::DA* da;
 
-  PetscTruth setMatPropFromAnalyticFn;
+  PetscBool setMatPropFromAnalyticFn;
   PetscOptionsHasName(0,"-setMatPropFromAnalyticFn",&setMatPropFromAnalyticFn);
 
   if(setMatPropFromAnalyticFn) {
@@ -472,7 +472,7 @@ void SetUserContexts(ot::DAMG* damg) {
     SET_SINGLE_LEVEL_MAT_PROP_BLOCK(\
         ASSIGN_MAT_PROP_ANALYTIC_FN_ELEM_BLOCK, dummyInit = 0;) 
   } else {
-    PetscTruth setCheckerBoardMatProp;
+    PetscBool setCheckerBoardMatProp;
     PetscOptionsHasName(0,"-setCheckerBoardMatProp",&setCheckerBoardMatProp);
     if(setCheckerBoardMatProp) {
       int dummyInit;
@@ -604,7 +604,7 @@ void SetUserContextsFromPts(ot::DAMG* damg,
   //Default values is the same as the const. coeff. case 
   PetscReal lapBase = 1.0;
   PetscReal massBase = 1.0;
-  PetscTruth optFound;
+  PetscBool optFound;
   PetscOptionsGetReal("lap","-BaseMatProp",&lapBase,&optFound);
   PetscOptionsGetReal("mass","-BaseMatProp",&massBase,&optFound);
   unsigned int maxD ;
@@ -899,7 +899,7 @@ void SetUserContextsCoarsestToFinest(ot::DAMG* damg) {
   PetscReal lapFac = 0.0;
   PetscReal massFac = 0.0;
   PetscReal massBase = 1.0;
-  PetscTruth optFound;
+  PetscBool optFound;
   PetscOptionsGetReal("lap","-MatPropFac",&lapFac,&optFound);
   PetscOptionsGetReal("mass","-MatPropFac",&massFac,&optFound);
   PetscOptionsGetReal("mass","-BaseMatProp",&massBase,&optFound);
@@ -907,7 +907,7 @@ void SetUserContextsCoarsestToFinest(ot::DAMG* damg) {
   ot::DA* da;
   double *matPropArr = NULL;
 
-  PetscTruth setMatPropFromAnalyticFn;
+  PetscBool setMatPropFromAnalyticFn;
   PetscOptionsHasName(0,"-setMatPropFromAnalyticFn",&setMatPropFromAnalyticFn);
 
   if(setMatPropFromAnalyticFn) {
@@ -917,7 +917,7 @@ void SetUserContextsCoarsestToFinest(ot::DAMG* damg) {
     SET_SINGLE_LEVEL_MAT_PROP_BLOCK(\
         ASSIGN_MAT_PROP_ANALYTIC_FN_ELEM_BLOCK, dummyInit = 0;) 
   } else {
-    PetscTruth setCheckerBoardMatProp;
+    PetscBool setCheckerBoardMatProp;
     PetscOptionsHasName(0,"-setCheckerBoardMatProp",&setCheckerBoardMatProp);
     if(setCheckerBoardMatProp) {
       int dummyInit;
@@ -968,7 +968,7 @@ void SetCoarseToFineFromPts(ot::DAMG* damg,
   //Default values is the same as the const. coeff. case 
   PetscReal lapBase = 1.0;
   PetscReal massBase = 1.0;
-  PetscTruth optFound;
+  PetscBool optFound;
   PetscOptionsGetReal("lap","-BaseMatProp",&lapBase,&optFound);
   PetscOptionsGetReal("mass","-BaseMatProp",&massBase,&optFound);
   unsigned int maxD;
@@ -1012,15 +1012,15 @@ void DestroyUserContexts(ot::DAMG* damg) {
       delete ctx->matProp;
       ctx->matProp = NULL;
       if(ctx->Jmat_private) {
-        MatDestroy(ctx->Jmat_private);
+        MatDestroy(&(ctx->Jmat_private));
         ctx->Jmat_private = NULL;
       }
       if(ctx->inTmp) {
-        VecDestroy(ctx->inTmp);
+        VecDestroy(&(ctx->inTmp));
         ctx->inTmp = NULL;
       }
       if(ctx->outTmp) {
-        VecDestroy(ctx->outTmp);
+        VecDestroy(&(ctx->outTmp));
         ctx->outTmp = NULL;
       }
       delete ctx;
@@ -1046,15 +1046,15 @@ void DestroyUserContexts(ot::DAMG* damg) {
         ctx->matPropFine = NULL;
       }
       if(ctx->Jmat_private) {
-        MatDestroy(ctx->Jmat_private);
+        MatDestroy(&(ctx->Jmat_private));
         ctx->Jmat_private = NULL;
       }
       if(ctx->inTmp) {
-        VecDestroy(ctx->inTmp);
+        VecDestroy(&(ctx->inTmp));
         ctx->inTmp = NULL;
       }
       if(ctx->outTmp) {
-        VecDestroy(ctx->outTmp);
+        VecDestroy(&(ctx->outTmp));
         ctx->outTmp = NULL;
       }
       delete ctx;

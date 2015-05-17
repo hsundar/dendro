@@ -23,7 +23,7 @@ PetscErrorCode CreateConstVecMass(ot::DAMG damg, Mat *jac) {
   PetscFunctionBegin;
   PetscInt buildFullCoarseMat;
   int totalLevels;
-  PetscTruth flg;
+  PetscBool flg;
   PetscOptionsGetInt(PETSC_NULL,"-buildFullCoarseMat",&buildFullCoarseMat,&flg);
   totalLevels = damg->nlevels;
   ot::DA* da = damg->da;
@@ -38,7 +38,7 @@ PetscErrorCode CreateConstVecMass(ot::DAMG damg, Mat *jac) {
       da->computeLocalToGlobalMappings();
     }
     char matType[30];
-    PetscTruth typeFound;
+    PetscBool typeFound;
     PetscOptionsGetString(PETSC_NULL,"-fullJacMatType",matType,30,&typeFound);
     if(!typeFound) {
       std::cout<<"I need a MatType for the full matrix!"<<std::endl;
@@ -338,8 +338,8 @@ PetscErrorCode ComputeConstVecMass(ot::DAMG damg, Mat J, Mat B) {
   //For matShells nothing to be done here.
   PetscFunctionBegin;
 
-  PetscTruth isshell;
-  PetscTypeCompare((PetscObject)B, MATSHELL, &isshell);
+  PetscBool isshell;
+  PetscObjectTypeCompare((PetscObject)B, MATSHELL, &isshell);
   if(isshell) {
     PetscFunctionReturn(0);
   }

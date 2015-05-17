@@ -56,10 +56,13 @@ int main(int argc, char ** argv ) {
   ot::DA_Initialize(MPI_COMM_WORLD);
 
 #ifdef PETSC_USE_LOG
-  PetscLogEventRegister("ODAmatDiag",PETSC_VIEWER_COOKIE, &Jac1DiagEvent);
-  PetscLogEventRegister("ODAmatMult",PETSC_VIEWER_COOKIE, &Jac1MultEvent);
-  PetscLogEventRegister("ODAmatDiagFinest",PETSC_VIEWER_COOKIE, &Jac1FinestDiagEvent);
-  PetscLogEventRegister("ODAmatMultFinest",PETSC_VIEWER_COOKIE, &Jac1FinestMultEvent);
+  PetscClassId classid;
+  PetscClassIdRegister("Dendro",&classid);
+
+  PetscLogEventRegister("ODAmatDiag",classid, &Jac1DiagEvent);
+  PetscLogEventRegister("ODAmatMult",classid, &Jac1MultEvent);
+  PetscLogEventRegister("ODAmatDiagFinest",classid, &Jac1FinestDiagEvent);
+  PetscLogEventRegister("ODAmatMultFinest",classid, &Jac1FinestMultEvent);
   int stages[4];
   PetscLogStageRegister("P2O.",&stages[0]);
   PetscLogStageRegister("Bal",&stages[1]);
@@ -271,9 +274,9 @@ int main(int argc, char ** argv ) {
     iC(Jacobian1MatMult(J, in, out));
   }
 
-  VecDestroy(in);
-  VecDestroy(out);
-  VecDestroy(diag);
+  VecDestroy(&in);
+  VecDestroy(&out);
+  VecDestroy(&diag);
 
   iC(Jacobian1MatDestroy(J));
 

@@ -157,7 +157,7 @@ int main(int argc, char ** argv ) {
   PetscReal maxNormErr;
   VecNorm(solTrue, NORM_INFINITY, &maxNormErr);
 
-  VecDestroy(solTrue);
+  VecDestroy(&solTrue);
 
   if(!rank) {
     std::cout<<" Total Setup Time: "<<(setupEndTime - setupStartTime)<<std::endl;

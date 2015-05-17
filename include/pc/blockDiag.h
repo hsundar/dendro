@@ -33,7 +33,7 @@ namespace ot {
 
   PetscErrorCode PCDestroy_BlockDiag(PC pc);
 
-  PetscErrorCode PCSetFromOptions_BlockDiag(PC pc);
+  PetscErrorCode PCSetFromOptions_BlockDiag(PetscOptions* opts, PC pc);
 
   PetscErrorCode PCCreate_BlockDiag(PC pc);
 

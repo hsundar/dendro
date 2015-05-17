@@ -52,7 +52,7 @@ int main(int argc, char ** argv ) {
         std::cout << " Is octree Linear? : "<<(ot::test::isLinear(nodes))<<std::endl;	
         std::cout << " Is octree Complete? : "<<(ot::test::isComplete(nodes))<<std::endl;	
         std::cout << " Is octree Balanced? : "<<
-          (ot::test::isBalanced(d,mD,"failedCheck",nodes, incCorn,maxLevDiff))<<std::endl;	
+          (ot::test::isBalanced(d, mD, "failedCheck", nodes, incCorn, maxLevDiff)) << std::endl;	
 	
 }
 

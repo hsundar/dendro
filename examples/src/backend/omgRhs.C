@@ -313,13 +313,13 @@ PetscErrorCode ComputeTestFBM_RHS(ot::DAMG damg, Vec in) {
   Mat tmpMat;
   CreateTmpDirichletJacobian(damg, &tmpMat);
   MatMult(tmpMat, dirichletVals, bcCorrections);
-  MatDestroy(tmpMat);
+  MatDestroy(&tmpMat);
 
   VecAXPY(in, 1.0, dirichletVals);
   VecAXPY(in, -1.0, bcCorrections);
 
-  VecDestroy(dirichletVals);
-  VecDestroy(bcCorrections);
+  VecDestroy(&dirichletVals);
+  VecDestroy(&bcCorrections);
 
   int rank;
   MPI_Comm_rank(damg->comm, &rank);
@@ -347,7 +347,7 @@ PetscErrorCode ComputeFBM2_RHS(ot::DAMG damg, Vec in) {
   Mat tmpMat;
   CreateTmpDirichletLaplacian(damg, &tmpMat);
   MatMult(tmpMat, dirichletVals, bcCorrections);
-  MatDestroy(tmpMat);
+  MatDestroy(&tmpMat);
 
   PetscReal gamma = 0;
   PetscOptionsGetReal(0, "-gamma", &gamma, 0);
@@ -356,9 +356,9 @@ PetscErrorCode ComputeFBM2_RHS(ot::DAMG damg, Vec in) {
   VecAXPY(in, 1.0, dirichletVals);
   VecAXPY(in, -1.0, bcCorrections);
 
-  VecDestroy(deltaRhs);
-  VecDestroy(dirichletVals);
-  VecDestroy(bcCorrections);
+  VecDestroy(&deltaRhs);
+  VecDestroy(&dirichletVals);
+  VecDestroy(&bcCorrections);
 
   int rank;
   MPI_Comm_rank(damg->comm, &rank);
@@ -680,7 +680,7 @@ PetscErrorCode ComputeFBM_RHS(ot::DAMG damg, Vec in) {
   Mat tmpMat;
   CreateTmpDirichletJacobian(damg, &tmpMat);
   MatMult(tmpMat, dirichletVals, bcCorrections);
-  MatDestroy(tmpMat);
+  MatDestroy(&tmpMat);
 
   PetscReal fbmR = 0;
   PetscOptionsGetReal(0, "-fbmR", &fbmR, 0);
@@ -689,9 +689,9 @@ PetscErrorCode ComputeFBM_RHS(ot::DAMG damg, Vec in) {
   VecAXPY(in, 1.0, dirichletVals);
   VecAXPY(in, -1.0, bcCorrections);
 
-  VecDestroy(deltaRhs);
-  VecDestroy(dirichletVals);
-  VecDestroy(bcCorrections);
+  VecDestroy(&deltaRhs);
+  VecDestroy(&dirichletVals);
+  VecDestroy(&bcCorrections);
 
   int rank;
   MPI_Comm_rank(damg->comm, &rank);
@@ -1275,7 +1275,7 @@ PetscErrorCode ComputeRandomRHS(ot::DAMG damg,Vec in) {
   PetscRandomSeed(rctx);
   PetscRandomSetFromOptions(rctx);
   VecSetRandom(in,rctx);
-  PetscRandomDestroy(rctx);
+  PetscRandomDestroy(&rctx);
 
   PetscReal norm2;
   PetscReal normInf;
@@ -1300,8 +1300,8 @@ PetscErrorCode ComputeRHS3(ot::DAMG damg,Vec in) {
   Mat massMat;
   CreateAndComputeMassMatrix(damg->da,&massMat);
   MatMult(massMat,tmp,in);
-  MatDestroy(massMat);
-  VecDestroy(tmp);
+  MatDestroy(&massMat);
+  VecDestroy(&tmp);
 
   PetscReal norm2;
   PetscReal normInf;
@@ -1323,7 +1323,7 @@ PetscErrorCode ComputeRHS4(ot::DAMG damg, Vec in) {
   ComputeRandomRHS(damg, tmp);
 
   MatMult(damg->J, tmp, in);
-  VecDestroy(tmp);
+  VecDestroy(&tmp);
 
   PetscReal norm2;
   PetscReal normInf;
@@ -1409,8 +1409,8 @@ PetscErrorCode ComputeRHS1(ot::DAMG damg,Vec in) {
   Mat massMat;
   CreateAndComputeMassMatrix(da,&massMat);
   MatMult(massMat,tmp,in);
-  MatDestroy(massMat);
-  VecDestroy(tmp);
+  MatDestroy(&massMat);
+  VecDestroy(&tmp);
 
   VecNorm(in, NORM_INFINITY, &normInf);
   VecNorm(in, NORM_2, &norm2);
@@ -1439,7 +1439,7 @@ PetscErrorCode ComputeRHS5(ot::DAMG damg,Vec in) {
   da->vecGetBuffer(tmp, inarray, false, false, false, 1);
 
   PetscReal lapFac = 0.0;
-  PetscTruth optFound;
+  PetscBool optFound;
   PetscOptionsGetReal("lap","-MatPropFac",&lapFac,&optFound);
   int rank;
   MPI_Comm_rank(damg->comm,&rank);
@@ -1512,8 +1512,8 @@ PetscErrorCode ComputeRHS5(ot::DAMG damg,Vec in) {
   Mat massMat;
   CreateAndComputeMassMatrix(da,&massMat);
   MatMult(massMat,tmp,in);
-  MatDestroy(massMat);
-  VecDestroy(tmp);
+  MatDestroy(&massMat);
+  VecDestroy(&tmp);
 
   VecNorm(in, NORM_INFINITY, &normInf);
   VecNorm(in, NORM_2, &norm2);
@@ -1534,7 +1534,7 @@ PetscErrorCode ComputeRHS6(ot::DAMG damg,Vec in) {
   VecDuplicate(in, &tmp);
   SetSolution5(da,tmp);
   MatMult(damg->J, tmp, in);
-  VecDestroy(tmp);
+  VecDestroy(&tmp);
   PetscFunctionReturn(0);
 }
 
@@ -1557,7 +1557,7 @@ PetscErrorCode ComputeRHS7(ot::DAMG damg,Vec in) {
   da->vecGetBuffer(in,inarray,false,false,false,1);
 
   PetscReal lapFac = 0.0;
-  PetscTruth optFound;
+  PetscBool optFound;
   PetscOptionsGetReal("lap","-MatPropFac",&lapFac,&optFound);
 
   unsigned int maxD;
@@ -1643,7 +1643,7 @@ PetscErrorCode ComputeRHS8(ot::DAMG damg,Vec in) {
   da->vecGetBuffer(in,inarray,false,false,false,1);
 
   PetscReal lapFac = 0.0;
-  PetscTruth optFound;
+  PetscBool optFound;
   PetscOptionsGetReal("lap","-MatPropFac",&lapFac,&optFound);
 
   PetscInt numGaussPts = 0;
@@ -1894,7 +1894,7 @@ double TestError5(ot::DA* da) {
   da->createVector(tmp, false, false, 1);
   SetSolution5(da, tmp);
   double error = ComputeError5(da, tmp);
-  VecDestroy(tmp);
+  VecDestroy(&tmp);
   return error;
 }
 

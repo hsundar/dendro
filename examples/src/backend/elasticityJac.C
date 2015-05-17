@@ -22,8 +22,8 @@ extern double**** GradDivType2Stencil;
 
 void getActiveStateAndActiveCommForKSP_Shell_Elas(Mat mat,
     bool & activeState, MPI_Comm & activeComm) {
-  PetscTruth isshell;
-  PetscTypeCompare((PetscObject)mat, MATSHELL, &isshell);
+  PetscBool isshell;
+  PetscObjectTypeCompare((PetscObject)mat, MATSHELL, &isshell);
   assert(isshell);
   ot::DAMG damg;
   MatShellGetContext(mat, (void**)(&damg));
@@ -34,8 +34,8 @@ void getActiveStateAndActiveCommForKSP_Shell_Elas(Mat mat,
 
 void getPrivateMatricesForKSP_Shell_Elas(Mat mat,
     Mat *AmatPrivate, Mat *PmatPrivate, MatStructure* pFlag) {
-  PetscTruth isshell;
-  PetscTypeCompare((PetscObject)mat, MATSHELL, &isshell);
+  PetscBool isshell;
+  PetscObjectTypeCompare((PetscObject)mat, MATSHELL, &isshell);
   assert(isshell);
   ot::DAMG damg;
   MatShellGetContext(mat, (void**)(&damg));
@@ -363,8 +363,8 @@ PetscErrorCode ComputeElasticityMat(ot::DAMG damg, Mat J, Mat B) {
 
   ElasticityData* data = (static_cast<ElasticityData*>(damg->user));
 
-  PetscTruth isshell;
-  PetscTypeCompare((PetscObject)B, MATSHELL, &isshell);
+  PetscBool isshell;
+  PetscObjectTypeCompare((PetscObject)B, MATSHELL, &isshell);
 
   assert(J == B);
 
@@ -378,7 +378,7 @@ PetscErrorCode ComputeElasticityMat(ot::DAMG damg, Mat J, Mat B) {
     }
   }
 
-  PetscTypeCompare((PetscObject)B, MATSHELL, &isshell);
+  PetscObjectTypeCompare((PetscObject)B, MATSHELL, &isshell);
 
   if(isshell) {
     PetscFunctionReturn(0);
@@ -397,7 +397,7 @@ void SetElasticityContexts(ot::DAMG* damg) {
   int       nlevels = damg[0]->nlevels; //number of multigrid levels
   PetscReal muVal = 1.0;
   PetscReal lambdaVal = 1.0;
-  PetscTruth optFound;
+  PetscBool optFound;
   PetscOptionsGetReal("elasticity","-_mu", &muVal, &optFound);
   PetscOptionsGetReal("elasticity","-_lambda", &lambdaVal, &optFound);
   for(int i = 0; i < nlevels; i++) {
@@ -491,15 +491,15 @@ void DestroyElasticityContexts(ot::DAMG* damg) {
       ctx->bdyArr = NULL;
     }
     if(ctx->Jmat_private) {
-      MatDestroy(ctx->Jmat_private);
+      MatDestroy(&(ctx->Jmat_private));
       ctx->Jmat_private = NULL;
     }
     if(ctx->inTmp) {
-      VecDestroy(ctx->inTmp);
+      VecDestroy(&(ctx->inTmp));
       ctx->inTmp = NULL;
     }
     if(ctx->outTmp) {
-      VecDestroy(ctx->outTmp);
+      VecDestroy(&(ctx->outTmp));
       ctx->outTmp = NULL;
     }
     delete ctx;
@@ -543,7 +543,7 @@ PetscErrorCode CreateElasticityMat(ot::DAMG damg, Mat *jac) {
   PetscInt buildFullCoarseMat;
   PetscInt buildFullMatAll;
   int totalLevels;
-  PetscTruth flg;
+  PetscBool flg;
   PetscOptionsGetInt(PETSC_NULL,"-buildFullCoarseMat",&buildFullCoarseMat,&flg);
   PetscOptionsGetInt(PETSC_NULL,"-buildFullMatAll",&buildFullMatAll,&flg);
   if(buildFullMatAll) {
@@ -563,7 +563,7 @@ PetscErrorCode CreateElasticityMat(ot::DAMG damg, Mat *jac) {
       if(!(da->computedLocalToGlobal())) {
         da->computeLocalToGlobalMappings();
       }
-      PetscTruth typeFound;
+      PetscBool typeFound;
       PetscOptionsGetString(PETSC_NULL,"-fullJacMatType",matType,30,&typeFound);
       if(!typeFound) {
         std::cout<<"I need a MatType for the full matrix!"<<std::endl;
@@ -626,7 +626,7 @@ PetscErrorCode CreateElasticityMat(ot::DAMG damg, Mat *jac) {
         da->computeLocalToGlobalMappings();
       }
       char matType[30];
-      PetscTruth typeFound;
+      PetscBool typeFound;
       PetscOptionsGetString(PETSC_NULL,"-fullJacMatType",matType,30,&typeFound);
       if(!typeFound) {
         std::cout<<"I need a MatType for the full matrix!"<<std::endl;

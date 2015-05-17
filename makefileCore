@@ -1,6 +1,6 @@
 INCLUDE=-I./include -I./include/oct -I./include/fem -I./include/oda  -I./include/omg  -I./include/seq  -I./include/par  -I./include/omp_par  -I./include/point  -I./include/test -I./include/binOps -I./include/pc -I./include/sys -I./examples/include ${PETSC_CC_INCLUDES}
 
-ARCHIVES = ./lib/libOMG.a ./lib/libODA.a ./lib/libOct.a ./lib/libPar.a ./lib/libPoint.a ./lib/libTest.a ./lib/libBinOps.a ./lib/libSys.a ./lib/libPC.a 
+ARCHIVES = ./lib/libOMG.a ./lib/libODA.a ./lib/libTest.a ./lib/libOct.a ./lib/libPar.a   ./lib/libPoint.a ./lib/libBinOps.a ./lib/libSys.a ./lib/libPC.a 
 
 # LIBS = -L./lib -lOMG -lODA -lOct -lPar -lPoint -lTest -lBinOps -lSys -lPC ${PETSC_LIB} 
 LIBS = ${PETSC_LIB} 
@@ -8,7 +8,7 @@ LIBS = ${PETSC_LIB}
 EXEC_BAL = bin/tstRipple  bin/runScal bin/rippleBal \
      bin/justBal bin/seqRipple bin/seqRipplePtr bin/testConAndBal bin/testConBalAndCoarsen
 
-EXEC_DA = bin/tstMatVec  bin/buildDA bin/buildRgDA bin/octLaplacian 
+EXEC_DA = bin/tstMatVec  bin/buildDA bin/buildRgDA #bin/octLaplacian 
 
 EXEC_MG = bin/checkError bin/newElasMesh bin/newElasSolver \
    bin/elasticitySolver bin/tstMgReg bin/tstMg bin/omgNeumann_ex1 \
@@ -233,7 +233,7 @@ bin/gen2spheres : ./scripts/gen2spheres.o $(ARCHIVES)
 bin/genPrlFBMpts : ./scripts/genPrlFBMpts.o $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
 
-myclean :
+clean :
 	rm -rf ./src/pc/*.o ./src/pc/*~ 
 	rm -rf ./src/omg/*~ ./src/omg/*.o
 	rm -rf ./src/oda/*~ ./src/oda/*.o 
@@ -249,6 +249,6 @@ myclean :
 	rm -rf ./scripts/*.o ./scripts/*~
 	rm -rf $(EXEC)
 
-clobber : myclean
+clobber : clean
 	rm -rf  $(ARCHIVES)
 

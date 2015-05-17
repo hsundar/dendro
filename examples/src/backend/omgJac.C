@@ -61,7 +61,7 @@ PetscErrorCode CreateTmpDirichletJacobian(ot::DAMG damg, Mat *jac) {
 PetscErrorCode CreateDirichletLaplacian(ot::DAMG damg, Mat *jac) {
   PetscFunctionBegin;
   int totalLevels;
-  PetscTruth flg;
+  PetscBool flg;
   PetscInt buildFullCoarseMat;
   PetscInt buildFullMatAll;
   PetscOptionsGetInt(PETSC_NULL,"-buildFullMatAll",&buildFullMatAll,&flg);
@@ -86,7 +86,7 @@ PetscErrorCode CreateDirichletLaplacian(ot::DAMG damg, Mat *jac) {
       if(!(da->computedLocalToGlobal())) {
         da->computeLocalToGlobalMappings();
       }
-      PetscTruth typeFound;
+      PetscBool typeFound;
       PetscOptionsGetString(PETSC_NULL,"-fullJacMatType",matType,30,&typeFound);
       if(!typeFound) {
         std::cout<<"I need a MatType for the full Jacobian matrix!"<<std::endl;
@@ -141,7 +141,7 @@ PetscErrorCode CreateDirichletLaplacian(ot::DAMG damg, Mat *jac) {
         da->computeLocalToGlobalMappings();
       }
       char matType[30];
-      PetscTruth typeFound;
+      PetscBool typeFound;
       PetscOptionsGetString(PETSC_NULL,"-fullJacMatType",matType,30,&typeFound);
       if(!typeFound) {
         std::cout<<"I need a MatType for the full Jacobian matrix!"<<std::endl;
@@ -166,7 +166,7 @@ PetscErrorCode CreateDirichletLaplacian(ot::DAMG damg, Mat *jac) {
 PetscErrorCode CreateDirichletJacobian(ot::DAMG damg, Mat *jac) {
   PetscFunctionBegin;
   int totalLevels;
-  PetscTruth flg;
+  PetscBool flg;
   PetscInt buildFullCoarseMat;
   PetscInt buildFullMatAll;
   PetscOptionsGetInt(PETSC_NULL,"-buildFullMatAll",&buildFullMatAll,&flg);
@@ -191,7 +191,7 @@ PetscErrorCode CreateDirichletJacobian(ot::DAMG damg, Mat *jac) {
       if(!(da->computedLocalToGlobal())) {
         da->computeLocalToGlobalMappings();
       }
-      PetscTruth typeFound;
+      PetscBool typeFound;
       PetscOptionsGetString(PETSC_NULL,"-fullJacMatType",matType,30,&typeFound);
       if(!typeFound) {
         std::cout<<"I need a MatType for the full Jacobian matrix!"<<std::endl;
@@ -246,7 +246,7 @@ PetscErrorCode CreateDirichletJacobian(ot::DAMG damg, Mat *jac) {
         da->computeLocalToGlobalMappings();
       }
       char matType[30];
-      PetscTruth typeFound;
+      PetscBool typeFound;
       PetscOptionsGetString(PETSC_NULL,"-fullJacMatType",matType,30,&typeFound);
       if(!typeFound) {
         std::cout<<"I need a MatType for the full Jacobian matrix!"<<std::endl;
@@ -271,8 +271,8 @@ PetscErrorCode ComputeDirichletLaplacian(ot::DAMG damg, Mat J, Mat B) {
   //For matShells nothing to be done here.
   PetscFunctionBegin;
 
-  PetscTruth isshell;
-  PetscTypeCompare((PetscObject)B, MATSHELL, &isshell);
+  PetscBool isshell;
+  PetscObjectTypeCompare((PetscObject)B, MATSHELL, &isshell);
 
   DirichletJacData *data = (static_cast<DirichletJacData*>(damg->user));
 
@@ -289,7 +289,7 @@ PetscErrorCode ComputeDirichletLaplacian(ot::DAMG damg, Mat J, Mat B) {
 
   //B and J are the same.
 
-  PetscTypeCompare((PetscObject)B, MATSHELL, &isshell);
+  PetscObjectTypeCompare((PetscObject)B, MATSHELL, &isshell);
   if(isshell) {
     //Nothing to be done here.
     PetscFunctionReturn(0);
@@ -383,8 +383,8 @@ PetscErrorCode ComputeDirichletJacobian(ot::DAMG damg, Mat J, Mat B) {
   //For matShells nothing to be done here.
   PetscFunctionBegin;
 
-  PetscTruth isshell;
-  PetscTypeCompare((PetscObject)B, MATSHELL, &isshell);
+  PetscBool isshell;
+  PetscObjectTypeCompare((PetscObject)B, MATSHELL, &isshell);
 
   DirichletJacData *data = (static_cast<DirichletJacData*>(damg->user));
 
@@ -401,7 +401,7 @@ PetscErrorCode ComputeDirichletJacobian(ot::DAMG damg, Mat J, Mat B) {
 
   //B and J are the same.
 
-  PetscTypeCompare((PetscObject)B, MATSHELL, &isshell);
+  PetscObjectTypeCompare((PetscObject)B, MATSHELL, &isshell);
   if(isshell) {
     //Nothing to be done here.
     PetscFunctionReturn(0);
@@ -594,15 +594,15 @@ void DestroyDirichletJacContexts(ot::DAMG* damg) {
       ctx->bdyArr = NULL;
     }
     if(ctx->Jmat_private) {
-      MatDestroy(ctx->Jmat_private);
+      MatDestroy(&(ctx->Jmat_private));
       ctx->Jmat_private = NULL;
     }
     if(ctx->inTmp) {
-      VecDestroy(ctx->inTmp);
+      VecDestroy(&(ctx->inTmp));
       ctx->inTmp = NULL;
     }
     if(ctx->outTmp) {
-      VecDestroy(ctx->outTmp);
+      VecDestroy(&(ctx->outTmp));
       ctx->outTmp = NULL;
     }
     delete ctx;
@@ -1225,8 +1225,8 @@ PetscErrorCode Jacobian3ShellMatMult(Mat J, Vec in, Vec out) {
 
 void getActiveStateAndActiveCommForKSP_Shell_DirichletJac(Mat mat,
     bool & activeState, MPI_Comm & activeComm) {
-  PetscTruth isshell;
-  PetscTypeCompare((PetscObject)mat, MATSHELL, &isshell);
+  PetscBool isshell;
+  PetscObjectTypeCompare((PetscObject)mat, MATSHELL, &isshell);
   assert(isshell);
   ot::DAMG damg;
   MatShellGetContext(mat, (void**)(&damg));
@@ -1237,8 +1237,8 @@ void getActiveStateAndActiveCommForKSP_Shell_DirichletJac(Mat mat,
 
 void getActiveStateAndActiveCommForKSP_Shell_Jac1(Mat mat,
     bool & activeState, MPI_Comm & activeComm) {
-  PetscTruth isshell;
-  PetscTypeCompare((PetscObject)mat, MATSHELL, &isshell);
+  PetscBool isshell;
+  PetscObjectTypeCompare((PetscObject)mat, MATSHELL, &isshell);
   assert(isshell);
   Jac1MFreeData *data;
   MatShellGetContext(mat, (void**)(&data));
@@ -1249,8 +1249,8 @@ void getActiveStateAndActiveCommForKSP_Shell_Jac1(Mat mat,
 
 void getActiveStateAndActiveCommForKSP_Shell_Jac2or3(Mat mat,
     bool & activeState, MPI_Comm & activeComm) {
-  PetscTruth isshell;
-  PetscTypeCompare((PetscObject)mat, MATSHELL, &isshell);
+  PetscBool isshell;
+  PetscObjectTypeCompare((PetscObject)mat, MATSHELL, &isshell);
   assert(isshell);
   ot::DAMG damg;
   MatShellGetContext(mat, (void**)(&damg));
@@ -1261,8 +1261,8 @@ void getActiveStateAndActiveCommForKSP_Shell_Jac2or3(Mat mat,
 
 void getPrivateMatricesForKSP_Shell_DirichletJac(Mat mat,
     Mat *AmatPrivate, Mat *PmatPrivate, MatStructure* pFlag) {
-  PetscTruth isshell;
-  PetscTypeCompare((PetscObject)mat, MATSHELL, &isshell);
+  PetscBool isshell;
+  PetscObjectTypeCompare((PetscObject)mat, MATSHELL, &isshell);
   assert(isshell);
   ot::DAMG damg;
   MatShellGetContext(mat, (void**)(&damg));
@@ -1274,8 +1274,8 @@ void getPrivateMatricesForKSP_Shell_DirichletJac(Mat mat,
 
 void getPrivateMatricesForKSP_Shell_Jac1(Mat mat,
     Mat *AmatPrivate, Mat *PmatPrivate, MatStructure* pFlag) {
-  PetscTruth isshell;
-  PetscTypeCompare((PetscObject)mat, MATSHELL, &isshell);
+  PetscBool isshell;
+  PetscObjectTypeCompare((PetscObject)mat, MATSHELL, &isshell);
   assert(isshell);
   Jac1MFreeData* data;
   MatShellGetContext(mat, (void**)(&data));
@@ -1286,8 +1286,8 @@ void getPrivateMatricesForKSP_Shell_Jac1(Mat mat,
 
 void getPrivateMatricesForKSP_Shell_Jac2(Mat mat,
     Mat *AmatPrivate, Mat *PmatPrivate, MatStructure* pFlag) {
-  PetscTruth isshell;
-  PetscTypeCompare((PetscObject)mat, MATSHELL, &isshell);
+  PetscBool isshell;
+  PetscObjectTypeCompare((PetscObject)mat, MATSHELL, &isshell);
   assert(isshell);
   ot::DAMG damg;
   MatShellGetContext(mat, (void**)(&damg));
@@ -1299,8 +1299,8 @@ void getPrivateMatricesForKSP_Shell_Jac2(Mat mat,
 
 void getPrivateMatricesForKSP_Shell_Jac3(Mat mat,
     Mat *AmatPrivate, Mat *PmatPrivate, MatStructure* pFlag) {
-  PetscTruth isshell;
-  PetscTypeCompare((PetscObject)mat, MATSHELL, &isshell);
+  PetscBool isshell;
+  PetscObjectTypeCompare((PetscObject)mat, MATSHELL, &isshell);
   assert(isshell);
   ot::DAMG damg;
   MatShellGetContext(mat, (void**)(&damg));
@@ -1334,7 +1334,7 @@ PetscErrorCode CreateJacobian1(ot::DAMG damg,Mat *jac) {
   PetscInt buildFullCoarseMat;
   PetscInt buildFullMatAll;
   int totalLevels;
-  PetscTruth flg;
+  PetscBool flg;
   PetscOptionsGetInt(PETSC_NULL, "-buildFullMatAll", &buildFullMatAll, &flg);
   PetscOptionsGetInt(PETSC_NULL, "-buildFullCoarseMat", &buildFullCoarseMat, &flg);
   if(buildFullMatAll) {
@@ -1482,7 +1482,7 @@ PetscErrorCode ComputeJacobian1(ot::DAMG damg,Mat J, Mat B) {
 PetscErrorCode CreateJacobian2(ot::DAMG damg, Mat *jac) {
   PetscFunctionBegin;
   int totalLevels;
-  PetscTruth flg;
+  PetscBool flg;
   PetscInt buildFullCoarseMat;
   PetscInt buildFullMatAll;
   PetscOptionsGetInt(PETSC_NULL,"-buildFullMatAll",&buildFullMatAll,&flg);
@@ -1507,7 +1507,7 @@ PetscErrorCode CreateJacobian2(ot::DAMG damg, Mat *jac) {
       if(!(da->computedLocalToGlobal())) {
         da->computeLocalToGlobalMappings();
       }
-      PetscTruth typeFound;
+      PetscBool typeFound;
       PetscOptionsGetString(PETSC_NULL,"-fullJacMatType",matType,30,&typeFound);
       if(!typeFound) {
         std::cout<<"I need a MatType for the full Jacobian matrix!"<<std::endl;
@@ -1562,7 +1562,7 @@ PetscErrorCode CreateJacobian2(ot::DAMG damg, Mat *jac) {
         da->computeLocalToGlobalMappings();
       }
       char matType[30];
-      PetscTruth typeFound;
+      PetscBool typeFound;
       PetscOptionsGetString(PETSC_NULL,"-fullJacMatType",matType,30,&typeFound);
       if(!typeFound) {
         std::cout<<"I need a MatType for the full Jacobian matrix!"<<std::endl;
@@ -1861,8 +1861,8 @@ PetscErrorCode ComputeJacobian2(ot::DAMG damg, Mat J, Mat B) {
   //For matShells nothing to be done here.
   PetscFunctionBegin;
 
-  PetscTruth isshell;
-  PetscTypeCompare((PetscObject)B, MATSHELL, &isshell);
+  PetscBool isshell;
+  PetscObjectTypeCompare((PetscObject)B, MATSHELL, &isshell);
 
   Jac2MFreeData *data = (static_cast<Jac2MFreeData*>(damg->user));
 
@@ -1879,7 +1879,7 @@ PetscErrorCode ComputeJacobian2(ot::DAMG damg, Mat J, Mat B) {
 
   //B and J are the same.
 
-  PetscTypeCompare((PetscObject)B, MATSHELL, &isshell);
+  PetscObjectTypeCompare((PetscObject)B, MATSHELL, &isshell);
   if(isshell) {
     //Nothing to be done here.
     PetscFunctionReturn(0);
@@ -1895,7 +1895,7 @@ PetscErrorCode ComputeJacobian2(ot::DAMG damg, Mat J, Mat B) {
 PetscErrorCode CreateJacobian3(ot::DAMG damg,Mat *jac) {
   PetscFunctionBegin;
   int totalLevels;
-  PetscTruth flg;
+  PetscBool flg;
   PetscInt buildFullMatAll;
   PetscInt buildFullCoarseMat;
   PetscOptionsGetInt(PETSC_NULL,"-buildFullMatAll",&buildFullMatAll,&flg);
@@ -1920,7 +1920,7 @@ PetscErrorCode CreateJacobian3(ot::DAMG damg,Mat *jac) {
       if(!(da->computedLocalToGlobal())) {
         da->computeLocalToGlobalMappings();
       }
-      PetscTruth typeFound;
+      PetscBool typeFound;
       PetscOptionsGetString(PETSC_NULL,"-fullJacMatType",matType,30,&typeFound);
       if(!typeFound) {
         std::cout<<"I need a MatType for the full Jacobian matrix!"<<std::endl;
@@ -1978,7 +1978,7 @@ PetscErrorCode CreateJacobian3(ot::DAMG damg,Mat *jac) {
         da->computeLocalToGlobalMappings();
       }
       char matType[30];
-      PetscTruth typeFound;
+      PetscBool typeFound;
       PetscOptionsGetString(PETSC_NULL,"-fullJacMatType",matType,30,&typeFound);
       if(!typeFound) {
         std::cout<<"I need a MatType for the full Jacobian matrix!"<<std::endl;
@@ -2259,7 +2259,7 @@ PetscErrorCode Jacobian3MatMult(Mat J, Vec in, Vec out)
     //Use the fine grid material properties
     //Loop over the coarse and fine meshes simultaneously
     PetscReal tolToCoarsenMatProp = 1.0e-12;
-    PetscTruth optFound;
+    PetscBool optFound;
     PetscOptionsGetReal(0,"-tolToCoarsenMatProp",&tolToCoarsenMatProp,&optFound);
     assert(tolToCoarsenMatProp >= 0.0);
 
@@ -2452,9 +2452,9 @@ PetscErrorCode ComputeJacobian3(ot::DAMG damg, Mat J, Mat B) {
 
   Jac3MFreeData *data = (static_cast<Jac3MFreeData*>(damg->user));
 
-  PetscTruth isShellB, isShellJ;
-  PetscTypeCompare((PetscObject)B, MATSHELL, &isShellB);
-  PetscTypeCompare((PetscObject)J, MATSHELL, &isShellJ);
+  PetscBool isShellB, isShellJ;
+  PetscObjectTypeCompare((PetscObject)B, MATSHELL, &isShellB);
+  PetscObjectTypeCompare((PetscObject)J, MATSHELL, &isShellJ);
 
   assert(isShellB == isShellJ);
 
@@ -2477,8 +2477,8 @@ PetscErrorCode ComputeJacobian3(ot::DAMG damg, Mat J, Mat B) {
   data->JmatThisLevel = J;
   data->BmatThisLevel = B;
 
-  PetscTypeCompare((PetscObject)B, MATSHELL, &isShellB);
-  PetscTypeCompare((PetscObject)J, MATSHELL, &isShellJ);
+  PetscObjectTypeCompare((PetscObject)B, MATSHELL, &isShellB);
+  PetscObjectTypeCompare((PetscObject)J, MATSHELL, &isShellJ);
 
   if(J != B) {
     //Build both B ond J

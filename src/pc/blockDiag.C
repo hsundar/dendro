@@ -6,7 +6,7 @@
 
 #include "petscmat.h"
 #include "petscpc.h"
-#include "private/pcimpl.h"
+#include "petsc/private/pcimpl.h"
 #include "blockDiag.h"
 #include <cassert>
 
@@ -25,11 +25,11 @@ namespace ot {
     PC_BlockDiag* data = static_cast<PC_BlockDiag*>(pc->data);
 
     Mat pcMat = pc->pmat;
-    PetscTruth isshell;
-    PetscTypeCompare((PetscObject)pcMat, MATSHELL, &isshell);
+    PetscBool isshell;
+    PetscObjectTypeCompare((PetscObject)pcMat, MATSHELL, &isshell);
 
     if(!isshell) {
-      SETERRQ(PETSC_ERR_SUP," Expected a MATSHELL.");
+      SETERRQ(MPI_COMM_WORLD, PETSC_ERR_SUP," Expected a MATSHELL.");
       assert(false);
     }
 
@@ -37,7 +37,7 @@ namespace ot {
       if(getDofAndNodeSizeForPC_BlockDiag) {
         (*getDofAndNodeSizeForPC_BlockDiag)(pcMat, data->dof, data->nodeSize);
       } else {
-        SETERRQ(PETSC_ERR_USER," Expected function to be set: getDofAndNodeSizeForPC_BlockDiag");
+        SETERRQ(MPI_COMM_WORLD, PETSC_ERR_USER," Expected function to be set: getDofAndNodeSizeForPC_BlockDiag");
         assert(false);
       }
 
@@ -49,14 +49,14 @@ namespace ot {
         for(int i = 0; i < ((data->dof)*(data->nodeSize)); i++) {
           data->invBlockDiagEntries[i] = new double[data->dof];
         }
-        PetscLogObjectMemory(pc, (((data->dof)*(data->nodeSize))*sizeof(double)));
+        PetscLogObjectMemory((PetscObject)pc, (((data->dof)*(data->nodeSize))*sizeof(double)));
       }
     }
 
     if(computeInvBlockDiagEntriesForPC_BlockDiag) {
       (*computeInvBlockDiagEntriesForPC_BlockDiag)(pcMat, data->invBlockDiagEntries);
     } else {
-      SETERRQ(PETSC_ERR_USER,
+      SETERRQ(MPI_COMM_WORLD, PETSC_ERR_USER,
           " Expected function to be set: computeInvBlockDiagEntriesForPC_BlockDiag");
       assert(false);
     }
@@ -97,7 +97,7 @@ namespace ot {
 
     pc->data = (void*)(data);
 
-    PetscLogObjectMemory(pc, sizeof(PC_BlockDiag));
+    PetscLogObjectMemory((PetscObject)pc, sizeof(PC_BlockDiag));
 
     //Initialize Data
     data->dof = 0;
@@ -141,7 +141,7 @@ namespace ot {
     PetscFunctionReturn(0);
   }
 
-  PetscErrorCode PCSetFromOptions_BlockDiag(PC pc) {
+  PetscErrorCode PCSetFromOptions_BlockDiag(PetscOptions *opts, PC pc) {
     PetscFunctionBegin;
     PetscFunctionReturn(0);
   }

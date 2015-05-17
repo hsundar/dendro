@@ -83,8 +83,8 @@ PetscErrorCode ComputeElasticityRHS(ot::DAMG damg, Vec rhs) {
   ComputeConstVecMass(damg, vecMassMat, vecMassMat);
 
   MatMult(vecMassMat,tmp,rhs);
-  MatDestroy(vecMassMat);
-  VecDestroy(tmp);
+  MatDestroy(&vecMassMat);
+  VecDestroy(&tmp);
 
   VecScale(rhs,-1.0);
 

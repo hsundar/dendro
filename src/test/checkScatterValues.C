@@ -141,7 +141,7 @@ int main(int argc, char ** argv ) {
       std::cout<<"The local sizes are preserved."<<std::endl;
     }
 
-    VecDestroy(in);
+    VecDestroy(&in);
 
     PetscScalar* outArr;
     VecGetArray(out,&outArr);
@@ -158,7 +158,7 @@ int main(int argc, char ** argv ) {
     delete [] outSizes;
     delete [] outDisps;		
     VecRestoreArray(out,&outArr);
-    VecDestroy(out);
+    VecDestroy(&out);
 
     if(!rank) {
       for(DendroIntL i = 0; i < totalInSz; i++) {
