@@ -5,8 +5,8 @@
   */
 
 #include "dtypes.h"
-#include "petscpc.h"
 #include "petscsys.h"
+#include "petscpc.h"
 // #include "petscpcmg.h"
 #include "petscksp.h"
 #include "petscmat.h"
@@ -907,7 +907,7 @@ namespace ot {
           }
 
           PetscBool ismg;
-          PetscTypeCompare((PetscObject)pc, PCMG, &ismg);
+          PetscObjectTypeCompare((PetscObject)pc, PCMG, &ismg);
 
           if(ismg) {
             PetscBool useRTLMG;
@@ -918,7 +918,7 @@ namespace ot {
               while(ismg) {
                 ierr = PCMGGetSmoother(pc,0,&lksp);CHKERRQ(ierr);
                 ierr  = KSPGetPC(lksp, &pc); CHKERRQ(ierr);
-                PetscTypeCompare((PetscObject)pc, PCMG, &ismg);
+                PetscObjectTypeCompare((PetscObject)pc, PCMG, &ismg);
               }
             } else {
               ierr = PCMGGetSmoother(pc,0,&lksp);CHKERRQ(ierr);
@@ -1022,7 +1022,7 @@ namespace ot {
       KSPGetPC(damg[level]->ksp, &pc);
 
       PetscBool ismg;
-      PetscTypeCompare((PetscObject)pc, PCMG, &ismg);
+      PetscObjectTypeCompare((PetscObject)pc, PCMG, &ismg);
 
       if(ismg) {
         for(int i = 0; i <= level; i++) {
@@ -1053,7 +1053,7 @@ namespace ot {
     Vec            *nulls = 0;
     MatNullSpace   nullsp;
     KSP            iksp;
-    PC             pc,ipc;
+    PC             pc, ipc;
     PetscBool     ismg,isred;
 
     PetscFunctionBegin;
@@ -1071,13 +1071,13 @@ namespace ot {
         ierr = KSPSetNullSpace(damg[i]->ksp,nullsp);CHKERRQ(ierr);
         for (j = i; j < nlevels; j++) {
           ierr = KSPGetPC(damg[j]->ksp,&pc);CHKERRQ(ierr);
-          ierr = PetscTypeCompare((PetscObject)pc,PCMG,&ismg);CHKERRQ(ierr);
+          ierr = PetscObjectTypeCompare((PetscObject)pc,PCMG,&ismg);CHKERRQ(ierr);
           if (ismg) {
             ierr = PCMGGetSmoother(pc,i,&iksp);CHKERRQ(ierr);
             ierr = KSPSetNullSpace(iksp, nullsp);CHKERRQ(ierr);
           }
         }
-        ierr = MatNullSpaceDestroy(nullsp);CHKERRQ(ierr);
+        ierr = MatNullSpaceDestroy(&nullsp); CHKERRQ(ierr);
         if (n) {
           ierr = PetscFree(nulls);CHKERRQ(ierr);
         }
@@ -1086,15 +1086,18 @@ namespace ot {
     /* make all the coarse grid solvers have LU shift since they are singular */
     for (i = 0; i < nlevels; i++) {
       ierr = KSPGetPC(damg[i]->ksp,&pc);CHKERRQ(ierr);
-      ierr = PetscTypeCompare((PetscObject)pc,PCMG,&ismg);CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompare((PetscObject)pc,PCMG,&ismg);CHKERRQ(ierr);
       if (ismg) {
         ierr = PCMGGetSmoother(pc,0,&iksp);CHKERRQ(ierr);
         ierr = KSPGetPC(iksp,&ipc);CHKERRQ(ierr);
-        ierr = PetscTypeCompare((PetscObject)ipc,PCREDUNDANT,&isred);CHKERRQ(ierr);
+        ierr = PetscObjectTypeCompare((PetscObject)ipc,PCREDUNDANT,&isred);CHKERRQ(ierr);
         if (isred) {
-          ierr = PCRedundantGetPC(ipc,&ipc);CHKERRQ(ierr);
+          ierr = PCRedundantGetKSP(ipc,&iksp);CHKERRQ(ierr);
+          ierr = KSPGetPC(iksp,&ipc);CHKERRQ(ierr);
+          // --old ierr = PCRedundantGetPC(ipc,&ipc);CHKERRQ(ierr);
         }
-        ierr = PCFactorSetShiftPd(ipc,PETSC_TRUE);CHKERRQ(ierr); 
+        // --old  ierr = PCFactorSetShiftPd(ipc,PETSC_TRUE);CHKERRQ(ierr);
+	ierr = PCFactorSetShiftType(ipc, MAT_SHIFT_NONZERO);CHKERRQ(ierr); 
       }
     }//end for i
 
@@ -1184,7 +1187,7 @@ namespace ot {
       ierr = PetscViewerASCIIOpen(comm,"stdout",&ascii);CHKERRQ(ierr);
       ierr = PetscViewerASCIISetTab(ascii,1+(damg[0]->nlevels)-nlevels);CHKERRQ(ierr);
       ierr = KSPMonitorSet(ksp, KSPMonitorDefault, ascii,
-          (PetscErrorCode(*)(void*))PetscViewerDestroy);CHKERRQ(ierr);
+          (PetscErrorCode(*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
     }
 
     /* use fgmres on outer iteration by default */
@@ -1209,13 +1212,13 @@ namespace ot {
         PCMGSetLevels(pc,2,comms);
         PetscFree(comms);
         PCMGSetType(pc,PC_MG_FULL);
-        PetscTypeCompare((PetscObject)pc,PCMG,&ismg);
+        PetscObjectTypeCompare((PetscObject)pc,PCMG,&ismg);
         if (ismg) {
           /*Finer Level*/
           PCMGGetSmoother(pc,1,&lksp);
           KSPSetOperators(lksp,damg[i]->B,damg[i]->B); // ,DIFFERENT_NONZERO_PATTERN);
           PCMGSetR(pc,1,damg[i]->r);
-          PCMGSetResidual(pc,1,PCMGDefaultResidual,damg[i]->B);
+          PCMGSetResidual(pc, 1, PCMGResidualDefault, damg[i]->B);
           /*Coarser Level*/
           PCMGGetSmoother(pc,0,&lksp);
           KSPSetOperators(lksp,damg[i-1]->J,damg[i-1]->J); // ,DIFFERENT_NONZERO_PATTERN);
@@ -1246,7 +1249,7 @@ namespace ot {
 
       ierr  = PetscFree(comms);CHKERRQ(ierr); 
 
-      ierr = PetscTypeCompare((PetscObject)pc,PCMG,&ismg);CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompare((PetscObject)pc,PCMG,&ismg);CHKERRQ(ierr);
       if (ismg) {
         /* set solvers for each level */
         for (int i = 0; i < nlevels; i++) {
@@ -1261,21 +1264,21 @@ namespace ot {
           }
           if (i > 0) {
             ierr = PCMGSetR(pc,i,damg[i]->r);CHKERRQ(ierr); 
-            ierr = PCMGSetResidual(pc,i,PCMGDefaultResidual,damg[i]->J);CHKERRQ(ierr);
+            ierr = PCMGSetResidual(pc,i,PCMGResidualDefault, damg[i]->J);CHKERRQ(ierr);
           }
           if (monitor) {
             ierr = PetscObjectGetComm((PetscObject)lksp,&comm);CHKERRQ(ierr);
             ierr = PetscViewerASCIIOpen(comm,"stdout",&ascii);CHKERRQ(ierr);
             ierr = PetscViewerASCIISetTab(ascii,1+damg[0]->nlevels-i);CHKERRQ(ierr);
             ierr = KSPMonitorSet(lksp,KSPMonitorDefault,ascii,
-                (PetscErrorCode(*)(void*))PetscViewerDestroy);CHKERRQ(ierr);
+                (PetscErrorCode(*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
           }
           /* If using a matrix free multiply and did not provide an explicit matrix to build
              the preconditioner then must use no preconditioner 
              */
-          ierr = PetscTypeCompare((PetscObject)damg[i]->B,MATSHELL,&isshell);CHKERRQ(ierr);
-          ierr = PetscTypeCompare((PetscObject)damg[i]->B,MATDAAD,&ismf);CHKERRQ(ierr);
-          ierr = PetscTypeCompare((PetscObject)damg[i]->B,MATMFFD,&ismffd);CHKERRQ(ierr);
+          ierr = PetscObjectTypeCompare((PetscObject)damg[i]->B,MATSHELL,&isshell);CHKERRQ(ierr);
+          ierr = PetscObjectTypeCompare((PetscObject)damg[i]->B,MATDAAD,&ismf);CHKERRQ(ierr);
+          ierr = PetscObjectTypeCompare((PetscObject)damg[i]->B,MATMFFD,&ismffd);CHKERRQ(ierr);
           if (isshell || ismf || ismffd) {
             PC  lpc;
             ierr = KSPGetPC(lksp,&lpc);CHKERRQ(ierr);
@@ -2591,22 +2594,27 @@ Type2: Use Aux. Coarse and Fine are not aligned.
 
   //Private Functions...
 
-  PetscErrorCode PC_KSP_Shell_SetUp(void* ctx) {
+  // PetscErrorCode PC_KSP_Shell_SetUp(void* ctx) {
+  PetscErrorCode PC_KSP_Shell_SetUp(PC pc) {
 
     PROF_PC_KSP_SHELL_SETUP_BEGIN
 
+/* for older petsc version (3.0.0) 
       PC_KSP_Shell* data = static_cast<PC_KSP_Shell*>(ctx); 
+
+    //This points to the shell itself
+    PC pc = data->pc;
+*/
+    PC_KSP_Shell* data;
+    PCShellGetContext(pc, (void**)&data);    
 
     MPI_Comm commActive = data->commActive;
     bool iAmActive = data->iAmActive;
 
-    //This points to the shell itself
-    PC pc = data->pc;
-
     Mat Amat;
-    PCGetOperators(pc, &Amat, NULL, NULL);      
+    PCGetOperators(pc, &Amat, NULL);      
     PetscBool isshell;
-    PetscTypeCompare((PetscObject)Amat, MATSHELL, &isshell);
+    PetscObjectTypeCompare((PetscObject)Amat, MATSHELL, &isshell);
 
     if(!isshell) {
       SETERRQ(commActive, PETSC_ERR_SUP, " Expected a MATSHELL.");
@@ -2710,11 +2718,14 @@ Type2: Use Aux. Coarse and Fine are not aligned.
 
   }
 
-  PetscErrorCode PC_KSP_Shell_Destroy(void* ctx) {
+  PetscErrorCode PC_KSP_Shell_Destroy(PC pc) {
 
     PROF_PC_KSP_SHELL_DESTROY_BEGIN
+    
+    PC_KSP_Shell* data;
+    PCShellGetContext(pc, (void**)&data);    
 
-      PC_KSP_Shell* data = static_cast<PC_KSP_Shell*>(ctx); 
+    // --old   PC_KSP_Shell* data = static_cast<PC_KSP_Shell*>(ctx); 
 
     if(data) {
       if(data->ksp_private) {
@@ -2739,11 +2750,13 @@ Type2: Use Aux. Coarse and Fine are not aligned.
     PROF_PC_KSP_SHELL_DESTROY_END
   }
 
-  PetscErrorCode PC_KSP_Shell_Apply(void* ctx, Vec rhs, Vec sol) {
+  PetscErrorCode PC_KSP_Shell_Apply(PC pc, Vec rhs, Vec sol) {
 
     PROF_PC_KSP_SHELL_APPLY_BEGIN
 
-      PC_KSP_Shell* data = static_cast<PC_KSP_Shell*>(ctx); 
+    PC_KSP_Shell* data;
+    PCShellGetContext(pc, (void**)&data);    
+    // --old  PC_KSP_Shell* data = static_cast<PC_KSP_Shell*>(ctx); 
 
     if(data->iAmActive) {      
       PetscScalar* rhsArray;

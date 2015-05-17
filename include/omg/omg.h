@@ -242,11 +242,11 @@ namespace ot {
     Vec sol_private; /**< Internal rhs vector for sol_private */
   } PC_KSP_Shell;
 
-  PetscErrorCode PC_KSP_Shell_SetUp(void* ctx);
+  PetscErrorCode PC_KSP_Shell_SetUp(PC pc);
 
-  PetscErrorCode PC_KSP_Shell_Apply(void* ctx, Vec in, Vec out);
+  PetscErrorCode PC_KSP_Shell_Apply(PC pc, Vec in, Vec out);
 
-  PetscErrorCode PC_KSP_Shell_Destroy(void* ctx);
+  PetscErrorCode PC_KSP_Shell_Destroy(PC pc);
 
   /**
     @class	FineTouchedStatus
