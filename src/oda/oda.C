@@ -406,7 +406,7 @@ namespace ot {
     // now create the PETSc Mat
     // The "parallel direct solver" matrix types like MATAIJSPOOLES are ALL gone in petsc-3.0.0
     // Thus, I (Ilya Lashuk) "delete" all such checks for matrix type.  Hope it is reasonable thing to do.
-    PetscTruth isAij, isAijSeq, isAijPrl, isSuperLU, isSuperLU_Dist;
+    PetscBool isAij, isAijSeq, isAijPrl, isSuperLU, isSuperLU_Dist;
     PetscStrcmp(mtype,MATAIJ,&isAij);
     PetscStrcmp(mtype,MATSEQAIJ,&isAijSeq);
     PetscStrcmp(mtype,MATMPIAIJ,&isAijPrl);
@@ -435,7 +435,7 @@ namespace ot {
       sz = dof*(m_uiNodeSize + m_uiBoundaryNodeSize);
 
       // now create the PETSc Mat
-      PetscTruth isAij, isAijSeq, isAijPrl, isSuperLU, isSuperLU_Dist;
+      PetscBool isAij, isAijSeq, isAijPrl, isSuperLU, isSuperLU_Dist;
       PetscStrcmp(mtype,MATAIJ,&isAij);
       PetscStrcmp(mtype,MATSEQAIJ,&isAijSeq);
       PetscStrcmp(mtype,MATMPIAIJ,&isAijPrl);
