@@ -10,7 +10,7 @@
 // #include "petscpcmg.h"
 #include "petscksp.h"
 #include "petscmat.h"
-#include "petsc/private/pcimpl.h"
+#include "../../../petsc/include/petsc-private/pcimpl.h"
 #include "omg.h"
 #include "oda.h"
 #include "odaUtils.h" 

@@ -6,7 +6,7 @@
 
 #include "petscmat.h"
 #include "petscpc.h"
-#include "petsc/private/pcimpl.h"
+#include "../../../petsc/include/petsc-private/pcimpl.h"
 #include "blockDiag.h"
 #include <cassert>
 
@@ -107,7 +107,7 @@ namespace ot {
     pc->ops->apply = PCApply_BlockDiag;
     pc->ops->setup = PCSetUp_BlockDiag;
     pc->ops->destroy = PCDestroy_BlockDiag;
-    pc->ops->setfromoptions = PCSetFromOptions_BlockDiag;
+    //pc->ops->setfromoptions = PCSetFromOptions_BlockDiag;
     pc->ops->applytranspose = NULL;
     pc->ops->view = NULL;
     pc->ops->applyrichardson = NULL;

@@ -2,7 +2,7 @@
 SHELL = /bin/sh
 # include ${PETSC_DIR}/conf/base
 # include ${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables
-include ${PETSC_DIR}/lib/petsc/conf/variables
+include ${PETSC_DIR}/conf/variables
 
 CEXT = C
 CFLAGS = -g -fopenmp -D__USE_PVT_DA_IN_MG__ 
