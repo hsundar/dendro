@@ -132,3 +132,9 @@ void Point::normalize() {
 	_x /= abs; _y /= abs; _z /= abs;
 }
 
+double Point::magnitude()
+{
+  double abs = sqrt(_x*_x + _y*_y + _z*_z);
+  return abs;
+}
+

@@ -3,7 +3,7 @@ INCLUDE=-I./include -I./include/oct -I./include/fem -I./include/oda  -I./include
 ARCHIVES = ./lib/libOMG.a ./lib/libODA.a ./lib/libTest.a ./lib/libOct.a ./lib/libPar.a   ./lib/libPoint.a ./lib/libBinOps.a ./lib/libSys.a ./lib/libPC.a 
 
 # LIBS = -L./lib -lOMG -lODA -lOct -lPar -lPoint -lTest -lBinOps -lSys -lPC ${PETSC_LIB} 
-LIBS = ${PETSC_LIB} 
+LIBS = ${PETSC_LIB}
 
 EXEC_BAL = bin/tstRipple  bin/runScal bin/rippleBal \
      bin/justBal bin/seqRipple bin/seqRipplePtr bin/testConAndBal bin/testConBalAndCoarsen

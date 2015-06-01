@@ -64,7 +64,7 @@ namespace ot {
 #endif
     return (!((*this) == other));
   }//end fn.
-
+/*
   inline bool TreeNode  :: operator  < (TreeNode   const & other)  const{
 #ifdef __DEBUG_TN__
     if( ((this->m_uiDim) != (other.m_uiDim)) || ((this->m_uiMaxDepth) != (other.m_uiMaxDepth)) ) {
@@ -126,7 +126,7 @@ namespace ot {
 #endif
     return ( !((*this) < other) ) ;
   }//end fn.
-
+*/
   inline TreeNode TreeNode  ::getParent() const {
     //For any node at level l, the last (maxD-l) bits are 0. 
     //By convention, root's parent is also root.

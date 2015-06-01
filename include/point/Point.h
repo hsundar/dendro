@@ -74,6 +74,8 @@ class Point{
 
     Point  operator/(const double divisor);
     Point  operator*(const double factor);
+    
+    double magnitude();
 
     inline bool operator != (const Point &other) { return ( (xint() != other.xint() ) || (yint() != other.yint()) || (zint() != other.zint())); };
 

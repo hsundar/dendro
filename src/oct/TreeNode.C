@@ -8,6 +8,10 @@
 #include "binUtils.h"
 #include "parUtils.h"
 #include "seqUtils.h"
+#include <vector>
+#include <iterator>
+#include "Point.h"
+
 
 #ifdef __DEBUG__
 #ifndef __DEBUG_TN__
@@ -565,12 +569,308 @@ namespace ot {
     m_uiMaxDepth = other.m_uiMaxDepth;
   }//end function
 
-
+  /*
+   *Operator overiding implementations. 
+   *Comparison operators are based on Hilbert ordering of the points. 
+   */
+  
+  
   std::ostream & operator <<(std::ostream & os, TreeNode const & other){
     return (os << other.getX() <<" "<< other.getY() <<" "<<other.getZ()<<" "<<other.getLevel());
   }//end fn.
+  
+ /*
+  * Date: 30/05/2015
+  * ===========Hilbert Ordering Implementations==========
+  * ====================START============================
+  */
 
+ bool  TreeNode::operator < (TreeNode const  &other) const
+ {
+   // used to store the enclosed region for unified 
+   unsigned int min_x,max_x,min_y,max_y,min_z,max_z;
+   min_x=std::min(this->m_uiX,other.m_uiX);
+   max_x=std::max(this->m_uiX,other.m_uiX);
+   
+   min_y=std::min(this->m_uiY,other.m_uiY);
+   max_y=std::max(this->m_uiY,other.m_uiY);
+   
+   min_z=std::min(this->m_uiZ,other.m_uiZ);
+   max_z=std::min(this->m_uiZ,other.m_uiZ);
+   
+   unsigned int dim=std::max(this->m_uiDim,other.m_uiDim);
+   
+   Point pt_1(this->m_uiX,this->m_uiY,this->m_uiZ);
+   Point pt_2(other.m_uiX,other.m_uiY,other.m_uiZ);
+   
+   Point pt_temp;
+   
+   std::vector<int> qt_pt1;
+   std::vector<int> qt_pt2;
+         
+   if(dim==2)
+   {
+     // Hilbert curve orientation is in a->b->c->d
+     Point pt_hilbert[4];
+     Point pt_hilbert_new[4];
+     pt_hilbert[0]=Point (min_x,min_y,(unsigned int)0);
+     pt_hilbert[1]=Point (min_x,max_y,(unsigned int)0);
+     pt_hilbert[2]=Point (max_x,max_y,(unsigned int)0);
+     pt_hilbert[3]=Point (max_x,min_y,(unsigned int)0); 
+     
+     qt_pt1.push_back(0);
+     qt_pt2.push_back(0);
+     int pt_1_index=0;
+     int pt_2_index=0;
+     while(qt_pt1[qt_pt1.size()-1]==qt_pt2[qt_pt2.size()-1])
+     {
+       double pt_1_dis=(pt_hilbert[0]-pt_1).magnitude();
+       double pt_2_dis=(pt_hilbert[0]-pt_2).magnitude();
+       for(int i=1;i<4;i++)
+       {
+	  pt_temp=pt_hilbert[i]-pt_1; 
+	  if(pt_1_dis>pt_temp.magnitude()){
+	    pt_1_dis=pt_temp.magnitude();
+	    pt_1_index=i;
+	  }
+	  pt_temp=pt_hilbert[i]-pt_2;
+	  if(pt_2_dis>pt_temp.magnitude()){
+	    pt_2_dis=pt_temp.magnitude();
+	    pt_2_index=i;
+	  }
+		  
+       }
+       
+       if(pt_1_index==pt_2_index)
+       {
+	 switch(pt_1_index)
+	 {
+	   case 0:
+	          pt_hilbert_new[0]=pt_hilbert[0];
+		  pt_hilbert_new[1]=(pt_hilbert[0]+pt_hilbert[3])/2.0;
+		  pt_hilbert_new[2]=(pt_hilbert[0]+pt_hilbert[2])/2.0;
+		  pt_hilbert_new[3]=(pt_hilbert[0]+pt_hilbert[1])/2.0;
+		   break;
+	   case 1:
+		  pt_hilbert_new[0]=(pt_hilbert[0]+pt_hilbert[1])/2.0;
+		  pt_hilbert_new[1]=pt_hilbert[1];
+		  pt_hilbert_new[2]=(pt_hilbert[1]+pt_hilbert[2])/2.0;
+		  pt_hilbert_new[3]=(pt_hilbert[1]+pt_hilbert[3])/2.0;
+	          break;
+	   case 2:
+		  pt_hilbert_new[0]=(pt_hilbert[0]+pt_hilbert[2])/2.0;
+		  pt_hilbert_new[1]=(pt_hilbert[1]+pt_hilbert[2])/2.0;
+		  pt_hilbert_new[2]=pt_hilbert[2];
+		  pt_hilbert_new[3]=(pt_hilbert[2]+pt_hilbert[3])/2.0;
+		  break;
+	   case 3:
+	          pt_hilbert_new[0]=(pt_hilbert[3]+pt_hilbert[2])/2.0;
+		  pt_hilbert_new[1]=(pt_hilbert[1]+pt_hilbert[3])/2.0;
+		  pt_hilbert_new[2]=(pt_hilbert[3]+pt_hilbert[1])/2.0;
+		  pt_hilbert_new[3]=pt_hilbert[3];
+		  break;
+	   default:
+		  std::cout<<"Hilbert ordering error:Invalid nearest cell"<<std::endl;
+		  break;
+	 }
+	 
+	 pt_hilbert[0]=pt_hilbert_new[0];
+	 pt_hilbert[1]=pt_hilbert_new[1];
+	 pt_hilbert[2]=pt_hilbert_new[2];
+	 pt_hilbert[3]=pt_hilbert_new[3];
+	 
+	 qt_pt1.push_back(pt_1_index);
+	 qt_pt2.push_back(pt_2_index);
+	 continue;
+	 
+       }else if(pt_1_index<pt_2_index)
+       {
+	 qt_pt1.push_back(pt_1_index);
+	 qt_pt2.push_back(pt_2_index);
+	 return true;
+       }else
+       { 
+	 qt_pt1.push_back(pt_1_index);
+	 qt_pt2.push_back(pt_2_index);
+	 return false; 
+       }
+       
+             
+       
+     }
+     
+     
+     
+     
+   }else if(dim==3)
+   {
+     
+   }else
+   {
+    std::cout<<"My Dim: "<<this->m_uiDim<<" OthDim: "<<other.m_uiDim<<" Hilbert ordering dimention error."<<std::endl;
+    return false;
+   } 
+      
+   
+   
+ }
+ 
+ bool  TreeNode::operator <= (TreeNode const  &other) const
+ {
+   if(((*this)<other)|| (*this)==other)
+   {
+    return true; 
+   }else
+   {
+      return false;
+   }
+ }
+ 
+ bool  TreeNode::operator > (TreeNode const  &other) const
+ { 
+   // used to store the enclosed region for unified 
+   unsigned int min_x,max_x,min_y,max_y,min_z,max_z;
+   min_x=std::min(this->m_uiX,other.m_uiX);
+   max_x=std::max(this->m_uiX,other.m_uiX);
+   
+   min_y=std::min(this->m_uiY,other.m_uiY);
+   max_y=std::max(this->m_uiY,other.m_uiY);
+   
+   min_z=std::min(this->m_uiZ,other.m_uiZ);
+   max_z=std::min(this->m_uiZ,other.m_uiZ);
+   
+   unsigned int dim=std::max(this->m_uiDim,other.m_uiDim);
+   
+   Point pt_1(this->m_uiX,this->m_uiY,this->m_uiZ);
+   Point pt_2(other.m_uiX,other.m_uiY,other.m_uiZ);
+   
+   Point pt_temp;
+   
+   std::vector<int> qt_pt1;
+   std::vector<int> qt_pt2;
+         
+   if(dim==2)
+   {
+     // Hilbert curve orientation is in a->b->c->d
+     Point pt_hilbert[4];
+     Point pt_hilbert_new[4];
+     pt_hilbert[0]=Point (min_x,min_y,(unsigned int)0);
+     pt_hilbert[1]=Point (min_x,max_y,(unsigned int)0);
+     pt_hilbert[2]=Point (max_x,max_y,(unsigned int)0);
+     pt_hilbert[3]=Point (max_x,min_y,(unsigned int)0); 
+     
+     qt_pt1.push_back(0);
+     qt_pt2.push_back(0);
+     int pt_1_index=0;
+     int pt_2_index=0;
+     while(qt_pt1[qt_pt1.size()-1]==qt_pt2[qt_pt2.size()-1])
+     {
+       double pt_1_dis=(pt_hilbert[0]-pt_1).magnitude();
+       double pt_2_dis=(pt_hilbert[0]-pt_2).magnitude();
+       for(int i=1;i<4;i++)
+       {
+	  pt_temp=pt_hilbert[i]-pt_1; 
+	  if(pt_1_dis>pt_temp.magnitude()){
+	    pt_1_dis=pt_temp.magnitude();
+	    pt_1_index=i;
+	  }
+	  pt_temp=pt_hilbert[i]-pt_2;
+	  if(pt_2_dis>pt_temp.magnitude()){
+	    pt_2_dis=pt_temp.magnitude();
+	    pt_2_index=i;
+	  }
+		  
+       }
+       
+       if(pt_1_index==pt_2_index)
+       {
+	 switch(pt_1_index)
+	 {
+	   case 0:
+	          pt_hilbert_new[0]=pt_hilbert[0];
+		  pt_hilbert_new[1]=(pt_hilbert[0]+pt_hilbert[3])/2.0;
+		  pt_hilbert_new[2]=(pt_hilbert[0]+pt_hilbert[2])/2.0;
+		  pt_hilbert_new[3]=(pt_hilbert[0]+pt_hilbert[1])/2.0;
+		   break;
+	   case 1:
+		  pt_hilbert_new[0]=(pt_hilbert[0]+pt_hilbert[1])/2.0;
+		  pt_hilbert_new[1]=pt_hilbert[1];
+		  pt_hilbert_new[2]=(pt_hilbert[1]+pt_hilbert[2])/2.0;
+		  pt_hilbert_new[3]=(pt_hilbert[1]+pt_hilbert[3])/2.0;
+	          break;
+	   case 2:
+		  pt_hilbert_new[0]=(pt_hilbert[0]+pt_hilbert[2])/2.0;
+		  pt_hilbert_new[1]=(pt_hilbert[1]+pt_hilbert[2])/2.0;
+		  pt_hilbert_new[2]=pt_hilbert[2];
+		  pt_hilbert_new[3]=(pt_hilbert[2]+pt_hilbert[3])/2.0;
+		  break;
+	   case 3:
+	          pt_hilbert_new[0]=(pt_hilbert[3]+pt_hilbert[2])/2.0;
+		  pt_hilbert_new[1]=(pt_hilbert[1]+pt_hilbert[3])/2.0;
+		  pt_hilbert_new[2]=(pt_hilbert[3]+pt_hilbert[1])/2.0;
+		  pt_hilbert_new[3]=pt_hilbert[3];
+		  break;
+	   default:
+		  std::cout<<"Hilbert ordering error:Invalid nearest cell"<<std::endl;
+		  break;
+	 }
+	 
+	 pt_hilbert[0]=pt_hilbert_new[0];
+	 pt_hilbert[1]=pt_hilbert_new[1];
+	 pt_hilbert[2]=pt_hilbert_new[2];
+	 pt_hilbert[3]=pt_hilbert_new[3];
+	 
+	 qt_pt1.push_back(pt_1_index);
+	 qt_pt2.push_back(pt_2_index);
+	 continue;
+	 
+       }else if(pt_1_index<pt_2_index)
+       {
+	 qt_pt1.push_back(pt_1_index);
+	 qt_pt2.push_back(pt_2_index);
+	 return true;
+       }else
+       { 
+	 qt_pt1.push_back(pt_1_index);
+	 qt_pt2.push_back(pt_2_index);
+	 return false; 
+       }
+       
+             
+       
+     }
+     
+     
+     
+     
+   }else if(dim==3)
+   {
+     
+   }else
+   {
+    std::cout<<"My Dim: "<<this->m_uiDim<<" OthDim: "<<other.m_uiDim<<" Hilbert ordering dimention error."<<std::endl;
+    return false;
+   } 
+ }
 
+ bool  TreeNode::operator >= (TreeNode const  &other) const
+ {
+    if(((*this)>other)|| (*this)==other)
+   {
+    return true; 
+   }else
+   {
+      return false;
+   }
+ }
+ 
+ 
+ 
+ /*
+  * ===========Hilbert Ordering Implementations==========
+  * ====================END============================
+  */
+ 
   //Assignment operator
   //No checks for dim or maxD. It's ok to change dim and maxD using the
   //assignment operator.

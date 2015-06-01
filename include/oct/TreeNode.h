@@ -179,31 +179,31 @@ namespace ot {
       /**
         @author Rahul Sampath
         @author Hari Sundar
-        @brief The comparisons are based on the Morton ordering of the octants 
+        @brief The comparisons are based on the Hilbert ordering of the octants 
         */
       bool  operator < ( TreeNode const  &other) const;
 
       /**
         @author Rahul Sampath
-        @brief The comparisons are based on the Morton ordering of the octants 
+        @brief The comparisons are based on the Hilbert ordering of the octants 
         */
       bool  operator > ( TreeNode const  &other) const;
 
       /**
         @author Rahul Sampath
-        @brief The comparisons are based on the Morton ordering of the octants 
+        @brief The comparisons are based on the Hilbert ordering of the octants 
         */
       bool  operator <= ( TreeNode const  &other) const;
 
       /**
         @author Rahul Sampath
-        @brief The comparisons are based on the Morton ordering of the octants 
+        @brief The comparisons are based on the Hilbert ordering of the octants 
         */
       bool  operator >= ( TreeNode const  &other) const;
 
       /**
         @author Rahul Sampath
-        @brief Appends the anchor and level of the octant to the stream
+        @brief The comparisons are based on the Hilbert ordering of the octants
         */
       friend std::ostream & operator << (std::ostream & os,TreeNode const & node) ;  
       //@}
