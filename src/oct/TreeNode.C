@@ -708,7 +708,160 @@ namespace ot {
      
       
    }else if(dim==3)
-   {
+   { // Hilbert 3d Implementation a->b->c->d->e->f->g->h
+     Point pt_hilbert[8];
+     Point pt_hilbert_new[8];
+     
+     pt_hilbert[0]=Point (min_x,min_y,max_z);
+     pt_hilbert[1]=Point (min_x,min_y,min_z);
+     pt_hilbert[2]=Point (max_x,min_y,min_z);
+     pt_hilbert[3]=Point (max_x,min_y,max_z);
+     
+     pt_hilbert[4]=Point (max_x,max_y,max_z);
+     pt_hilbert[5]=Point (max_x,max_y,min_z);
+     pt_hilbert[6]=Point (min_x,max_y,min_z);
+     pt_hilbert[7]=Point (min_x,max_y,max_z);
+     
+     qt_pt1.push_back(0);
+     qt_pt2.push_back(0);
+     int pt_1_index=0;
+     int pt_2_index=0;
+     while(qt_pt1[qt_pt1.size()-1]==qt_pt2[qt_pt2.size()-1])
+     {
+       double pt_1_dis=(pt_hilbert[0]-pt_1).magnitude();
+       double pt_2_dis=(pt_hilbert[0]-pt_2).magnitude();
+       
+       for(int i=1;i<8;i++){
+	 pt_temp=pt_hilbert[i]-pt_1; 
+	 if(pt_1_dis>pt_temp.magnitude()){
+	    pt_1_dis=pt_temp.magnitude();
+	    pt_1_index=i;
+	  }
+	 pt_temp=pt_hilbert[i]-pt_2;
+	 if(pt_2_dis>pt_temp.magnitude()){
+	    pt_2_dis=pt_temp.magnitude();
+	    pt_2_index=i;
+	 }
+       }
+       
+       if(pt_1_index==pt_2_index)
+       {
+	 switch(pt_1_index)
+	 {
+	   case 0:
+	          pt_hilbert_new[0]=pt_hilbert[0];
+		  pt_hilbert_new[1]=(pt_hilbert[0]+pt_hilbert[7])/2.0;
+		  pt_hilbert_new[2]=(pt_hilbert[0]+pt_hilbert[4])/2.0;
+		  pt_hilbert_new[3]=(pt_hilbert[0]+pt_hilbert[3])/2.0;
+		  
+		  pt_hilbert_new[4]=(pt_hilbert[0]+pt_hilbert[2])/2.0;
+		  pt_hilbert_new[5]=(pt_hilbert[0]+pt_hilbert[5])/2.0;
+		  pt_hilbert_new[6]=(pt_hilbert[0]+pt_hilbert[6])/2.0;
+		  pt_hilbert_new[7]=(pt_hilbert[0]+pt_hilbert[1])/2.0;
+		  break;
+	   case 1:          
+		  pt_hilbert_new[0]=(pt_hilbert[0]+pt_hilbert[1])/2.0;
+		  pt_hilbert_new[1]=pt_hilbert[1];
+		  pt_hilbert_new[2]=(pt_hilbert[1]+pt_hilbert[6])/2.0;
+		  pt_hilbert_new[3]=(pt_hilbert[1]+pt_hilbert[7])/2.0;
+		  
+		  pt_hilbert_new[4]=(pt_hilbert[1]+pt_hilbert[4])/2.0;
+		  pt_hilbert_new[5]=(pt_hilbert[1]+pt_hilbert[5])/2.0;
+		  pt_hilbert_new[6]=(pt_hilbert[1]+pt_hilbert[2])/2.0;
+		  pt_hilbert_new[7]=(pt_hilbert[1]+pt_hilbert[3])/2.0;
+		  break;
+	   case 2:
+		  pt_hilbert_new[0]=(pt_hilbert[2]+pt_hilbert[0])/2.0;
+		  pt_hilbert_new[1]=(pt_hilbert[2]+pt_hilbert[1])/2.0;
+		  pt_hilbert_new[2]=pt_hilbert[2];
+		  pt_hilbert_new[3]=(pt_hilbert[2]+pt_hilbert[3])/2.0;
+		  
+		  pt_hilbert_new[4]=(pt_hilbert[2]+pt_hilbert[4])/2.0;
+		  pt_hilbert_new[5]=(pt_hilbert[2]+pt_hilbert[5])/2.0;
+		  pt_hilbert_new[6]=(pt_hilbert[2]+pt_hilbert[6])/2.0;
+		  pt_hilbert_new[7]=(pt_hilbert[2]+pt_hilbert[7])/2.0;
+		  
+		  break;
+	   case 3:
+	          pt_hilbert_new[0]=(pt_hilbert[3]+pt_hilbert[6])/2.0;
+		  pt_hilbert_new[1]=(pt_hilbert[3]+pt_hilbert[1])/2.0;
+		  pt_hilbert_new[2]=(pt_hilbert[3]+pt_hilbert[0])/2.0;
+		  pt_hilbert_new[3]=(pt_hilbert[3]+pt_hilbert[7])/2.0;
+		  
+		  pt_hilbert_new[4]=(pt_hilbert[3]+pt_hilbert[4])/2.0;
+		  pt_hilbert_new[5]=pt_hilbert[3];
+		  pt_hilbert_new[6]=(pt_hilbert[3]+pt_hilbert[2])/2.0;
+		  pt_hilbert_new[7]=(pt_hilbert[3]+pt_hilbert[5])/2.0;
+		  break;
+		  
+	   case 4:pt_hilbert_new[0]=(pt_hilbert[4]+pt_hilbert[2])/2.0;
+		  pt_hilbert_new[1]=(pt_hilbert[4]+pt_hilbert[5])/2.0;
+		  pt_hilbert_new[2]=pt_hilbert[4];
+		  pt_hilbert_new[3]=(pt_hilbert[4]+pt_hilbert[3])/2.0;
+		  
+		  pt_hilbert_new[4]=(pt_hilbert[4]+pt_hilbert[0])/2.0;
+		  pt_hilbert_new[5]=(pt_hilbert[4]+pt_hilbert[7])/2.0;
+		  pt_hilbert_new[6]=(pt_hilbert[4]+pt_hilbert[6])/2.0;
+		  pt_hilbert_new[7]=(pt_hilbert[4]+pt_hilbert[1])/2.0;
+		  break;
+	   case 5:pt_hilbert_new[0]=(pt_hilbert[5]+pt_hilbert[0])/2.0;
+		  pt_hilbert_new[1]=(pt_hilbert[5]+pt_hilbert[1])/2.0;
+		  pt_hilbert_new[2]=(pt_hilbert[5]+pt_hilbert[2])/2.0;
+		  pt_hilbert_new[3]=(pt_hilbert[5]+pt_hilbert[3])/2.0;
+		  
+		  pt_hilbert_new[4]=(pt_hilbert[5]+pt_hilbert[4])/2.0;
+		  pt_hilbert_new[5]=pt_hilbert[5];
+		  pt_hilbert_new[6]=(pt_hilbert[5]+pt_hilbert[6])/2.0;
+		  pt_hilbert_new[7]=(pt_hilbert[5]+pt_hilbert[7])/2.0;
+		  break;
+	   case 6:pt_hilbert_new[0]=(pt_hilbert[6]+pt_hilbert[4])/2.0;
+		  pt_hilbert_new[1]=(pt_hilbert[6]+pt_hilbert[5])/2.0;
+		  pt_hilbert_new[2]=(pt_hilbert[6]+pt_hilbert[2])/2.0;
+		  pt_hilbert_new[3]=(pt_hilbert[6]+pt_hilbert[3])/2.0;
+		  
+		  pt_hilbert_new[4]=(pt_hilbert[6]+pt_hilbert[0])/2.0;
+		  pt_hilbert_new[5]=(pt_hilbert[6]+pt_hilbert[1])/2.0;
+		  pt_hilbert_new[6]=pt_hilbert[6];
+		  pt_hilbert_new[7]=(pt_hilbert[6]+pt_hilbert[7])/2.0;
+		  break;
+	   case 7:pt_hilbert_new[0]=(pt_hilbert[7]+pt_hilbert[6])/2.0;
+		  pt_hilbert_new[1]=(pt_hilbert[7]+pt_hilbert[1])/2.0;
+		  pt_hilbert_new[2]=(pt_hilbert[7]+pt_hilbert[2])/2.0;
+		  pt_hilbert_new[3]=(pt_hilbert[7]+pt_hilbert[5])/2.0;
+		  
+		  pt_hilbert_new[4]=(pt_hilbert[7]+pt_hilbert[4])/2.0;
+		  pt_hilbert_new[5]=(pt_hilbert[7]+pt_hilbert[3])/2.0;
+		  pt_hilbert_new[6]=(pt_hilbert[7]+pt_hilbert[0])/2.0;
+		  pt_hilbert_new[7]=pt_hilbert[7];
+		  break;
+	   default:
+		  std::cout<<"Hilbert ordering error:Invalid nearest cell"<<std::endl;
+		  break;
+       
+       
+	}
+	
+	for(int i=0;i<8;i++)
+	 pt_hilbert[i]=pt_hilbert_new[i];
+	
+	qt_pt1.push_back(pt_1_index);
+	qt_pt2.push_back(pt_2_index);
+	continue;
+	
+	}else if(pt_1_index<pt_2_index)
+	{
+	 qt_pt1.push_back(pt_1_index);
+	 qt_pt2.push_back(pt_2_index);
+	 return true;
+      
+	}else if(pt_1_index>pt_2_index)
+	{
+	 qt_pt1.push_back(pt_1_index);
+	 qt_pt2.push_back(pt_2_index);
+	 return false; 
+	}
+     
+     }
      
    }else
    {
