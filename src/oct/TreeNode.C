@@ -611,10 +611,21 @@ namespace ot {
    Point pt_1(this->m_uiX,this->m_uiY,this->m_uiZ);
    Point pt_2(other.m_uiX,other.m_uiY,other.m_uiZ);
    
-   Point pt_temp;
+   
+   Point pt_temp1;
+   Point pt_temp2;
    
    std::vector<int> qt_pt1;
    std::vector<int> qt_pt2;
+   
+   pt_temp1=pt_1-pt_2;
+   
+   if(pt_temp1.magnitude()<1e-6)
+   {
+	return true;
+   }
+   
+   
          
    if(dim==2)
    {
@@ -636,14 +647,14 @@ namespace ot {
        double pt_2_dis=(pt_hilbert[0]-pt_2).magnitude();
        for(int i=1;i<4;i++)
        {
-	  pt_temp=pt_hilbert[i]-pt_1; 
-	  if(pt_1_dis>pt_temp.magnitude()){
-	    pt_1_dis=pt_temp.magnitude();
+	  pt_temp1=pt_hilbert[i]-pt_1; 
+	  if(pt_1_dis>pt_temp1.magnitude()){
+	    pt_1_dis=pt_temp1.magnitude();
 	    pt_1_index=i;
 	  }
-	  pt_temp=pt_hilbert[i]-pt_2;
-	  if(pt_2_dis>pt_temp.magnitude()){
-	    pt_2_dis=pt_temp.magnitude();
+	  pt_temp2=pt_hilbert[i]-pt_2;
+	  if(pt_2_dis>pt_temp2.magnitude()){
+	    pt_2_dis=pt_temp2.magnitude();
 	    pt_2_index=i;
 	  }
 		  
@@ -674,13 +685,19 @@ namespace ot {
 	   case 3:
 	          pt_hilbert_new[0]=(pt_hilbert[3]+pt_hilbert[2])/2.0;
 		  pt_hilbert_new[1]=(pt_hilbert[1]+pt_hilbert[3])/2.0;
-		  pt_hilbert_new[2]=(pt_hilbert[3]+pt_hilbert[1])/2.0;
+		  pt_hilbert_new[2]=(pt_hilbert[3]+pt_hilbert[0])/2.0;
 		  pt_hilbert_new[3]=pt_hilbert[3];
 		  break;
 	   default:
 		  std::cout<<"Hilbert ordering error:Invalid nearest cell"<<std::endl;
 		  break;
 	 }
+	 
+	 
+// 	 if((pt_hilbert[0]-pt_hilbert_new[0]).magnitude()<1.e-9 && (pt_hilbert[1]-pt_hilbert_new[1]).magnitude()<1.e-9 && (pt_hilbert[2]-pt_hilbert_new[2]).magnitude()<1.e-9 && (pt_hilbert[3]-pt_hilbert_new[3]).magnitude()<1.e-9)
+// 	 {
+// 	   return true; 
+// 	 } 
 	 
 	 pt_hilbert[0]=pt_hilbert_new[0];
 	 pt_hilbert[1]=pt_hilbert_new[1];
@@ -695,12 +712,13 @@ namespace ot {
        {
 	 qt_pt1.push_back(pt_1_index);
 	 qt_pt2.push_back(pt_2_index);
-	 return true;
+
+         return true;
        }else
        { 
 	 qt_pt1.push_back(pt_1_index);
 	 qt_pt2.push_back(pt_2_index);
-	 return false; 
+         return false; 
        }
               
        
@@ -732,14 +750,14 @@ namespace ot {
        double pt_2_dis=(pt_hilbert[0]-pt_2).magnitude();
        
        for(int i=1;i<8;i++){
-	 pt_temp=pt_hilbert[i]-pt_1; 
-	 if(pt_1_dis>pt_temp.magnitude()){
-	    pt_1_dis=pt_temp.magnitude();
+	 pt_temp1=pt_hilbert[i]-pt_1; 
+	 if(pt_1_dis>pt_temp1.magnitude()){
+	    pt_1_dis=pt_temp1.magnitude();
 	    pt_1_index=i;
 	  }
-	 pt_temp=pt_hilbert[i]-pt_2;
-	 if(pt_2_dis>pt_temp.magnitude()){
-	    pt_2_dis=pt_temp.magnitude();
+	 pt_temp2=pt_hilbert[i]-pt_2;
+	 if(pt_2_dis>pt_temp2.magnitude()){
+	    pt_2_dis=pt_temp2.magnitude();
 	    pt_2_index=i;
 	 }
        }
