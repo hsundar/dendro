@@ -11,6 +11,7 @@
 
 #include "octUtils.h"
 #include "Point.h"
+
 #include <iostream>
 
 #ifdef __DEBUG__
@@ -200,7 +201,14 @@ namespace ot {
         @brief The comparisons are based on the Hilbert ordering of the octants 
         */
       bool  operator >= ( TreeNode const  &other) const;
-
+      /**
+       * Hilbert order implementation
+       * */
+      
+       void rotate(int index,int* current,int dim);
+       bool hilbert_order_NCA(const Point& p1,const Point& p2);
+       bool morton_order_oc(Point p1, Point p2);
+      
       /**
         @author Rahul Sampath
         @brief The comparisons are based on the Hilbert ordering of the octants
