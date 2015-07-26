@@ -588,7 +588,7 @@ namespace ot {
   * ====================START============================
   */
 
- void TreeNode::rotate(int index,int* current,int dim)
+ void TreeNode::rotate(int index,int* current,int dim) const
 {
   
   if(dim==2)
@@ -640,7 +640,322 @@ namespace ot {
   
 }
 
- bool TreeNode::hilbert_order_NCA(const Point& p1,const Point& p2)
+bool TreeNode::hilbert_order(const Point& p1,const Point& p2) const
+{
+  int MAX_LIMIT=pow(2,this->m_uiMaxDepth)-1;
+  int MAX_DEAPTH=this->m_uiMaxDepth;
+  double TOLLERANCE= 1.0e-6;
+  
+  double x1=(double)p1.xint()/MAX_LIMIT;
+  double y1=(double)p1.yint()/MAX_LIMIT;
+  double z1=(double)p1.zint()/MAX_LIMIT;
+  
+  double x2=(double)p2.xint()/MAX_LIMIT;
+  double y2=(double)p2.yint()/MAX_LIMIT;
+  double z2=(double)p2.zint()/MAX_LIMIT;
+  
+  //cout<<"x1:"<<x1<<",y1:"<<y1<<",z1:"<<z1<<"\t"<<"x2:"<<x2<<" ,y2:"<<y2<<" ,z2:"<<z2<<endl;
+  
+  
+  if(abs(x1-x2)<TOLLERANCE && abs(y1-y2)<TOLLERANCE && abs(z1-z2)<TOLLERANCE)
+  {
+    return false;
+  }
+  
+  if(abs(x1)<TOLLERANCE && abs(y1)<TOLLERANCE && abs(z1)<TOLLERANCE)
+  {
+    return true;
+  }
+  
+  if(abs(x2)<TOLLERANCE && abs(y2)<TOLLERANCE && abs(z2)<TOLLERANCE)
+  {
+    return false;
+  }
+  
+//   unsigned int r;
+//   r = x1 ^ ((x1 ^ y1) & -(x1 < y1));//max(z1,max(x1,y1));
+//   unsigned int max_xy1= z1 ^ ((z1 ^ r) & -(z1 < r));
+//   r = x2 ^ ((x2 ^ y2) & -(x2 < y2));//max(z1,max(x2,y2));
+  /*unsigned int max_xy2=z2 ^ ((z2 ^ r) & -(z2 < r));
+  unsigned int max_xy= max_xy1 ^ ((max_xy1 ^ max_xy2) & -(max_xy1 < max_xy2)); // max(max_xy1,max_xy2)
+  */
+  //unsigned int resolution_min=1;//=floor(log2(max_xy))+1;
+  
+  
+  unsigned int index1=0;
+  unsigned int index2=0;
+  unsigned int min_x,min_y,min_z,max_x,max_y,max_z;
+  double len=1;
+  int deapth=0;
+  min_x=0;
+  min_y=0;
+  min_z=0;
+   
+  max_x=1;//len;
+  max_y=1;//len;
+  max_z=1;//len;
+  
+  unsigned int g_dim=this->m_uiDim;
+
+    
+  
+  if(g_dim==2)
+  {
+    Point pt_hilbert[4];
+    Point pt_hilbert_new[4];
+  
+    pt_hilbert[0]=Point ((double)min_x,(double)min_y,(double)0);
+    pt_hilbert[1]=Point ((double)min_x,(double)max_y,(double)0);
+    pt_hilbert[2]=Point ((double)max_x,(double)max_y,(double)0);
+    pt_hilbert[3]=Point ((double)max_x,(double)min_y,(double)0); 
+  
+    while (len>TOLLERANCE && deapth<MAX_DEAPTH)
+    {
+  
+      double temp1=abs(pt_hilbert[0].x()-x1)+abs(pt_hilbert[0].y()-y1);
+      double temp2=abs(pt_hilbert[0].x()-x2)+abs(pt_hilbert[0].y()-y2);
+      double temp;
+      index1=0;
+      index2=0;
+      for(int i=1;i<4;i++)
+      {
+	temp=abs(pt_hilbert[i].x()-x1)+abs(pt_hilbert[i].y()-y1);
+	if(temp1>temp)
+      {
+	temp1=temp;
+	index1=i;
+      }
+	temp=abs(pt_hilbert[i].x()-x2)+abs(pt_hilbert[i].y()-y2);
+      if(temp2>temp)
+      {
+	temp2=temp;
+	index2=i;
+      }
+      
+      
+    }
+  
+  
+    if (index1<index2){
+	  return true;
+    }
+    else if (index1>index2){
+	return false;
+    }
+    
+   switch (index1)
+   {
+    case 0:
+          pt_hilbert_new[0]=pt_hilbert[0];
+	  pt_hilbert_new[1]=(pt_hilbert[0]+pt_hilbert[3])/2.0;
+	  pt_hilbert_new[2]=(pt_hilbert[0]+pt_hilbert[2])/2.0;
+	  pt_hilbert_new[3]=(pt_hilbert[0]+pt_hilbert[1])/2.0;
+	   break;
+   case 1:
+	  pt_hilbert_new[0]=(pt_hilbert[0]+pt_hilbert[1])/2.0;
+	  pt_hilbert_new[1]=pt_hilbert[1];
+	  pt_hilbert_new[2]=(pt_hilbert[1]+pt_hilbert[2])/2.0;
+	  pt_hilbert_new[3]=(pt_hilbert[1]+pt_hilbert[3])/2.0;
+          break;
+   case 2:
+	  pt_hilbert_new[0]=(pt_hilbert[0]+pt_hilbert[2])/2.0;
+	  pt_hilbert_new[1]=(pt_hilbert[1]+pt_hilbert[2])/2.0;
+	  pt_hilbert_new[2]=pt_hilbert[2];
+	  pt_hilbert_new[3]=(pt_hilbert[2]+pt_hilbert[3])/2.0;
+	  break;
+   case 3:
+          pt_hilbert_new[0]=(pt_hilbert[3]+pt_hilbert[2])/2.0;
+	  pt_hilbert_new[1]=(pt_hilbert[1]+pt_hilbert[3])/2.0;
+	  pt_hilbert_new[2]=(pt_hilbert[3]+pt_hilbert[0])/2.0;
+	  pt_hilbert_new[3]=pt_hilbert[3];
+	  break;
+   default:
+	  std::cout<<"Hilbert ordering error:Invalid nearest cell"<<std::endl;
+	  break;
+	    
+    }
+    
+    
+    pt_hilbert[0]=pt_hilbert_new[0];
+    pt_hilbert[1]=pt_hilbert_new[1];
+    pt_hilbert[2]=pt_hilbert_new[2];
+    pt_hilbert[3]=pt_hilbert_new[3];
+    len=len/2.0;
+    deapth+=1;
+    
+   }
+   return false;
+  }
+  else if(g_dim==3)
+  {
+    Point pt_hilbert[8];
+    Point pt_hilbert_new[8];
+    
+    pt_hilbert[0]=Point ((double)min_x,(double)min_y,(double)min_z);
+    pt_hilbert[1]=Point ((double)min_x,(double)min_y,(double)max_z);
+    pt_hilbert[2]=Point ((double)max_x,(double)min_y,(double)max_z);
+    pt_hilbert[3]=Point ((double)max_x,(double)min_y,(double)min_z);
+      
+    pt_hilbert[4]=Point ((double)max_x,(double)max_y,(double)min_z);
+    pt_hilbert[5]=Point ((double)max_x,(double)max_y,(double)max_z);
+    pt_hilbert[6]=Point ((double)min_x,(double)max_y,(double)max_z);
+    pt_hilbert[7]=Point ((double)min_x,(double)max_y,(double)min_z);
+  
+      
+      while(len>TOLLERANCE && deapth<MAX_DEAPTH)
+      {
+	
+	double temp1=abs(pt_hilbert[0].x()-x1)+abs(pt_hilbert[0].y()-y1)+abs(pt_hilbert[0].z()-z1);
+	double temp2=abs(pt_hilbert[0].x()-x2)+abs(pt_hilbert[0].y()-y2)+abs(pt_hilbert[0].z()-z2);
+	double temp;
+	index1=0;
+	index2=0;
+	for(int i=1;i<8;i++)
+	{
+	  temp=abs(pt_hilbert[i].x()-x1)+abs(pt_hilbert[i].y()-y1)+abs(pt_hilbert[i].z()-z1);
+	  if(temp1>temp)
+	  {
+	    temp1=temp;
+	    index1=i;
+	  }
+	  temp=abs(pt_hilbert[i].x()-x2)+abs(pt_hilbert[i].y()-y2)+abs(pt_hilbert[i].z()-z2);
+	  if(temp2>temp)
+	  {
+	    temp2=temp;
+	    index2=i;
+	    
+	  }
+	
+	}
+	
+	
+	if (index1<index2){
+	  return true;
+	}
+	else if (index1>index2){
+	  return false;
+	}
+	// means that index1 ==index2
+	switch(index1)
+	{
+	      case 0:
+		      pt_hilbert_new[0]=pt_hilbert[0];
+		      pt_hilbert_new[1]=(pt_hilbert[0]+pt_hilbert[7])/2.0;
+		      pt_hilbert_new[2]=(pt_hilbert[0]+pt_hilbert[4])/2.0;
+		      pt_hilbert_new[3]=(pt_hilbert[0]+pt_hilbert[3])/2.0;
+		      
+		      pt_hilbert_new[4]=(pt_hilbert[0]+pt_hilbert[2])/2.0;
+		      pt_hilbert_new[5]=(pt_hilbert[0]+pt_hilbert[5])/2.0;
+		      pt_hilbert_new[6]=(pt_hilbert[0]+pt_hilbert[6])/2.0;
+		      pt_hilbert_new[7]=(pt_hilbert[0]+pt_hilbert[1])/2.0;
+		      break;
+	      case 1:          
+		      pt_hilbert_new[0]=(pt_hilbert[0]+pt_hilbert[1])/2.0;
+		      pt_hilbert_new[1]=pt_hilbert[1];
+		      pt_hilbert_new[2]=(pt_hilbert[1]+pt_hilbert[6])/2.0;
+		      pt_hilbert_new[3]=(pt_hilbert[1]+pt_hilbert[7])/2.0;
+		      
+		      pt_hilbert_new[4]=(pt_hilbert[1]+pt_hilbert[4])/2.0;
+		      pt_hilbert_new[5]=(pt_hilbert[1]+pt_hilbert[5])/2.0;
+		      pt_hilbert_new[6]=(pt_hilbert[1]+pt_hilbert[2])/2.0;
+		      pt_hilbert_new[7]=(pt_hilbert[1]+pt_hilbert[3])/2.0;
+		      break;
+	      case 2:
+		      pt_hilbert_new[0]=(pt_hilbert[2]+pt_hilbert[0])/2.0;
+		      pt_hilbert_new[1]=(pt_hilbert[2]+pt_hilbert[1])/2.0;
+		      pt_hilbert_new[2]=pt_hilbert[2];
+		      pt_hilbert_new[3]=(pt_hilbert[2]+pt_hilbert[3])/2.0;
+		      
+		      pt_hilbert_new[4]=(pt_hilbert[2]+pt_hilbert[4])/2.0;
+		      pt_hilbert_new[5]=(pt_hilbert[2]+pt_hilbert[5])/2.0;
+		      pt_hilbert_new[6]=(pt_hilbert[2]+pt_hilbert[6])/2.0;
+		      pt_hilbert_new[7]=(pt_hilbert[2]+pt_hilbert[7])/2.0;
+		      
+		      break;
+	      case 3:
+		      pt_hilbert_new[0]=(pt_hilbert[3]+pt_hilbert[6])/2.0;
+		      pt_hilbert_new[1]=(pt_hilbert[3]+pt_hilbert[1])/2.0;
+		      pt_hilbert_new[2]=(pt_hilbert[3]+pt_hilbert[0])/2.0;
+		      pt_hilbert_new[3]=(pt_hilbert[3]+pt_hilbert[7])/2.0;
+		      
+		      pt_hilbert_new[4]=(pt_hilbert[3]+pt_hilbert[4])/2.0;
+		      pt_hilbert_new[5]=pt_hilbert[3];
+		      pt_hilbert_new[6]=(pt_hilbert[3]+pt_hilbert[2])/2.0;
+		      pt_hilbert_new[7]=(pt_hilbert[3]+pt_hilbert[5])/2.0;
+		      break;
+		      
+	      case 4:pt_hilbert_new[0]=(pt_hilbert[4]+pt_hilbert[2])/2.0;
+		      pt_hilbert_new[1]=(pt_hilbert[4]+pt_hilbert[5])/2.0;
+		      pt_hilbert_new[2]=pt_hilbert[4];
+		      pt_hilbert_new[3]=(pt_hilbert[4]+pt_hilbert[3])/2.0;
+		      
+		      pt_hilbert_new[4]=(pt_hilbert[4]+pt_hilbert[0])/2.0;
+		      pt_hilbert_new[5]=(pt_hilbert[4]+pt_hilbert[7])/2.0;
+		      pt_hilbert_new[6]=(pt_hilbert[4]+pt_hilbert[6])/2.0;
+		      pt_hilbert_new[7]=(pt_hilbert[4]+pt_hilbert[1])/2.0;
+		      break;
+	      case 5:pt_hilbert_new[0]=(pt_hilbert[5]+pt_hilbert[0])/2.0;
+		      pt_hilbert_new[1]=(pt_hilbert[5]+pt_hilbert[1])/2.0;
+		      pt_hilbert_new[2]=(pt_hilbert[5]+pt_hilbert[2])/2.0;
+		      pt_hilbert_new[3]=(pt_hilbert[5]+pt_hilbert[3])/2.0;
+		      
+		      pt_hilbert_new[4]=(pt_hilbert[5]+pt_hilbert[4])/2.0;
+		      pt_hilbert_new[5]=pt_hilbert[5];
+		      pt_hilbert_new[6]=(pt_hilbert[5]+pt_hilbert[6])/2.0;
+		      pt_hilbert_new[7]=(pt_hilbert[5]+pt_hilbert[7])/2.0;
+		      break;
+	      case 6:pt_hilbert_new[0]=(pt_hilbert[6]+pt_hilbert[4])/2.0;
+		      pt_hilbert_new[1]=(pt_hilbert[6]+pt_hilbert[5])/2.0;
+		      pt_hilbert_new[2]=(pt_hilbert[6]+pt_hilbert[2])/2.0;
+		      pt_hilbert_new[3]=(pt_hilbert[6]+pt_hilbert[3])/2.0;
+		      
+		      pt_hilbert_new[4]=(pt_hilbert[6]+pt_hilbert[0])/2.0;
+		      pt_hilbert_new[5]=(pt_hilbert[6]+pt_hilbert[1])/2.0;
+		      pt_hilbert_new[6]=pt_hilbert[6];
+		      pt_hilbert_new[7]=(pt_hilbert[6]+pt_hilbert[7])/2.0;
+		      break;
+	      case 7:pt_hilbert_new[0]=(pt_hilbert[7]+pt_hilbert[6])/2.0;
+		      pt_hilbert_new[1]=(pt_hilbert[7]+pt_hilbert[1])/2.0;
+		      pt_hilbert_new[2]=(pt_hilbert[7]+pt_hilbert[2])/2.0;
+		      pt_hilbert_new[3]=(pt_hilbert[7]+pt_hilbert[5])/2.0;
+		      
+		      pt_hilbert_new[4]=(pt_hilbert[7]+pt_hilbert[4])/2.0;
+		      pt_hilbert_new[5]=(pt_hilbert[7]+pt_hilbert[3])/2.0;
+		      pt_hilbert_new[6]=(pt_hilbert[7]+pt_hilbert[0])/2.0;
+		      pt_hilbert_new[7]=pt_hilbert[7];
+		      break;
+	      default:
+		      std::cout<<"Hilbert ordering error:Invalid nearest cell"<<std::endl;
+		      break;
+	  
+	  
+	 }
+	    
+	    
+	pt_hilbert[0]=pt_hilbert_new[0];
+	pt_hilbert[1]=pt_hilbert_new[1];
+	pt_hilbert[2]=pt_hilbert_new[2];
+	pt_hilbert[3]=pt_hilbert_new[3];
+	
+	pt_hilbert[4]=pt_hilbert_new[4];
+	pt_hilbert[5]=pt_hilbert_new[5];
+	pt_hilbert[6]=pt_hilbert_new[6];
+	pt_hilbert[7]=pt_hilbert_new[7];
+	
+	len=len/2.0;
+	deapth+=1;
+    
+      }
+      return false;
+  
+     
+    
+  }
+  
+}
+
+
+ bool TreeNode::hilbert_order_NCA(const Point& p1,const Point& p2) const
 {
   
   unsigned int x1 = p1.xint();
@@ -672,7 +987,7 @@ namespace ot {
   unsigned int zl=0;
   
   unsigned int len=(unsigned int)pow(2,maxDepth);//MAX_LIMIT+1;
-  int count=0;
+  unsigned int count=0;
   unsigned int index1=0;
   unsigned int index2=0;
   
@@ -686,13 +1001,13 @@ namespace ot {
       if((ncaX-xl)<len && (ncaY-yl)<len)
       { 
 	//cout<<"Index 0"<<endl;
-	rotate(0,rotation,g_dim);
+	this->rotate(0,rotation,g_dim);
 	
       }else if((ncaX-xl)<len && (ncaY-yl)>=len)
       { // index 1
 	//cout<<"Index 1"<<endl;
 	yl+=len;
-	rotate(1,rotation,g_dim);
+	this->rotate(1,rotation,g_dim);
 	
 	
       }else if((ncaX-xl)>=len && (ncaY-yl)>=len)
@@ -700,14 +1015,14 @@ namespace ot {
 	//cout<<"Index 2"<<endl;
 	xl+=len;
 	yl+=len;
-	rotate(2,rotation,g_dim);
+	this->rotate(2,rotation,g_dim);
 	
 	
       }else if ((ncaX-xl)>=len && (ncaY-yl)<len)
       { // index 3
 	//cout<<"Index 3"<<endl;
 	xl+=len;
-	rotate(3,rotation,g_dim);
+	this->rotate(3,rotation,g_dim);
       }
       count++;
       
@@ -759,39 +1074,39 @@ namespace ot {
 	
 	if((ncaX-xl)<len && (ncaY-yl)<len && (ncaZ-zl)<len)
 	{ 
-	  rotate(0,rotation,g_dim);
+	 this->rotate(0,rotation,g_dim);
 	}else if ((ncaX-xl)<len && (ncaY-yl)>=len && (ncaZ-zl)<len)
 	{ 
 	  yl+=len;
-	  rotate(1,rotation,g_dim);
+	  this->rotate(1,rotation,g_dim);
 	}else if((ncaX-xl)>=len && (ncaY-yl)>=len && (ncaZ-zl)<len)
 	{
 	  xl+=len;
 	  yl+=len;
-	  rotate(2,rotation,g_dim);
+	  this->rotate(2,rotation,g_dim);
 	}else if((ncaX-xl)>=len && (ncaY-yl)<len && (ncaZ-zl)<len)
 	{ xl+=len;
-	  rotate(3,rotation,g_dim);
+	  this->rotate(3,rotation,g_dim);
 	}else if ((ncaX-xl)>=len && (ncaY-yl)<len && (ncaZ-zl)>=len)
 	{
 	  xl+=len;
 	  zl+=len;
-	  rotate(4,rotation,g_dim);
+	  this->rotate(4,rotation,g_dim);
 	}else if((ncaX-xl)>=len && (ncaY-yl)>=len && (ncaZ-zl)>=len)
 	{ 
 	  xl+=len;
 	  yl+=len;
 	  zl+=len;
-	  rotate(5,rotation,g_dim);
+	  this->rotate(5,rotation,g_dim);
 	}else if((ncaX-xl)<len && (ncaY-yl)>=len && (ncaZ-zl)>=len)
 	{ 
 	  yl+=len;
 	  zl+=len;
-	  rotate(6,rotation,g_dim);
+	  this->rotate(6,rotation,g_dim);
 	}else if((ncaX-xl)<len && (ncaY-yl)<len && (ncaZ-zl)>=len)
 	{
 	  zl+=len;
-	  rotate(7,rotation,g_dim);
+	  this->rotate(7,rotation,g_dim);
 	}
 	//cout<<"xl:"<<xl<<", yl:"<<yl<<" ,zl:"<<zl<<endl;
 	count++;
@@ -857,17 +1172,28 @@ namespace ot {
   
 }
  
- bool TreeNode::morton_order_oc(Point p1, Point p2)
+  
+ bool TreeNode::morton_order(const Point& p1, const Point& p2) const
 {
    
-    if(p1==p2)
+
+    unsigned int x1 = p1.xint();
+    unsigned int x2 = p2.xint();
+  
+    unsigned int y1 = p1.yint();
+    unsigned int y2 = p2.yint();
+  
+    unsigned int z1 = p1.zint();
+    unsigned int z2 = p2.zint();
+    
+    if(x1==x2 && y1==y2 && z1==z2)
     {
-	return false;
+      return false;
     }
-   
-    unsigned int x = (p1.xint()^p2.xint());
-    unsigned int y = (p1.yint()^p2.yint());
-    unsigned int z = (p1.zint()^p2.zint());
+    
+    unsigned int x = (x1^x2);
+    unsigned int y = (y1^y2);
+    unsigned int z = (z1^z2);
 
     //Default pref: z > y > x.
     unsigned int maxC = z;
@@ -876,21 +1202,21 @@ namespace ot {
     if(maxC < yOrx) { if( (maxC^yOrx) >= maxC ) {maxC = yOrx;} }
 
     if(maxC == z) { 
-      if (p1.z() < p2.z())
+      if (z1 <z2)
 	return true;
       else
 	return false;
       
     }
     else if(maxC == y) { 
-      if(p1.y() < p2.y())
+      if(y1 < y2)
 	return true;
       else 
 	return false;
       
     }
     else {  
-      if(p1.x() < p2.x())
+      if(x1 < x2)
 	return true;
       else
 	return false;
@@ -901,21 +1227,160 @@ namespace ot {
  
 }
 
- 
+ bool TreeNode::morton_order_NCA(const Point& p1,const Point& p2) const
+ {
+  
+  unsigned int x1 = p1.xint();
+  unsigned int x2 = p2.xint();
+  
+  unsigned int y1 = p1.yint();
+  unsigned int y2 = p2.yint();
+  
+  unsigned int z1 = p1.zint();
+  unsigned int z2 = p2.zint();
+    
+  if(x1==x2 && y1==y2 && z1==z2)
+  {
+	return false;
+  }
+  
+  unsigned int maxDepth = this->m_uiMaxDepth;//MAX_DEAPTH;
+  unsigned int maxDiff = (unsigned int)(std::max((std::max((x1^x2),(y1^y2))),(z1^z2)));
+  
+  unsigned int maxDiffBinLen = binOp::binLength(maxDiff);
+  //Eliminate the last maxDiffBinLen bits.
+  unsigned int ncaX = ((x1>>maxDiffBinLen)<<maxDiffBinLen);
+  unsigned int ncaY = ((y1>>maxDiffBinLen)<<maxDiffBinLen);
+  unsigned int ncaZ = ((z1>>maxDiffBinLen)<<maxDiffBinLen);
+  unsigned int ncaLev = (maxDepth - maxDiffBinLen);
+  int g_dim=this->m_uiDim;
+  
+  
+  unsigned int len=(unsigned int)pow(2,maxDepth);//MAX_LIMIT+1;
+   
+  len=len/pow(2,ncaLev+1);
+  unsigned int index1=0;
+  unsigned int index2=0;
+  
+  if(g_dim==2){
+   
+  
+      if((x1-ncaX)<len && (y1-ncaY)>=len)
+      { 
+	  index1=0;
+	  
+      }else if((x1-ncaX)>=len && (y1-ncaY)>=len)
+      { 
+	  index1=1;
+      }else if((x1-ncaX)<len && (y1-ncaY)<len)
+      { 
+	  index1=2;
+	  
+      }else if ((x1-ncaX)>=len && (y1-ncaY)<len)
+      { 
+	  index1=3;
+      }
+    
+	
+      if((x2-ncaX)<len && (y2-ncaY)>=len)
+      { 
+	  index2=0;
+	  
+      }else if((x2-ncaX)>=len && (y2-ncaY)>=len)
+      { 
+	  index2=1;
+      }else if((x2-ncaX)<len && (y2-ncaY)<len)
+      { 
+	  index2=2;
+	  
+      }else if ((x2-ncaX)>=len && (y2-ncaY)<len)
+      { 
+	index2=3;
+      }
+  }else if(g_dim==3)
+  {
+      if((x1-ncaX)<len && (y1-ncaY)<len && (z1-ncaZ)<len)
+      { 
+	index1=0;
+      }else if ((x1-ncaX)<len && (y1-ncaY)>=len && (z1-ncaZ)<len)
+      { 
+	index1=1;
+      }else if((x1-ncaX)>=len && (y1-ncaY)<len && (z1-ncaZ)<len)
+      {
+      index1=2;
+      }else if((x1-ncaX)>=len && (y1-ncaY)>=len && (z1-ncaZ)<len)
+      { index1=3;
+      }if((x1-ncaX)<len && (y1-ncaY)<len && (z1-ncaZ)>=len)
+      { 
+	index1=4;
+      }else if ((x1-ncaX)<len && (y1-ncaY)>=len && (z1-ncaZ)>=len)
+      { 
+	index1=5;
+      }else if((x1-ncaX)>=len && (y1-ncaY)<len && (z1-ncaZ)>=len)
+      {
+      index1=6;
+      }else if((x1-ncaX)>=len && (y1-ncaY)>=len && (z1-ncaZ)>=len)
+      { index1=7;
+      }
+    
+    
+      if((x2-ncaX)<len && (y2-ncaY)<len && (z2-ncaZ)<len)
+      { 
+	index2=0;
+      }else if ((x2-ncaX)<len && (y2-ncaY)>=len && (z2-ncaZ)<len)
+      { 
+	index2=1;
+      }else if((x2-ncaX)>=len && (y2-ncaY)<len && (z2-ncaZ)<len)
+      {
+      index2=2;
+      }else if((x2-ncaX)>=len && (y2-ncaY)>=len && (z2-ncaZ)<len)
+      { index2=3;
+      }if((x2-ncaX)<len && (y2-ncaY)<len && (z2-ncaZ)>=len)
+      { 
+	index2=4;
+      }else if ((x2-ncaX)<len && (y2-ncaY)>=len && (z2-ncaZ)>=len)
+      { 
+	index2=5;
+      }else if((x2-ncaX)>=len && (y2-ncaY)<len && (z2-ncaZ)>=len)
+      {
+      index2=6;
+      }else if((x2-ncaX)>=len && (y2-ncaY)>=len && (z2-ncaZ)>=len)
+      { index2=7;
+      }
+    
+  }
+  return index1<index2;
+
+     
+ }
  
  bool  TreeNode::operator < (TreeNode const  &other) const
  {
    
-     #ifdef HILBERT
-	return hilbert_order_NCA(this,other);
-     #endif
-      
-     #ifdef MORTON
-	return morton_order_oc(this,other);
-     #endif
-	
-     
+    const Point p1=Point(this->m_uiX,this->m_uiY,this->m_uiZ);
+    const Point p2=Point(other.m_uiX,other.m_uiY,other.m_uiZ);
    
+   
+ 
+#ifndef HILBERT_ORDERING
+  #define DEFAULT_ORDERING
+#endif
+               
+#ifdef DEFAULT_ORDERING
+  #ifdef USE_NCA_PROPERTY
+    return morton_order_NCA(p1,p2);
+  #else 
+    return morton_order(p1,p2);
+  #endif
+#endif
+
+#ifdef HILBERT_ORDERING
+  #ifdef USE_NCA_PROPERTY
+    return hilbert_order_NCA(p1,p2);
+  #else
+    return hilbert_order(p1,p2);
+  #endif
+#endif
    
  }
  

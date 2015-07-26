@@ -9,6 +9,8 @@
 #ifndef _TREENODE_H_
 #define _TREENODE_H_
 
+
+
 #include "octUtils.h"
 #include "Point.h"
 
@@ -205,9 +207,15 @@ namespace ot {
        * Hilbert order implementation
        * */
       
-       void rotate(int index,int* current,int dim);
-       bool hilbert_order_NCA(const Point& p1,const Point& p2);
-       bool morton_order_oc(Point p1, Point p2);
+       void rotate(int index,int* current,int dim) const;
+       
+       bool hilbert_order_NCA(const Point& p1,const Point& p2) const;
+       bool hilbert_order(const Point& p1,const Point& p2) const;
+       
+       bool morton_order(const Point& p1, const Point& p2) const;
+       bool morton_order_NCA(const Point& p1,const Point& p2) const;
+       
+       
       
       /**
         @author Rahul Sampath
