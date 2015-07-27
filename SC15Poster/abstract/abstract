@@ -1,0 +1,6 @@
+1. Morton is good for current range of clusters in terms of giving good load balance, but as we focus on larger levels of parallelism, Hilbert will be more effective.
+2. We conduct 2 experiments, demonstrating this:
+   1) Standard SFC based partition, where the work is uniform across all processes and compare the communication (using the surface area of the partition as a surrogate)
+   2) a flexible SFC based partition, where we allow a small 'slack' (flexibility) in the amount of work that each process gets. This means that all processes will not have the (~)same amount of work, with the objective of further reducing the communication costs.
+3. Since, current implementations of Hilbert curve computations are expensive, we propose a new algorithm that works for all SFC using the property of the NCA.
+4. We show results for our efficient implementation.

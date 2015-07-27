@@ -1,0 +1,13 @@
+\begin{thebibliography}{1}
+
+\bibitem{Smith:2013jd}
+A.~B. Jones and J.~M. Smith.
+\newblock {A}rticle {T}itle.
+\newblock {\em Journal title}, 13(52):123--456, March 2013.
+
+\bibitem{Smith:2012qr}
+J.~M. Smith and A.~B. Jones.
+\newblock {\em {B}ook {T}itle}.
+\newblock Publisher, 7th edition, 2012.
+
+\end{thebibliography}
