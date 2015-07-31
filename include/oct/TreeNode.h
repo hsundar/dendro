@@ -207,7 +207,7 @@ namespace ot {
        * Hilbert order implementation
        * */
       
-       void rotate(int index,int* current,int dim) const;
+       void rotate(int index,int* current,int * rot_index,int dim) const;
        
        bool hilbert_order_NCA(const Point& p1,const Point& p2) const;
        bool hilbert_order(const Point& p1,const Point& p2) const;

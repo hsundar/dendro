@@ -588,54 +588,103 @@ namespace ot {
   * ====================START============================
   */
 
- void TreeNode::rotate(int index,int* current,int dim) const
+ void TreeNode::rotate(int index,int* current,int * rot_index,int dim) const
 {
   
   if(dim==2)
   {
-    index=std::distance(current, std::find(current, current + 4, index));
+    index=rot_index[index];
      if(index==0)
     {
+      rot_index[current[1]]=3;
+      rot_index[current[3]]=1;
       SWAP(current[1],current[3]); // RIGHT Rotate and flip orientation
+      
       
     }else if (index==3)
     {
+      rot_index[current[0]]=2;
+      rot_index[current[2]]=0;
       SWAP(current[0],current[2]); //LEFT Rotate and flip orientation: 
+      
     }
     
   }else if(dim==3)
   {	
     
-    index=std::distance(current, std::find(current, current + 8, index));
+    index=rot_index[index];
     if(index==0)
     {
+      rot_index[current[1]]=7;
+      rot_index[current[7]]=1;
       SWAP(current[1],current[7]);
+      rot_index[current[4]]=2;
+      rot_index[current[2]]=4;
       SWAP(current[2],current[4]);
       
     }else if(index==1)
     {
+      rot_index[current[3]]=7;
+      rot_index[current[7]]=3;
       SWAP(current[3],current[7]);
+      rot_index[current[2]]=6;
+      rot_index[current[6]]=2;
       SWAP(current[2],current[6]);
       
     }else if(index==3)
     {
+      rot_index[current[3]]=5;
+      rot_index[current[5]]=3;
       SWAP(current[3],current[5]);
+      
+      rot_index[current[3]]=7;
+      rot_index[current[7]]=3;
       SWAP(current[3],current[7]);
+      
+      rot_index[current[2]]=6;
+      rot_index[current[6]]=2;
       SWAP(current[2],current[6]);
+      
+      rot_index[current[0]]=2;
+      rot_index[current[2]]=0;
       SWAP(current[0],current[2]);
     }else if(index==4)
     {
+      rot_index[current[1]]=7;
+      rot_index[current[7]]=1;
       SWAP(current[1],current[7]);
+      
+      rot_index[current[1]]=5;
+      rot_index[current[5]]=1;
       SWAP(current[1],current[5]);
+      
+      rot_index[current[0]]=4;
+      rot_index[current[4]]=0;
       SWAP(current[0],current[4]);
+      
+      rot_index[current[0]]=2;
+      rot_index[current[2]]=0;
       SWAP(current[0],current[2]);
+      
     }else if(index==6)
     {
+      rot_index[current[1]]=5;
+      rot_index[current[5]]=1;
       SWAP(current[1],current[5]);
+      
+      rot_index[current[0]]=4;
+      rot_index[current[4]]=0;
       SWAP(current[0],current[4]);
+      
     }else if(index==7)
     {
+      
+      rot_index[current[0]]=6;
+      rot_index[current[6]]=0;
       SWAP(current[0],current[6]);
+      
+      rot_index[current[3]]=5;
+      rot_index[current[5]]=3;
       SWAP(current[3],current[5]);
     }
     
@@ -1069,21 +1118,22 @@ bool TreeNode::hilbert_order(const Point& p1,const Point& p2) const
   }
  
   unsigned int maxDepth = this->m_uiMaxDepth;
-  int MAX_LIMIT=(1<<maxDepth)-1;
   unsigned int maxDiff = (unsigned int)(std::max((std::max((x1^x2),(y1^y2))),(z1^z2)));
   int dim=g_dim;
-  unsigned int maxDiffBinLen = binOp::binLength(maxDiff);
+  unsigned int maxDiffBinLen =binOp::binLength(maxDiff);
   //Eliminate the last maxDiffBinLen bits.
   unsigned int ncaX = ((x1>>maxDiffBinLen)<<maxDiffBinLen);
   unsigned int ncaY = ((y1>>maxDiffBinLen)<<maxDiffBinLen);
   unsigned int ncaZ = ((z1>>maxDiffBinLen)<<maxDiffBinLen);
   unsigned int ncaLev = (maxDepth - maxDiffBinLen);
   
+ 
+  
   unsigned int xl=0;
   unsigned int yl=0;
   unsigned int zl=0;
   
-  unsigned int len=MAX_LIMIT+1;
+  unsigned int len=1<<maxDepth;
   int count=0;
   unsigned int index1=0;
   unsigned int index2=0;
@@ -1092,36 +1142,22 @@ bool TreeNode::hilbert_order(const Point& p1,const Point& p2) const
   if(g_dim==2)
   {
     int rotation[4]={0,1,2,3};
+    int rot_index[4]={0,1,2,3};
     while ((xl!=ncaX || yl!=ncaY || zl!=ncaZ || count!=ncaLev ))
     {
       len=len/2;
       
-      if((ncaX-xl)<len && (ncaY-yl)<len)
-      { 
-	//cout<<"Index 0"<<endl;
-	rotate(0,rotation,dim);
-	
-      }else if((ncaX-xl)<len && (ncaY-yl)>=len)
-      { // index 1
-	//cout<<"Index 1"<<endl;
-	yl+=len;
-	rotate(1,rotation,dim);
-	
-	
-      }else if((ncaX-xl)>=len && (ncaY-yl)>=len)
-      { // index 2
-	//cout<<"Index 2"<<endl;
-	xl+=len;
-	yl+=len;
-	rotate(2,rotation,dim);
-	
-	
-      }else if ((ncaX-xl)>=len && (ncaY-yl)<len)
-      { // index 3
-	//cout<<"Index 3"<<endl;
-	xl+=len;
-	rotate(3,rotation,dim);
+      index1 = 0;
+      if ( ncaX >= (len + xl) ) {
+        index1 += 1;
+        xl += len;
+        if (ncaY < (len + yl)) index1 += 2;
       }
+      if ( ncaY >= (len + yl) ) { index1 += 1; yl += len; }
+      
+      rotate(index1,rotation,rot_index,dim);
+      
+
       count++;
       
     }
@@ -1129,35 +1165,35 @@ bool TreeNode::hilbert_order(const Point& p1,const Point& p2) const
       len=len/2;
       if((x1-ncaX)<len && (y1-ncaY)<len)
       { // index 0
-	index1=std::distance(rotation, std::find(rotation, rotation + 4, 0));
-	
+        index1= rot_index[0];
+
       }else if((x1-ncaX)<len && (y1-ncaY)>=len)
       { // index 1
-	index1=std::distance(rotation, std::find(rotation, rotation + 4, 1));
+	index1=rot_index[1];
       }else if((x1-ncaX)>=len && (y1-ncaY)>=len)
       { // index 2
-	index1=std::distance(rotation, std::find(rotation, rotation + 4, 2));
+	index1=rot_index[2];
       }else if ((x1-ncaX)>=len && (y1-ncaY)<len)
       { // index 3
-	index1=std::distance(rotation, std::find(rotation, rotation + 4, 3));
+	index1=rot_index[3];
 	
       }
-      //cout<<"index1:"<<index1<<endl;
+      
       
       if((x2-ncaX)<len && (y2-ncaY)<len)
       { // index 0
-	index2=std::distance(rotation, std::find(rotation, rotation + 4, 0));
+	index2=rot_index[0];
 	
       }else if((x2-ncaX)<len && (y2-ncaY)>=len)
       { // index 1
-	index2=std::distance(rotation, std::find(rotation, rotation + 4, 1));
+	index2=rot_index[1];
 	
       }else if((x2-ncaX)>=len && (y2-ncaY)>=len)
       { // index 2
-	index2=std::distance(rotation, std::find(rotation, rotation + 4, 2));
+	index2=rot_index[2];
       }else if ((x2-ncaX)>=len && (y2-ncaY)<len)
       { // index 3
-	index2=std::distance(rotation, std::find(rotation, rotation + 4, 3));
+	index2=rot_index[3];
 	
       }
     
@@ -1166,109 +1202,99 @@ bool TreeNode::hilbert_order(const Point& p1,const Point& p2) const
   else if(g_dim==3)
   {
       int rotation[8]={0,1,2,3,4,5,6,7}; // Initial rotation
-      
+      int rot_index[8]={0,1,2,3,4,5,6,7}; // Initial rotation indices 
       while ((xl!=ncaX || yl!=ncaY || zl!=ncaZ || count!=ncaLev ) /*&& len >0*/)
       {
-	len=len/2;
+
+	len >>=1;
 	
-	if((ncaX-xl)<len && (ncaY-yl)<len && (ncaZ-zl)<len)
-	{ 
-	  rotate(0,rotation,dim);
-	}else if ((ncaX-xl)<len && (ncaY-yl)>=len && (ncaZ-zl)<len)
-	{ 
-	  yl+=len;
-	  
-	  rotate(1,rotation,dim);
-	}else if((ncaX-xl)>=len && (ncaY-yl)>=len && (ncaZ-zl)<len)
-	{
-	  xl+=len;
-	  yl+=len;
-	  
-	  rotate(2,rotation,dim);
-	}else if((ncaX-xl)>=len && (ncaY-yl)<len && (ncaZ-zl)<len)
-	{ xl+=len;
-	  rotate(3,rotation,dim);
-	}else if ((ncaX-xl)>=len && (ncaY-yl)<len && (ncaZ-zl)>=len)
-	{
-	  xl+=len;
-	  zl+=len;
-	  rotate(4,rotation,dim);
-	}else if((ncaX-xl)>=len && (ncaY-yl)>=len && (ncaZ-zl)>=len)
-	{ 
-	  xl+=len;
-	  yl+=len;
-	  zl+=len;
-	  
-	  rotate(5,rotation,dim);
-	}else if((ncaX-xl)<len && (ncaY-yl)>=len && (ncaZ-zl)>=len)
-	{ 
-	  yl+=len;
-	  zl+=len;
-	  rotate(6,rotation,dim);
-	}else if((ncaX-xl)<len && (ncaY-yl)<len && (ncaZ-zl)>=len)
-	{
-	  zl+=len;
-	  rotate(7,rotation,dim);
-	}
-	//cout<<"xl:"<<xl<<", yl:"<<yl<<" ,zl:"<<zl<<endl;
-	count++;
-	
+	index1 = 0;
+	if ( ncaZ < (len + zl) ) {
+	    if ( ncaX >= (len + xl) ) {
+	      index1 += 1;
+	      xl += len;
+	      if (ncaY < (len + yl)) 
+		index1 += 2;
+	    }
+	    if ( ncaY >= (len + yl) ) { 
+	      index1 += 1; 
+	      yl += len; 
+	    }
+	} else {
+	    index1 = 4;
+	    zl += len;
+	    if ( ncaX < (len + xl) ){ 
+	      index1 += 1;
+	      if (ncaY < (len + yl)) 
+		index1 += 2;
+	    }
+	    else {
+	      xl += len;
+	    }
+	    if ( ncaY >= (len + yl) ) { 
+	      index1 += 1; 
+	      yl += len; 
+	    }
       }
       
-         
-      len=len/2;
+      rotate(index1,rotation,rot_index,dim);
+      count++;
+	
+      }
+            
+      len >>=1;
         
        if((x1-ncaX)<len && (y1-ncaY)<len && (z1-ncaZ)<len)
 	{ 
-	  index1=std::distance(rotation, std::find(rotation, rotation + 8, 0));
+	  index1=rot_index[0];
 	}else if ((x1-ncaX)<len && (y1-ncaY)>=len && (z1-ncaZ)<len)
 	{ 
-	  index1=std::distance(rotation, std::find(rotation, rotation + 8, 1));
+	  index1=rot_index[1]; 
 	}else if((x1-ncaX)>=len && (y1-ncaY)>=len && (z1-ncaZ)<len)
 	{
-	  index1=std::distance(rotation, std::find(rotation, rotation + 8, 2));
+	  index1=rot_index[2];
 	}else if((x1-ncaX)>=len && (y1-ncaY)<len && (z1-ncaZ)<len)
 	{ 
-	  index1=std::distance(rotation, std::find(rotation, rotation + 8, 3));
+	  index1=rot_index[3];
 	}else if ((x1-ncaX)>=len && (y1-ncaY)<len && (z1-ncaZ)>=len)
 	{
-	  index1=std::distance(rotation, std::find(rotation, rotation + 8, 4));
+	  index1=rot_index[4];
 	}else if((x1-ncaX)>=len && (y1-ncaY)>=len && (z1-ncaZ)>=len)
 	{ 
-	  index1=std::distance(rotation, std::find(rotation, rotation + 8, 5));
+	  index1=rot_index[5];
 	}else if((x1-ncaX)<len && (y1-ncaY)>=len && (z1-ncaZ)>=len)
 	{ 
-	  index1=std::distance(rotation, std::find(rotation, rotation + 8, 6));
+	  index1=rot_index[6];
 	}else if((x1-ncaX)<len && (y1-ncaY)<len && (z1-ncaZ)>=len)
 	{
-	  index1=std::distance(rotation, std::find(rotation, rotation + 8, 7));
+	  index1=rot_index[7];
 	}
 	
 	
 	if((x2-ncaX)<len && (y2-ncaY)<len && (z2-ncaZ)<len)
 	{ 
-	  index2=std::distance(rotation, std::find(rotation, rotation + 8, 0));
+	  index2=rot_index[0];
 	}else if ((x2-ncaX)<len && (y2-ncaY)>=len && (z2-ncaZ)<len)
 	{ 
-	  index2=std::distance(rotation, std::find(rotation, rotation + 8, 1));
+	  index2=rot_index[1];
 	}else if((x2-ncaX)>=len && (y2-ncaY)>=len && (z2-ncaZ)<len)
 	{
-	  index2=std::distance(rotation, std::find(rotation, rotation + 8, 2));
+	  index2=rot_index[2];
 	}else if((x2-ncaX)>=len && (y2-ncaY)<len && (z2-ncaZ)<len)
 	{
-	  index2=std::distance(rotation, std::find(rotation, rotation + 8, 3));
+	  index2=rot_index[3];
 	}else if ((x2-ncaX)>=len && (y2-ncaY)<len && (z2-ncaZ)>=len)
 	{
-	  index2=std::distance(rotation, std::find(rotation, rotation + 8, 4));
+	  index2=rot_index[4];
 	}else if((x2-ncaX)>=len && (y2-ncaY)>=len && (z2-ncaZ)>=len)
 	{ 
-	  index2=std::distance(rotation, std::find(rotation, rotation + 8, 5));
+	  index2=rot_index[5];
 	}else if((x2-ncaX)<len && (y2-ncaY)>=len && (z2-ncaZ)>=len)
 	{ 
-	  index2=std::distance(rotation, std::find(rotation, rotation + 8, 6));
+	  index2=rot_index[6];
 	}else if((x2-ncaX)<len && (y2-ncaY)<len && (z2-ncaZ)>=len)
 	{
-	  index2=std::distance(rotation, std::find(rotation, rotation + 8, 7));
+	  index2=rot_index[7];
 	}
 	
 	
