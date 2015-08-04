@@ -9,6 +9,11 @@ float uniform();
 double gaussian(double mean = 0.5, double std_dev = 0.1);
 
 int main(int argc, char**argv) {
+ if (argc < 4) {
+   std::cerr << "Usage: " << argv[0] << " numPts mean outfile" << std::endl;
+   return 1;
+ }
+  
   unsigned int numPts = atoi(argv[1]);
   double mean = atof(argv[2]);
 
