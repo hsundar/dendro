@@ -2324,65 +2324,70 @@ inline bool TreeNode::morton_order_NCA(const Point& p1, const Point& p2) const {
   if (g_dim == 2) {
 
 
-    if ((x1 - ncaX) < len && (y1 - ncaY) < len) {
-      index1 = 0;
-
-    } else if ((x1 - ncaX) >= len && (y1 - ncaY) < len) {
-      index1 = 1;
-    } else if ((x1 - ncaX) < len && (y1 - ncaY) >= len) {
-      index1 = 2;
-
-    } else if ((x1 - ncaX) >= len && (y1 - ncaY) >= len) {
-      index1 = 3;
+   index1 = 0;
+    if ( x1>=(len+ncaX) ) {
+	index1 += 1;
+      if (y1>=(len+ncaY)){ 
+	  index1 += 2;
+      }
+    }else if ( y1>=(len+ncaY) ) { 
+      index1 += 2;
+      
     }
 
-
-    if ((x2 - ncaX) < len && (y2 - ncaY) < len) {
-      index2 = 0;
-
-    } else if ((x2 - ncaX) >= len && (y2 - ncaY) < len) {
-      index2 = 1;
-    } else if ((x2 - ncaX) < len && (y2 - ncaY) >= len) {
-      index2 = 2;
-
-    } else if ((x2 - ncaX) >= len && (y2 - ncaY) >= len) {
-      index2 = 3;
+    index2 = 0;
+    if ( x2>=(len+ncaX) ) {
+	index2 += 1;
+      if (y2>=(len+ncaY)){
+	index2 += 2;
+      }
+    }else if ( y2>=(len+ncaY) ) {
+      index2 += 2;
+      
     }
+   
+   
   } else if (g_dim == 3) {
-    if ((x1 - ncaX) < len && (y1 - ncaY) < len && (z1 - ncaZ) < len) {
-      index1 = 0;
-    } else if ((x1 - ncaX) >= len && (y1 - ncaY) < len && (z1 - ncaZ) < len) {
-      index1 = 1;
-    } else if ((x1 - ncaX) < len && (y1 - ncaY) >= len && (z1 - ncaZ) < len) {
-      index1 = 2;
-    } else if ((x1 - ncaX) >= len && (y1 - ncaY) >= len && (z1 - ncaZ) < len) {
-      index1 = 3;
-    } else if ((x1 - ncaX) < len && (y1 - ncaY) < len && (z1 - ncaZ) >= len) {
-      index1 = 4;
-    } else if ((x1 - ncaX) >= len && (y1 - ncaY) < len && (z1 - ncaZ) >= len) {
-      index1 = 5;
-    } else if ((x1 - ncaX) < len && (y1 - ncaY) >= len && (z1 - ncaZ) >= len) {
-      index1 = 6;
-    } else if ((x1 - ncaX) >= len && (y1 - ncaY) >= len && (z1 - ncaZ) >= len) {index1 = 7;
-    }
-
-
-    if ((x2 - ncaX) < len && (y2 - ncaY) < len && (z2 - ncaZ) < len) {
-      index2 = 0;
-    } else if ((x2 - ncaX) >= len && (y2 - ncaY) < len && (z2 - ncaZ) < len) {
-      index2 = 1;
-    } else if ((x2 - ncaX) < len && (y2 - ncaY) >= len && (z2 - ncaZ) < len) {
-      index2 = 2;
-    } else if ((x2 - ncaX) >= len && (y2 - ncaY) >= len && (z2 - ncaZ) < len) {
-      index2 = 3;
-    } else if ((x2 - ncaX) < len && (y2 - ncaY) < len && (z2 - ncaZ) >= len) {
-      index2 = 4;
-    } else if ((x2 - ncaX) >= len && (y2 - ncaY) < len && (z2 - ncaZ) >= len) {
-      index2 = 5;
-    } else if ((x2 - ncaX) < len && (y2 - ncaY) >= len && (z2 - ncaZ) >= len) {
-      index2 = 6;
-    } else if ((x2 - ncaX) >= len && (y2 - ncaY) >= len && (z2 - ncaZ) >= len) {index2 = 7;
-    }
+    
+      index1=0;
+      if ( z1 < (len + ncaZ) ) {
+	 if ( x1 >= (len + ncaX) ) {
+	    index1 += 1;
+	    if (y1 >= (len + ncaY)) 
+		index1 += 2;
+	 }else if ( y1>= (len + ncaY) ) { 
+	    index1 += 2; 
+	 }
+      } else {
+	    index1 = 4;
+	 if ( x1 >= (len + ncaX) ) {
+	    index1 += 1;
+	    if (y1 >= (len + ncaY)) 
+	      index1 += 2;
+	 }else if ( y1>= (len + ncaY) ) { 
+	    index1 += 2; 
+	 }
+      }
+      
+      index2=0;
+      if ( z2 < (len + ncaZ) ) {
+	 if ( x2 >= (len + ncaX) ) {
+	    index2 += 1;
+	    if (y2 >= (len + ncaY)) 
+		index2 += 2;
+	 }else if ( y2>= (len + ncaY) ) { 
+	    index2 += 2; 
+	 }
+      } else {
+	    index2 = 4;
+	 if ( x2 >= (len + ncaX) ) {
+	    index2 += 1;
+	    if (y2 >= (len + ncaY)) 
+	      index2 += 2;
+	 }else if ( y2>= (len + ncaY) ) { 
+	    index2 += 2; 
+	 }
+      }
 
   }
   return index1 < index2;
