@@ -5,7 +5,6 @@
   */
 
 #include "TreeNode.h"
-#include "binUtils.h"
 #include "parUtils.h"
 #include "seqUtils.h"
 #include <vector>
@@ -19,1480 +18,577 @@
 #endif
 #endif
 
-#define SWAP(a, b) ((&(a) == &(b)) || \
-                    (((a) -= (b)), ((b) += (a)), ((a) = (b) - (a))))
-
 namespace ot {
 
-  std::vector<TreeNode> TreeNode::getAllNeighbours() const {
-    /*
-       0 = Left;  1 =  Right;  2 =  Front;  3 = Back;   4 = LeftBack;  5 = RightBack;  6 = LeftFront;  7 = RightFront;  8 = Top;
-       9 = TopRight;  10 =  TopBack;  11 =  TopRightBack;  12 =  Bottom;  13 =  BottomBack;  14 =  TopLeft;  15 =  BottomLeft; 
-       16 =  BottomRight;  17 =  TopFront;  18 =  BottomFront;  19 =  TopLeftFront;  20 =  TopRightFront;  21 =  BottomLeftFront;
-       22 =  BottomRightFront;  23 =  TopLeftBack;  24 = BottomLeftBack;  25 = BottomRightBack;
-       */
-    std::vector<TreeNode> neighList;
+std::vector<TreeNode> TreeNode::getAllNeighbours() const {
+  /*
+     0 = Left;  1 =  Right;  2 =  Front;  3 = Back;   4 = LeftBack;  5 = RightBack;  6 = LeftFront;  7 = RightFront;  8 = Top;
+     9 = TopRight;  10 =  TopBack;  11 =  TopRightBack;  12 =  Bottom;  13 =  BottomBack;  14 =  TopLeft;  15 =  BottomLeft; 
+     16 =  BottomRight;  17 =  TopFront;  18 =  BottomFront;  19 =  TopLeftFront;  20 =  TopRightFront;  21 =  BottomLeftFront;
+     22 =  BottomRightFront;  23 =  TopLeftBack;  24 = BottomLeftBack;  25 = BottomRightBack;
+     */
+  std::vector<TreeNode> neighList;
 
-    if( m_uiDim== 3){
-      neighList.resize(26);
-      neighList[0] = getLeft();
-      neighList[1] =  getRight();
-      neighList[2] =  getFront();
-      neighList[3] =  getBack(); 
-      neighList[4] =  getLeftBack();
-      neighList[5] = getRightBack();
-      neighList[6] =  getLeftFront();
-      neighList[7] =  getRightFront();
-      neighList[8] =  getTop();
-      neighList[9] = getTopRight();
-      neighList[10] =  getTopBack();
-      neighList[11] =  getTopRightBack();
-      neighList[12] =  getBottom();
-      neighList[13] =  getBottomBack();
-      neighList[14] =  getTopLeft();
-      neighList[15] =  getBottomLeft(); 
-      neighList[16] =  getBottomRight();
-      neighList[17] =  getTopFront();
-      neighList[18] =  getBottomFront();
-      neighList[19] =  getTopLeftFront();
-      neighList[20] =  getTopRightFront();
-      neighList[21] =   getBottomLeftFront();
-      neighList[22] =   getBottomRightFront();
-      neighList[23] =  getTopLeftBack();
-      neighList[24] = getBottomLeftBack();
-      neighList[25] = getBottomRightBack();
-    }else if(m_uiDim == 2) {
-      neighList.resize(8);
-      neighList[0] = getLeft();
-      neighList[1] =  getRight();
-      neighList[2] =  getFront();
-      neighList[3] =  getBack(); 
-      neighList[4] =  getLeftBack();
-      neighList[5] = getRightBack();
-      neighList[6] =  getLeftFront();
-      neighList[7] =  getRightFront();
-    }else {
-      neighList.resize(2);
-      neighList[0] = getLeft();
-      neighList[1] =  getRight();
-    }
-    return neighList;
+  if (m_uiDim == 3) {
+    neighList.resize(26);
+    neighList[0] = getLeft();
+    neighList[1] =  getRight();
+    neighList[2] =  getFront();
+    neighList[3] =  getBack();
+    neighList[4] =  getLeftBack();
+    neighList[5] = getRightBack();
+    neighList[6] =  getLeftFront();
+    neighList[7] =  getRightFront();
+    neighList[8] =  getTop();
+    neighList[9] = getTopRight();
+    neighList[10] =  getTopBack();
+    neighList[11] =  getTopRightBack();
+    neighList[12] =  getBottom();
+    neighList[13] =  getBottomBack();
+    neighList[14] =  getTopLeft();
+    neighList[15] =  getBottomLeft();
+    neighList[16] =  getBottomRight();
+    neighList[17] =  getTopFront();
+    neighList[18] =  getBottomFront();
+    neighList[19] =  getTopLeftFront();
+    neighList[20] =  getTopRightFront();
+    neighList[21] =   getBottomLeftFront();
+    neighList[22] =   getBottomRightFront();
+    neighList[23] =  getTopLeftBack();
+    neighList[24] = getBottomLeftBack();
+    neighList[25] = getBottomRightBack();
+  } else if (m_uiDim == 2) {
+    neighList.resize(8);
+    neighList[0] = getLeft();
+    neighList[1] =  getRight();
+    neighList[2] =  getFront();
+    neighList[3] =  getBack();
+    neighList[4] =  getLeftBack();
+    neighList[5] = getRightBack();
+    neighList[6] =  getLeftFront();
+    neighList[7] =  getRightFront();
+  } else {
+    neighList.resize(2);
+    neighList[0] = getLeft();
+    neighList[1] =  getRight();
   }
+  return neighList;
+}
 
-  std::vector<std::vector<TreeNode> > TreeNode::getAllB_Neighbours() const {
-    /*
-       0 = Left;  1 =  Right;  2 =  Front;  3 = Back;   4 = LeftBack;  5 = RightBack;  6 = LeftFront;  7 = RightFront;  8 = Top;
-       9 = TopRight;  10 =  TopBack;  11 =  TopRightBack;  12 =  Bottom;  13 =  BottomBack;  14 =  TopLeft;  15 =  BottomLeft; 
-       16 =  BottomRight;  17 =  TopFront;  18 =  BottomFront;  19 =  TopLeftFront;  20 =  TopRightFront;  21 =  BottomLeftFront;
-       22 =  BottomRightFront;  23 =  TopLeftBack;  24 = BottomLeftBack;  25 = BottomRightBack;
-       */
-
-    std::vector<std::vector<TreeNode> > neighList;
-
-    if(m_uiDim == 3){
-      neighList.resize(26);
-      neighList[0] = getB_Left();
-      neighList[1] =  getB_Right();
-      neighList[2] =  getB_Front();
-      neighList[3] =  getB_Back(); 
-      neighList[4] =  getB_LeftBack();
-      neighList[5] = getB_RightBack();
-      neighList[6] =  getB_LeftFront();
-      neighList[7] =  getB_RightFront();
-      neighList[8] =  getB_Top();
-      neighList[9] = getB_TopRight();
-      neighList[10] =  getB_TopBack();
-      neighList[11] =  getB_TopRightBack();
-      neighList[12] =  getB_Bottom();
-      neighList[13] =  getB_BottomBack();
-      neighList[14] =  getB_TopLeft();
-      neighList[15] =  getB_BottomLeft(); 
-      neighList[16] =  getB_BottomRight();
-      neighList[17] =  getB_TopFront();
-      neighList[18] =  getB_BottomFront();
-      neighList[19] =  getB_TopLeftFront();
-      neighList[20] =  getB_TopRightFront();
-      neighList[21] =   getB_BottomLeftFront();
-      neighList[22] =   getB_BottomRightFront();
-      neighList[23] =  getB_TopLeftBack();
-      neighList[24] = getB_BottomLeftBack();
-      neighList[25] = getB_BottomRightBack();
-    }else if(m_uiDim == 2) {
-      neighList.resize(8);
-      neighList[0] = getB_Left();
-      neighList[1] =  getB_Right();
-      neighList[2] =  getB_Front();
-      neighList[3] =  getB_Back(); 
-      neighList[4] =  getB_LeftBack();
-      neighList[5] = getB_RightBack();
-      neighList[6] =  getB_LeftFront();
-      neighList[7] =  getB_RightFront();
-    }else {
-      neighList.resize(2);
-      neighList[0] = getB_Left();
-      neighList[1] =  getB_Right();
-    }
-    return neighList;
-  }
-
-
-  int TreeNode::addBalancingDescendants(TreeNode other, std::vector<TreeNode>& seeds, bool incCorner) const {
-#ifdef __DEBUG_TN__
-    assert( (other.getLevel()) > ( getLevel() + 1));
-    assert(areComparable(*this, other));
-    assert(!(this->isAncestor(other)));
-#endif
-    TreeNode root(m_uiDim,m_uiMaxDepth);
-    std::vector<TreeNode> nhs = other.getAllNeighbours();
-    /*
-       0 = Left;  1 =  Right;  2 =  Front;  3 = Back;   4 = LeftBack;  5 = RightBack;  6 = LeftFront;  7 = RightFront;  8 = Top;
-       9 = TopRight;  10 =  TopBack;  11 =  TopRightBack;  12 =  Bottom;  13 =  BottomBack;  14 =  TopLeft;  15 =  BottomLeft; 
-       16 =  BottomRight;  17 =  TopFront;  18 =  BottomFront;  19 =  TopLeftFront;  20 =  TopRightFront;  21 =  BottomLeftFront;
-       22 =  BottomRightFront;  23 =  TopLeftBack;  24 = BottomLeftBack;  25 = BottomRightBack;
-       */
-    std::vector<unsigned int> dirs;
-    if(m_uiDim == 1) {
-      //ignore incCorner
-      dirs.resize(2);
-      for(unsigned int i = 0; i < dirs.size(); i++) {
-        dirs[i] = i;
-      }
-    }else if(m_uiDim== 2){
-      if(incCorner){
-        dirs.resize(8);
-        for(unsigned int i = 0; i < dirs.size(); i++) {
-          dirs[i] = i;
-        }
-      }else{
-        dirs.resize(4);
-        for(unsigned int i = 0; i < dirs.size(); i++) {
-          dirs[i] = i;
-        }
-      }
-    }else {
-      if(incCorner){
-        dirs.resize(26);
-        for(unsigned int i = 0; i < dirs.size(); i++) {
-          dirs[i] = i;
-        }
-      }else{
-        dirs.resize(18);
-        for(int i = 0; i < 11; i++) {
-          dirs[i] = i;
-        }
-        //skip 11 = TRBk
-        for(int i = 12; i < 19; i++) {
-          dirs[i-1] = i;
-        }
-      }
-    }
-    unsigned int oldSz = static_cast<unsigned int>(seeds.size());
-    seeds.resize(seeds.size()+dirs.size());
-    for(unsigned int i = 0; i < dirs.size(); i++) {
-#ifdef __DEBUG_TN__
-      assert(areComparable(*this, nhs[dirs[i]]));
-#endif
-      if(this->isAncestor(nhs[dirs[i]])){
-        seeds[oldSz + i] = nhs[dirs[i]].getParent();
-      }else {
-        seeds[oldSz + i]  = root;
-      }//end if - else
-    }//end for i
-    return 1;
-  }//end function
-
-
-  bool TreeNode::isBoundaryOctant(const TreeNode &block, int type, unsigned char *flags) const {
-    unsigned char _flags = 0;
-
-    unsigned int _x = block.getX();
-    unsigned int _y = block.getY();
-    unsigned int _z = block.getZ();
-    unsigned int _d = block.getLevel();
-
-    /*
-    // Block has to be an ancestor of the octant or equal to the octant.
-    if( (!block.isAncestor(*this)) && (block != *this) ) {
-    if (flags) {
-     *flags = _flags;
-     }
-     return false;
-     }
+std::vector<std::vector<TreeNode> > TreeNode::getAllB_Neighbours() const {
+  /*
+     0 = Left;  1 =  Right;  2 =  Front;  3 = Back;   4 = LeftBack;  5 = RightBack;  6 = LeftFront;  7 = RightFront;  8 = Top;
+     9 = TopRight;  10 =  TopBack;  11 =  TopRightBack;  12 =  Bottom;  13 =  BottomBack;  14 =  TopLeft;  15 =  BottomLeft; 
+     16 =  BottomRight;  17 =  TopFront;  18 =  BottomFront;  19 =  TopLeftFront;  20 =  TopRightFront;  21 =  BottomLeftFront;
+     22 =  BottomRightFront;  23 =  TopLeftBack;  24 = BottomLeftBack;  25 = BottomRightBack;
      */
 
-    if ( (type & NEGATIVE) == NEGATIVE ) {
-      // test if any of the anchor values matches those of the block ... 
-      if (m_uiX == _x) _flags |= X_NEG_BDY;  
-      if (m_uiY == _y) _flags |= Y_NEG_BDY;  
-      if (m_uiZ == _z) _flags |= Z_NEG_BDY;  
-    }
+  std::vector<std::vector<TreeNode> > neighList;
 
-    if ( (type & POSITIVE) == POSITIVE ) {
-      unsigned int len  = (unsigned int)(1u << ( m_uiMaxDepth - getLevel() ) );
-      unsigned int blen = ((unsigned int)(1u << (m_uiMaxDepth - _d))) - len;
-
-      if ( m_uiX == (_x+blen) )  _flags |= X_POS_BDY;
-      if ( m_uiY == (_y+blen) )  _flags |= Y_POS_BDY;
-      if ( m_uiZ == (_z+blen) )  _flags |= Z_POS_BDY;
-    }
-
-    if (flags) {
-      *flags = _flags;
-    }
-    if (_flags) {
-      return true;
-    }
-    return false;
-  } //end function
-
-  bool TreeNode::isBoundaryOctant(int type, unsigned char *flags) const {
-    unsigned char _flags = 0;
-    if ( (type & NEGATIVE) == NEGATIVE ) {
-      // test if any of the anchor values is zero ...  (sufficient ??? )
-      if (!m_uiX) _flags |= X_NEG_BDY;  
-      if (!m_uiY) _flags |=  Y_NEG_BDY; 
-      if (!m_uiZ) _flags |=   Z_NEG_BDY;
-    }
-
-    if ( (type & POSITIVE) == POSITIVE ) {
-      unsigned int len  = (unsigned int)(1u << ( m_uiMaxDepth - getLevel() ) );
-      unsigned int blen = ((unsigned int)(1u << m_uiMaxDepth)) - len;
-
-      if ( m_uiX == blen )  _flags |= X_POS_BDY;
-      if ( m_uiY == blen )  _flags |= Y_POS_BDY;
-      if ( m_uiZ == blen )  _flags |= Z_POS_BDY;
-    }
-
-    if (flags)
-      *flags = _flags;
-    if (_flags)
-      return true;
-
-    return false;
-  } //end function
-
-
-  int TreeNode  ::addChildren(std::vector<ot::TreeNode  > &children) const { 
-    unsigned int dim = m_uiDim;
-    unsigned int maxDepth = m_uiMaxDepth;
-    unsigned int childrenSz = children.size();
-    children.resize(childrenSz + (1 << dim));
-    if( (m_uiLevel & ot::TreeNode::MAX_LEVEL) == maxDepth) {
-      for(int i = 0; i < (1 << dim); i++) {
-        children[childrenSz + i] = *this;
-      }
-      return 1;
-    }
-    //The check that lev < maxD is taken care of in the constructor.
-
-    //Order: X first, Y next and Z last
-
-    unsigned int len = (unsigned int)(1u << ( maxDepth - ((m_uiLevel & ot::TreeNode::MAX_LEVEL)+1) ) ) ;
-
-    TreeNode   tmpNode0(1,m_uiX,m_uiY ,m_uiZ ,((m_uiLevel & ot::TreeNode::MAX_LEVEL)+1),m_uiDim,m_uiMaxDepth);
-    children[childrenSz + 0] = tmpNode0;
-
-    TreeNode   tmpNode1(1,(m_uiX + len),m_uiY ,m_uiZ ,((m_uiLevel & ot::TreeNode::MAX_LEVEL)+1),m_uiDim,m_uiMaxDepth);
-    children[childrenSz + 1] = tmpNode1;
-
-    if( dim >= 2 ) {	
-      TreeNode   tmpNode2(1,m_uiX,(m_uiY + len) ,m_uiZ ,((m_uiLevel & ot::TreeNode::MAX_LEVEL)+1),m_uiDim,m_uiMaxDepth);
-      children[childrenSz + 2] = tmpNode2;
-
-      TreeNode   tmpNode3(1,(m_uiX + len),(m_uiY + len) ,m_uiZ  ,((m_uiLevel & ot::TreeNode::MAX_LEVEL)+1),m_uiDim,m_uiMaxDepth);
-      children[childrenSz + 3] = tmpNode3;
-    }
-
-    if (dim == 3) {
-      TreeNode   tmpNode4(1,m_uiX,m_uiY ,(m_uiZ + len),((m_uiLevel & ot::TreeNode::MAX_LEVEL)+1),m_uiDim,m_uiMaxDepth);
-      children[childrenSz + 4] = tmpNode4;
-
-      TreeNode   tmpNode5(1,(m_uiX+ len),m_uiY ,(m_uiZ + len),((m_uiLevel & ot::TreeNode::MAX_LEVEL)+1),m_uiDim,m_uiMaxDepth);
-      children[childrenSz + 5] = tmpNode5;
-
-      TreeNode   tmpNode6(1,m_uiX,(m_uiY+ len) ,(m_uiZ + len),((m_uiLevel & ot::TreeNode::MAX_LEVEL)+1),m_uiDim,m_uiMaxDepth);
-      children[childrenSz + 6] = tmpNode6;
-
-      TreeNode   tmpNode7(1,(m_uiX+ len),(m_uiY + len),(m_uiZ + len),((m_uiLevel & ot::TreeNode::MAX_LEVEL)+1),m_uiDim,m_uiMaxDepth);
-      children[childrenSz + 7] = tmpNode7;
-    }//end if
-    return 1;
-  }//end function
-
-  int TreeNode  ::addBrothers(std::vector<TreeNode>& bros) const {
-    unsigned int dim = m_uiDim;
-    bros.resize(((1 << dim) - 1));
-    if( (this->m_uiLevel & ot::TreeNode::MAX_LEVEL) == 0) {
-      for(int i = 0; i< ((1 << dim) - 1); i++) {
-        bros[i] = *this;
-      }//end for
-      return 1;
-    }//end if
-
-    TreeNode parent = this->getParent();
-    std::vector<TreeNode> childrenOfParent;
-    parent.addChildren(childrenOfParent);
-    int k= 0;
-    for(int i = 0;i < (1 << dim); i++) {
-      if(childrenOfParent[i] != (*this)) {
-        bros[k] = childrenOfParent[i];
-        k++;
-      }
-    }//end for
-    childrenOfParent.clear();
-    return 1;
-  }//end fn.
-
-  std::vector<TreeNode> TreeNode::getSearchKeys(bool incCorners){
-
-    unsigned int myK = this->getChildNumber();
-    //Morton Order: X,Y,Z
-    bool zdir = (myK >= 4);
-    bool ydir = ((myK - ((zdir)?4:0)) >= 2);
-    bool xdir = (myK%2); 
-
-    unsigned int xCor = this->minX();
-    unsigned int yCor = this->minY();
-    unsigned int zCor = this->minZ();
-    if(xdir){
-      xCor = ((this->maxX())-1);
-    }
-    if(ydir){
-      yCor = ((this->maxY())-1);
-    }
-    if(zdir){
-      zCor = ((this->maxZ())-1);
-    }
-
-    TreeNode searchCorner(1,xCor,yCor,zCor,m_uiMaxDepth,m_uiDim,m_uiMaxDepth);  
-    std::vector<TreeNode> tList;
-    if(xdir) {
-      tList.push_back(searchCorner.getRight());
-    }else {
-      tList.push_back(searchCorner.getLeft());
-    }
-    if(m_uiDim > 1) {
-      if(ydir) {
-        tList.push_back(searchCorner.getBack());
-      }else {
-        tList.push_back(searchCorner.getFront());
-      }
-      if(incCorners || m_uiDim > 2) {
-        if(ydir) {
-          if(xdir) {
-            tList.push_back(searchCorner.getRightBack());
-          }else {
-            tList.push_back(searchCorner.getLeftBack());
-          }
-        }else {
-          if(xdir) {
-            tList.push_back(searchCorner.getRightFront());
-          }else {
-            tList.push_back(searchCorner.getLeftFront());
-          }
-        }
-      }
-    }
-    if(m_uiDim > 2) {
-      if(zdir) {
-        tList.push_back(searchCorner.getTop());
-        if(xdir) {
-          tList.push_back(searchCorner.getTopRight());
-        }else {
-          tList.push_back(searchCorner.getTopLeft());
-        }
-        if(ydir) {
-          tList.push_back(searchCorner.getTopBack());
-        }else {
-          tList.push_back(searchCorner.getTopFront());
-        }
-      }else {
-        tList.push_back(searchCorner.getBottom());
-        if(xdir) {
-          tList.push_back(searchCorner.getBottomRight());
-        }else {
-          tList.push_back(searchCorner.getBottomLeft());
-        }
-        if(ydir) {
-          tList.push_back(searchCorner.getBottomBack());
-        }else {
-          tList.push_back(searchCorner.getBottomFront());
-        }
-      }
-      if(incCorners) {
-        if(zdir) {
-          if(xdir) {
-            if(ydir) {
-              tList.push_back(searchCorner.getTopRightBack());
-            }else {
-              tList.push_back(searchCorner.getTopRightFront());
-            }
-          }else {
-            if(ydir) {
-              tList.push_back(searchCorner.getTopLeftBack());
-            }else {
-              tList.push_back(searchCorner.getTopLeftFront());
-            }
-          }
-        }else {
-          if(xdir) {
-            if(ydir) {
-              tList.push_back(searchCorner.getBottomRightBack());
-            }else {
-              tList.push_back(searchCorner.getBottomRightFront());
-            }
-          }else {
-            if(ydir) {
-              tList.push_back(searchCorner.getBottomLeftBack());
-            }else {
-              tList.push_back(searchCorner.getBottomLeftFront());
-            }
-          }
-        }
-      }
-    }
-
-    return tList;
-  }//end function
-
-  std::vector<bool> ot::TreeNode  ::getMorton() const {
-    unsigned int dim = getDim();
-    unsigned int maxDepth = getMaxDepth();
-    unsigned int Ln = 1;
-    if(maxDepth > 0) {
-      Ln = binOp::binLength(maxDepth);
-    }
-    unsigned int const N = (dim*maxDepth) + Ln;
-    std::vector<bool> numBin(N);
-    std::vector<bool> xBin(maxDepth);
-    std::vector<bool> yBin(maxDepth);
-    std::vector<bool> zBin(maxDepth);
-    std::vector<bool> levBin(Ln);
-
-    //create Binary Representations
-    binOp::toBin(getX(), maxDepth, xBin);
-    if(dim > 1) { binOp::toBin(getY(), maxDepth, yBin); }
-    if(dim > 2) { binOp::toBin(getZ(), maxDepth, zBin); }
-    binOp::toBin(getLevel(), Ln, levBin);
-
-    //Interleave bits
-    if(dim > 2) {
-      for(unsigned int j = 0; j < maxDepth; j++) {        
-        numBin[(j*dim)] = zBin[j];
-        numBin[((j*dim)+1)] = yBin[j];
-        numBin[((j*dim)+2)] = xBin[j];
-      }//end for  
-    }else if(dim > 1) {
-      for(unsigned int j = 0; j < maxDepth; j++) {        
-        numBin[(j*dim)] = yBin[j];
-        numBin[((j*dim)+1)] = xBin[j];
-      }//end for  
-    }else {
-      for(unsigned int j = 0; j < maxDepth; j++) {        
-        numBin[j] = xBin[j];
-      }//end for  
-    }//end if-else
-
-    //Append level
-    for(unsigned int j = 0; j < Ln; j++) {
-      numBin[((maxDepth*dim)+j)] = levBin[j];
-    }
-
-    return numBin ;
+  if (m_uiDim == 3) {
+    neighList.resize(26);
+    neighList[0] = getB_Left();
+    neighList[1] =  getB_Right();
+    neighList[2] =  getB_Front();
+    neighList[3] =  getB_Back();
+    neighList[4] =  getB_LeftBack();
+    neighList[5] = getB_RightBack();
+    neighList[6] =  getB_LeftFront();
+    neighList[7] =  getB_RightFront();
+    neighList[8] =  getB_Top();
+    neighList[9] = getB_TopRight();
+    neighList[10] =  getB_TopBack();
+    neighList[11] =  getB_TopRightBack();
+    neighList[12] =  getB_Bottom();
+    neighList[13] =  getB_BottomBack();
+    neighList[14] =  getB_TopLeft();
+    neighList[15] =  getB_BottomLeft();
+    neighList[16] =  getB_BottomRight();
+    neighList[17] =  getB_TopFront();
+    neighList[18] =  getB_BottomFront();
+    neighList[19] =  getB_TopLeftFront();
+    neighList[20] =  getB_TopRightFront();
+    neighList[21] =   getB_BottomLeftFront();
+    neighList[22] =   getB_BottomRightFront();
+    neighList[23] =  getB_TopLeftBack();
+    neighList[24] = getB_BottomLeftBack();
+    neighList[25] = getB_BottomRightBack();
+  } else if (m_uiDim == 2) {
+    neighList.resize(8);
+    neighList[0] = getB_Left();
+    neighList[1] =  getB_Right();
+    neighList[2] =  getB_Front();
+    neighList[3] =  getB_Back();
+    neighList[4] =  getB_LeftBack();
+    neighList[5] = getB_RightBack();
+    neighList[6] =  getB_LeftFront();
+    neighList[7] =  getB_RightFront();
+  } else {
+    neighList.resize(2);
+    neighList[0] = getB_Left();
+    neighList[1] =  getB_Right();
   }
+  return neighList;
+}
 
-  //Constructors...
-  TreeNode :: TreeNode () {
-    m_uiX = m_uiY = m_uiZ = m_uiLevel =
-      m_uiWeight = m_uiDim = m_uiMaxDepth = 0;
+
+int TreeNode::addBalancingDescendants(TreeNode other, std::vector<TreeNode>& seeds, bool incCorner) const {
+#ifdef __DEBUG_TN__
+  assert((other.getLevel()) > (getLevel() + 1));
+  assert(areComparable(*this, other));
+  assert(!(this->isAncestor(other)));
+#endif
+  TreeNode root(m_uiDim, m_uiMaxDepth);
+  std::vector<TreeNode> nhs = other.getAllNeighbours();
+  /*
+     0 = Left;  1 =  Right;  2 =  Front;  3 = Back;   4 = LeftBack;  5 = RightBack;  6 = LeftFront;  7 = RightFront;  8 = Top;
+     9 = TopRight;  10 =  TopBack;  11 =  TopRightBack;  12 =  Bottom;  13 =  BottomBack;  14 =  TopLeft;  15 =  BottomLeft; 
+     16 =  BottomRight;  17 =  TopFront;  18 =  BottomFront;  19 =  TopLeftFront;  20 =  TopRightFront;  21 =  BottomLeftFront;
+     22 =  BottomRightFront;  23 =  TopLeftBack;  24 = BottomLeftBack;  25 = BottomRightBack;
+     */
+  std::vector<unsigned int> dirs;
+  if (m_uiDim == 1) {
+    //ignore incCorner
+    dirs.resize(2);
+    for (unsigned int i = 0; i < dirs.size(); i++) {
+      dirs[i] = i;
+    }
+  } else if (m_uiDim == 2) {
+    if (incCorner) {
+      dirs.resize(8);
+      for (unsigned int i = 0; i < dirs.size(); i++) {
+        dirs[i] = i;
+      }
+    } else {
+      dirs.resize(4);
+      for (unsigned int i = 0; i < dirs.size(); i++) {
+        dirs[i] = i;
+      }
+    }
+  } else {
+    if (incCorner) {
+      dirs.resize(26);
+      for (unsigned int i = 0; i < dirs.size(); i++) {
+        dirs[i] = i;
+      }
+    } else {
+      dirs.resize(18);
+      for (int i = 0; i < 11; i++) {
+        dirs[i] = i;
+      }
+      //skip 11 = TRBk
+      for (int i = 12; i < 19; i++) {
+        dirs[i - 1] = i;
+      }
+    }
   }
-
-  TreeNode  :: TreeNode (const int dummy, const unsigned int x,const unsigned int y,
-      const unsigned int z, const unsigned int lev, const unsigned int dim, const unsigned int maxDepth) {    	    	
-    m_uiDim = dim;
-    m_uiMaxDepth = maxDepth;
-    m_uiX = x;
-    if(dim > 1) { m_uiY = y; } else { m_uiY = 0; }
-    if(dim > 2) { m_uiZ = z; } else { m_uiZ = 0; }
-
-    m_uiLevel = lev;
-    m_uiWeight = 1;
-  }//end function
-
-  TreeNode  :: TreeNode (const unsigned int dim, const unsigned int maxDepth) {
-    m_uiX = 0;
-    m_uiY = 0;
-    m_uiZ = 0;
-    m_uiLevel = 0;
-    m_uiWeight = 1;
-    m_uiDim = dim; 
-    m_uiMaxDepth = maxDepth;
+  unsigned int oldSz = static_cast<unsigned int>(seeds.size());
+  seeds.resize(seeds.size() + dirs.size());
+  for (unsigned int i = 0; i < dirs.size(); i++) {
 #ifdef __DEBUG_TN__
-    if((dim != 1) && (dim != 2) && (dim != 3)) {
-      std::cout<<"Wrong Value for dim: "<<dim<<std::endl;   
-    }
+    assert(areComparable(*this, nhs[dirs[i]]));
 #endif
-    assert((dim == 1)|| (dim == 2) || (dim == 3));
-  }//end function
+    if (this->isAncestor(nhs[dirs[i]])) {
+      seeds[oldSz + i] = nhs[dirs[i]].getParent();
+    } else {
+      seeds[oldSz + i] = root;
+    } //end if - else
+  } //end for i
+  return 1;
+} //end function
 
-  TreeNode  :: TreeNode (const unsigned int x,const unsigned int y,
-      const unsigned int z, const unsigned int lev, const unsigned int dim, const unsigned int maxDepth) {    	    	
-    m_uiDim = dim;
-    m_uiMaxDepth = maxDepth;
-    m_uiX = x;
-    if(dim > 1) { m_uiY = y; } else { m_uiY = 0; }
-    if(dim > 2) { m_uiZ = z; } else { m_uiZ = 0; }
 
-    m_uiLevel = lev;
-    m_uiWeight = 1;
+bool TreeNode::isBoundaryOctant(const TreeNode& block, int type, unsigned char *flags) const {
+  unsigned char _flags = 0;
 
-#ifdef __DEBUG_TN__
-    if((dim != 1) && (dim != 2) && (dim != 3)) {
-      std::cout<<"Wrong Value for dim: "<<dim<<std::endl;   
-    }
-    assert(m_uiX < ((unsigned int)(1u << maxDepth)) );
-    assert( (m_uiX % ((unsigned int)(1u << (maxDepth-lev))) ) == 0 );
-    assert(m_uiY < ((unsigned int)(1u << maxDepth)) );
-    assert( (m_uiY % ((unsigned int)(1u << (maxDepth-lev))) ) == 0 );
-    assert(m_uiZ < ((unsigned int)(1u << maxDepth)) );
-    assert( (m_uiZ % ((unsigned int)(1u << (maxDepth-lev))) ) == 0 );
-    assert((dim == 1)|| (dim == 2) || (dim == 3));    	
-#endif
-
-  }//end function
-
-  //copy constructor	
-  TreeNode  :: TreeNode  (const TreeNode  &other) {
-    m_uiX = other.m_uiX;
-    m_uiY = other.m_uiY;
-    m_uiZ = other.m_uiZ;
-    m_uiLevel = other.m_uiLevel;
-    m_uiWeight = other.m_uiWeight;
-    m_uiDim = other.m_uiDim;
-    m_uiMaxDepth = other.m_uiMaxDepth;
-  }//end function
+  unsigned int _x = block.getX();
+  unsigned int _y = block.getY();
+  unsigned int _z = block.getZ();
+  unsigned int _d = block.getLevel();
 
   /*
-   *Operator overiding implementations. 
-   *Comparison operators are based on Hilbert ordering of the points. 
-   */
-  
-  
-  std::ostream & operator <<(std::ostream & os, TreeNode const & other){
-    return (os << other.getX() <<" "<< other.getY() <<" "<<other.getZ()<<" "<<other.getLevel());
-  }//end fn.
-  
- /*
-  * Date: 30/05/2015
-  * ===========Hilbert Ordering Implementations==========
-  * ====================START============================
-  */
-
- void TreeNode::rotate(int index,int* current,int * rot_index,int dim) const
-{
-  
-  if(dim==2)
-  {
-    index=rot_index[index];
-     if(index==0)
-    {
-      rot_index[current[1]]=3;
-      rot_index[current[3]]=1;
-      SWAP(current[1],current[3]); // RIGHT Rotate and flip orientation
-      
-      
-    }else if (index==3)
-    {
-      rot_index[current[0]]=2;
-      rot_index[current[2]]=0;
-      SWAP(current[0],current[2]); //LEFT Rotate and flip orientation: 
-      
-    }
-    
-  }else if(dim==3)
-  {	
-    
-    index=rot_index[index];
-    if(index==0)
-    {
-      rot_index[current[1]]=7;
-      rot_index[current[7]]=1;
-      SWAP(current[1],current[7]);
-      rot_index[current[4]]=2;
-      rot_index[current[2]]=4;
-      SWAP(current[2],current[4]);
-      
-    }else if(index==1)
-    {
-      rot_index[current[3]]=7;
-      rot_index[current[7]]=3;
-      SWAP(current[3],current[7]);
-      rot_index[current[2]]=6;
-      rot_index[current[6]]=2;
-      SWAP(current[2],current[6]);
-      
-    }else if(index==3)
-    {
-      rot_index[current[3]]=5;
-      rot_index[current[5]]=3;
-      SWAP(current[3],current[5]);
-      
-      rot_index[current[3]]=7;
-      rot_index[current[7]]=3;
-      SWAP(current[3],current[7]);
-      
-      rot_index[current[2]]=6;
-      rot_index[current[6]]=2;
-      SWAP(current[2],current[6]);
-      
-      rot_index[current[0]]=2;
-      rot_index[current[2]]=0;
-      SWAP(current[0],current[2]);
-    }else if(index==4)
-    {
-      rot_index[current[1]]=7;
-      rot_index[current[7]]=1;
-      SWAP(current[1],current[7]);
-      
-      rot_index[current[1]]=5;
-      rot_index[current[5]]=1;
-      SWAP(current[1],current[5]);
-      
-      rot_index[current[0]]=4;
-      rot_index[current[4]]=0;
-      SWAP(current[0],current[4]);
-      
-      rot_index[current[0]]=2;
-      rot_index[current[2]]=0;
-      SWAP(current[0],current[2]);
-      
-    }else if(index==6)
-    {
-      rot_index[current[1]]=5;
-      rot_index[current[5]]=1;
-      SWAP(current[1],current[5]);
-      
-      rot_index[current[0]]=4;
-      rot_index[current[4]]=0;
-      SWAP(current[0],current[4]);
-      
-    }else if(index==7)
-    {
-      
-      rot_index[current[0]]=6;
-      rot_index[current[6]]=0;
-      SWAP(current[0],current[6]);
-      
-      rot_index[current[3]]=5;
-      rot_index[current[5]]=3;
-      SWAP(current[3],current[5]);
-    }
-    
-  }
-  
-}
-
-int findIndex(Point * pt, int x, int y, int z,int len)
-{
-    for(int i=0;i<len;i++)
-    {
-      if(pt[i].xint()==x && pt[i].yint()==y && pt[i].zint()==z)
-      {
-	return i;
-      }
-    } 
-  
-}
-
-
-bool TreeNode::hilbert_order(const Point& p1,const Point& p2) const
-{
-  
-  int MAX_DEAPTH=this->m_uiMaxDepth;
-  int MAX_LIMIT=(1<<MAX_DEAPTH)-1;
-  
-  int g_dim=this->m_uiDim;
-  
-  int x1=p1.xint();
-  int y1=p1.yint();
-  int z1=p1.zint();
-  
-  int x2=p2.xint();
-  int y2=p2.yint();
-  int z2=p2.zint();
-  
-  if(x1==x2 && y1==y2 && z1==z2)
-  {
-    return false;
-  }
-  
-  int index1=0;
-  int index2=0;
-  int min_x,min_y,min_z,max_x,max_y,max_z;
-  
-  int len=MAX_LIMIT+1;
-  int deapth=0;
-  min_x=0;
-  min_y=0;
-  min_z=0;
-   
-  max_x=len;
-  max_y=len;
-  max_z=len;
-  
-  
-
-  if(g_dim==2)
-  {
-    Point pt_hilbert[4];
-    Point pt_hilbert_new[4];
-  
-    pt_hilbert[0]=Point ((int)min_x,(int)min_y,(int)0);
-    pt_hilbert[1]=Point ((int)min_x,(int)max_y,(int)0);
-    pt_hilbert[2]=Point ((int)max_x,(int)max_y,(int)0);
-    pt_hilbert[3]=Point ((int)max_x,(int)min_y,(int)0); 
-    
-    
-  
-    while (len>1 && deapth<MAX_DEAPTH)
-    {
-      
-      int xl=pt_hilbert[0].xint();
-      int yl=pt_hilbert[0].yint();
-      int nca_index=0;
-      index1=0;
-      index2=0;
-      for (int i=1;i<4;i++)
-      {
-	
-	if(xl>pt_hilbert[i].xint())
-	{
-	  xl=pt_hilbert[i].xint();
-	  yl=pt_hilbert[i].yint();
-	  nca_index=i;
-	}else if(xl==pt_hilbert[i].xint())
-	{
-	  if(yl>pt_hilbert[i].yint())
-	  {
-	    yl=pt_hilbert[i].yint();
-	    nca_index=i;
-	  }
-	}
-	 
-	  
-      }
-      int len_nca=len/2;
-      // Checking the membership cell.
-      if((x1-xl)<len_nca && (y1-yl)<len_nca)
-      {	
-	index1=findIndex(pt_hilbert,xl,yl,0,4);
-      }else if((x1-xl)<len_nca && (y1-yl)>=len_nca)
-      {
-	index1=findIndex(pt_hilbert,xl,yl+len,0,4);;
-      }else if ((x1-xl)>=len_nca && (y1-yl)>=len_nca)
-      {
-	index1=findIndex(pt_hilbert,xl+len,yl+len,0,4);;
-      }else if ((x1-xl)>=len_nca && (y1-yl)<len_nca)
-      {
-	index1=findIndex(pt_hilbert,xl+len,yl,0,4);;
-      }
-      
-      if((x2-xl)<len_nca && (y2-yl)<len_nca)
-      {
-	index2=findIndex(pt_hilbert,xl,yl,0,4);
-      }else if((x2-xl)<len_nca && (y2-yl)>=len_nca)
-      {
-	index2=findIndex(pt_hilbert,xl,yl+len,0,4);
-      }else if ((x2-xl)>=len_nca && (y2-yl)>=len_nca)
-      {
-	index2=findIndex(pt_hilbert,xl+len,yl+len,0,4);
-      }else if ((x2-xl)>=len_nca && (y2-yl)<len_nca)
-      {
-	index2=findIndex(pt_hilbert,xl+len,yl,0,4);
-      }
-               
-    if (index1<index2){
-	  return true;
-    }
-    else if (index1>index2){
-	return false;
-    }
-    
-   switch (index1)
-   {
-    case 0:
-          pt_hilbert_new[0]=pt_hilbert[0];
-	  pt_hilbert_new[1]=(pt_hilbert[0]+pt_hilbert[3])/2;
-	  pt_hilbert_new[2]=(pt_hilbert[0]+pt_hilbert[2])/2;
-	  pt_hilbert_new[3]=(pt_hilbert[0]+pt_hilbert[1])/2;
-	   break;
-   case 1:
-	  pt_hilbert_new[0]=(pt_hilbert[0]+pt_hilbert[1])/2;
-	  pt_hilbert_new[1]=pt_hilbert[1];
-	  pt_hilbert_new[2]=(pt_hilbert[1]+pt_hilbert[2])/2;
-	  pt_hilbert_new[3]=(pt_hilbert[1]+pt_hilbert[3])/2;
-          break;
-   case 2:
-	  pt_hilbert_new[0]=(pt_hilbert[0]+pt_hilbert[2])/2;
-	  pt_hilbert_new[1]=(pt_hilbert[1]+pt_hilbert[2])/2;
-	  pt_hilbert_new[2]=pt_hilbert[2];
-	  pt_hilbert_new[3]=(pt_hilbert[2]+pt_hilbert[3])/2;
-	  break;
-   case 3:
-          pt_hilbert_new[0]=(pt_hilbert[3]+pt_hilbert[2])/2;
-	  pt_hilbert_new[1]=(pt_hilbert[1]+pt_hilbert[3])/2;
-	  pt_hilbert_new[2]=(pt_hilbert[3]+pt_hilbert[0])/2;
-	  pt_hilbert_new[3]=pt_hilbert[3];
-	  break;
-   default:
-	  std::cout<<"Hilbert ordering error:Invalid nearest cell"<<std::endl;
-	  break;
-	    
-    }
-    
-    
-    pt_hilbert[0]=pt_hilbert_new[0];
-    pt_hilbert[1]=pt_hilbert_new[1];
-    pt_hilbert[2]=pt_hilbert_new[2];
-    pt_hilbert[3]=pt_hilbert_new[3];
-    len=len/2;
-    deapth+=1;
-    
+  // Block has to be an ancestor of the octant or equal to the octant.
+  if( (!block.isAncestor(*this)) && (block != *this) ) {
+  if (flags) {
+   *flags = _flags;
    }
    return false;
+   }
+   */
+
+  if ((type & NEGATIVE) == NEGATIVE) {
+    // test if any of the anchor values matches those of the block ...
+    if (m_uiX == _x) _flags |= X_NEG_BDY;
+    if (m_uiY == _y) _flags |= Y_NEG_BDY;
+    if (m_uiZ == _z) _flags |= Z_NEG_BDY;
   }
-  else if(g_dim==3)
-  {
-    Point pt_hilbert[8];
-    Point pt_hilbert_new[8];
-    
-    pt_hilbert[0]=Point ((int)min_x,(int)min_y,(int)min_z);
-    pt_hilbert[1]=Point ((int)min_x,(int)max_y,(int)min_z);
-    pt_hilbert[2]=Point ((int)max_x,(int)max_y,(int)min_z);
-    pt_hilbert[3]=Point ((int)max_x,(int)min_y,(int)min_z);
-      
-    pt_hilbert[4]=Point ((int)max_x,(int)min_y,(int)max_z);
-    pt_hilbert[5]=Point ((int)max_x,(int)max_y,(int)max_z);
-    pt_hilbert[6]=Point ((int)min_x,(int)max_y,(int)max_z);
-    pt_hilbert[7]=Point ((int)min_x,(int)min_y,(int)max_z);
-  
-      
-      while(len>1 && deapth<MAX_DEAPTH)
-      {
-	
-	
-      int xl=pt_hilbert[0].xint();
-      int yl=pt_hilbert[0].yint();
-      int zl=pt_hilbert[0].zint();
-      int nca_index=0;
-      index1=0;
-      index2=0;
-      for (int i=1;i<8;i++)
-      {
-	
-	if(xl>pt_hilbert[i].xint())
-	{
-	  xl=pt_hilbert[i].xint();
-	  yl=pt_hilbert[i].yint();
-	  nca_index=i;
-	}else if(xl==pt_hilbert[i].xint())
-	{
-	  if(yl>pt_hilbert[i].yint())
-	  {
-	    yl=pt_hilbert[i].yint();
-	    nca_index=i;
-	  }else if(yl==pt_hilbert[i].yint())
-	  {
-	    if(zl>pt_hilbert[i].zint())
-	    {
-	      zl=pt_hilbert[i].zint();
-	      nca_index=i;
-	    }
-	  }
-	  
-	}
-	 
-	  
-      }
-      int len_nca=len/2;
-           
-      if((x1-xl)<len_nca && (y1-yl)<len_nca && (z1-zl)<len_nca)
-      {
-	index1=findIndex(pt_hilbert,xl,yl,zl,8);
-	
-      }else if((x1-xl)<len_nca && (y1-yl)>=len_nca && (z1-zl)<len_nca)
-      {
-	index1=findIndex(pt_hilbert,xl,yl+len,zl,8);
-      }else if((x1-xl)>=len_nca && (y1-yl)>=len_nca && (z1-zl)<len_nca)
-      {
-	index1=findIndex(pt_hilbert,xl+len,yl+len,zl,8);
-      }else if((x1-xl)>=len_nca && (y1-yl)<len_nca && (z1-zl)<len_nca)
-      {
-	index1=findIndex(pt_hilbert,xl+len,yl,zl,8);
-      }else if ((x1-xl)>=len_nca && (y1-yl)<len_nca && (z1-zl)>=len_nca)
-      {
-	index1=findIndex(pt_hilbert,xl+len,yl,zl+len,8);
-      }else if ((x1-xl)>=len_nca && (y1-yl)>=len_nca && (z1-zl)>=len_nca)
-      {
-	index1=findIndex(pt_hilbert,xl+len,yl+len,zl+len,8);
-      }else if ((x1-xl)<len_nca && (y1-yl)>=len_nca && (z1-zl)>=len_nca)
-      {
-	index1=findIndex(pt_hilbert,xl,yl+len,zl+len,8);
-      }else if ((x1-xl)<len_nca && (y1-yl)<len_nca && (z1-zl)>=len_nca)
-      {
-	index1=findIndex(pt_hilbert,xl,yl,zl+len,8);
-      }
-      
-       if((x2-xl)<len_nca && (y2-yl)<len_nca && (z2-zl)<len_nca)
-      {
-	index2=findIndex(pt_hilbert,xl,yl,zl,8);
-	
-      }else if((x2-xl)<len_nca && (y2-yl)>=len_nca && (z2-zl)<len_nca)
-      {
-	index2=findIndex(pt_hilbert,xl,yl+len,zl,8);
-      }else if((x2-xl)>=len_nca && (y2-yl)>=len_nca && (z2-zl)<len_nca)
-      {
-	index2=findIndex(pt_hilbert,xl+len,yl+len,zl,8);
-      }else if((x2-xl)>=len_nca && (y2-yl)<len_nca && (z2-zl)<len_nca)
-      {
-	index2=findIndex(pt_hilbert,xl+len,yl,zl,8);
-      }else if ((x2-xl)>=len_nca && (y2-yl)<len_nca && (z2-zl)>=len_nca)
-      {
-	index2=findIndex(pt_hilbert,xl+len,yl,zl+len,8);
-      }else if ((x2-xl)>=len_nca && (y2-yl)>=len_nca && (z2-zl)>=len_nca)
-      {
-	index2=findIndex(pt_hilbert,xl+len,yl+len,zl+len,8);
-      }else if ((x2-xl)<len_nca && (y2-yl)>=len_nca && (z2-zl)>=len_nca)
-      {
-	index2=findIndex(pt_hilbert,xl,yl+len,zl+len,8);
-      }else if ((x2-xl)<len_nca && (y2-yl)<len_nca && (z2-zl)>=len_nca)
-      {
-	index2=findIndex(pt_hilbert,xl,yl,zl+len,8);
-      }
-	
-	
-	if (index1<index2){
-	  return true;
-	}
-	else if (index1>index2){
-	  return false;
-	}
-	// means that index1 ==index2
-	switch(index1)
-	{
-	      case 0:
-		      pt_hilbert_new[0]=pt_hilbert[0];
-		      pt_hilbert_new[1]=(pt_hilbert[0]+pt_hilbert[7])/2;
-		      pt_hilbert_new[2]=(pt_hilbert[0]+pt_hilbert[4])/2;
-		      pt_hilbert_new[3]=(pt_hilbert[0]+pt_hilbert[3])/2;
-		      
-		      pt_hilbert_new[4]=(pt_hilbert[0]+pt_hilbert[2])/2;
-		      pt_hilbert_new[5]=(pt_hilbert[0]+pt_hilbert[5])/2;
-		      pt_hilbert_new[6]=(pt_hilbert[0]+pt_hilbert[6])/2;
-		      pt_hilbert_new[7]=(pt_hilbert[0]+pt_hilbert[1])/2;
-		      break;
-	      case 1:          
-		      pt_hilbert_new[0]=(pt_hilbert[0]+pt_hilbert[1])/2;
-		      pt_hilbert_new[1]=pt_hilbert[1];
-		      pt_hilbert_new[2]=(pt_hilbert[1]+pt_hilbert[6])/2;
-		      pt_hilbert_new[3]=(pt_hilbert[1]+pt_hilbert[7])/2;
-		      
-		      pt_hilbert_new[4]=(pt_hilbert[1]+pt_hilbert[4])/2;
-		      pt_hilbert_new[5]=(pt_hilbert[1]+pt_hilbert[5])/2;
-		      pt_hilbert_new[6]=(pt_hilbert[1]+pt_hilbert[2])/2;
-		      pt_hilbert_new[7]=(pt_hilbert[1]+pt_hilbert[3])/2;
-		      break;
-	      case 2:
-		      pt_hilbert_new[0]=(pt_hilbert[2]+pt_hilbert[0])/2;
-		      pt_hilbert_new[1]=(pt_hilbert[2]+pt_hilbert[1])/2;
-		      pt_hilbert_new[2]=pt_hilbert[2];
-		      pt_hilbert_new[3]=(pt_hilbert[2]+pt_hilbert[3])/2;
-		      
-		      pt_hilbert_new[4]=(pt_hilbert[2]+pt_hilbert[4])/2;
-		      pt_hilbert_new[5]=(pt_hilbert[2]+pt_hilbert[5])/2;
-		      pt_hilbert_new[6]=(pt_hilbert[2]+pt_hilbert[6])/2;
-		      pt_hilbert_new[7]=(pt_hilbert[2]+pt_hilbert[7])/2;
-		      
-		      break;
-	      case 3:
-		      pt_hilbert_new[0]=(pt_hilbert[3]+pt_hilbert[6])/2;
-		      pt_hilbert_new[1]=(pt_hilbert[3]+pt_hilbert[1])/2;
-		      pt_hilbert_new[2]=(pt_hilbert[3]+pt_hilbert[0])/2;
-		      pt_hilbert_new[3]=(pt_hilbert[3]+pt_hilbert[7])/2;
-		      
-		      pt_hilbert_new[4]=(pt_hilbert[3]+pt_hilbert[4])/2;
-		      pt_hilbert_new[5]=pt_hilbert[3];
-		      pt_hilbert_new[6]=(pt_hilbert[3]+pt_hilbert[2])/2;
-		      pt_hilbert_new[7]=(pt_hilbert[3]+pt_hilbert[5])/2;
-		      break;
-		      
-	      case 4: pt_hilbert_new[0]=(pt_hilbert[4]+pt_hilbert[2])/2;
-		      pt_hilbert_new[1]=(pt_hilbert[4]+pt_hilbert[5])/2;
-		      pt_hilbert_new[2]=pt_hilbert[4];
-		      pt_hilbert_new[3]=(pt_hilbert[4]+pt_hilbert[3])/2;
-		      
-		      pt_hilbert_new[4]=(pt_hilbert[4]+pt_hilbert[0])/2;
-		      pt_hilbert_new[5]=(pt_hilbert[4]+pt_hilbert[7])/2;
-		      pt_hilbert_new[6]=(pt_hilbert[4]+pt_hilbert[6])/2;
-		      pt_hilbert_new[7]=(pt_hilbert[4]+pt_hilbert[1])/2;
-		      break;
-	      case 5: 
-		      pt_hilbert_new[0]=(pt_hilbert[5]+pt_hilbert[0])/2;
-		      pt_hilbert_new[1]=(pt_hilbert[5]+pt_hilbert[1])/2;
-		      pt_hilbert_new[2]=(pt_hilbert[5]+pt_hilbert[2])/2;
-		      pt_hilbert_new[3]=(pt_hilbert[5]+pt_hilbert[3])/2;
-		      
-		      pt_hilbert_new[4]=(pt_hilbert[5]+pt_hilbert[4])/2;
-		      pt_hilbert_new[5]=pt_hilbert[5];
-		      pt_hilbert_new[6]=(pt_hilbert[5]+pt_hilbert[6])/2;
-		      pt_hilbert_new[7]=(pt_hilbert[5]+pt_hilbert[7])/2;
-		      break;
-	      case 6: pt_hilbert_new[0]=(pt_hilbert[6]+pt_hilbert[4])/2;
-		      pt_hilbert_new[1]=(pt_hilbert[6]+pt_hilbert[5])/2;
-		      pt_hilbert_new[2]=(pt_hilbert[6]+pt_hilbert[2])/2;
-		      pt_hilbert_new[3]=(pt_hilbert[6]+pt_hilbert[3])/2;
-		      
-		      pt_hilbert_new[4]=(pt_hilbert[6]+pt_hilbert[0])/2;
-		      pt_hilbert_new[5]=(pt_hilbert[6]+pt_hilbert[1])/2;
-		      pt_hilbert_new[6]=pt_hilbert[6];
-		      pt_hilbert_new[7]=(pt_hilbert[6]+pt_hilbert[7])/2;
-		      break;
-	      case 7: pt_hilbert_new[0]=(pt_hilbert[7]+pt_hilbert[6])/2;
-		      pt_hilbert_new[1]=(pt_hilbert[7]+pt_hilbert[1])/2;
-		      pt_hilbert_new[2]=(pt_hilbert[7]+pt_hilbert[2])/2;
-		      pt_hilbert_new[3]=(pt_hilbert[7]+pt_hilbert[5])/2;
-		      
-		      pt_hilbert_new[4]=(pt_hilbert[7]+pt_hilbert[4])/2;
-		      pt_hilbert_new[5]=(pt_hilbert[7]+pt_hilbert[3])/2;
-		      pt_hilbert_new[6]=(pt_hilbert[7]+pt_hilbert[0])/2;
-		      pt_hilbert_new[7]=pt_hilbert[7];
-		      break;
-	      default:
-		      std::cout<<"Hilbert ordering error:Invalid nearest cell"<<std::endl;
-		      break;
-	  
-	  
-	 }
-	    
-	    
-	pt_hilbert[0]=pt_hilbert_new[0];
-	pt_hilbert[1]=pt_hilbert_new[1];
-	pt_hilbert[2]=pt_hilbert_new[2];
-	pt_hilbert[3]=pt_hilbert_new[3];
-	
-	pt_hilbert[4]=pt_hilbert_new[4];
-	pt_hilbert[5]=pt_hilbert_new[5];
-	pt_hilbert[6]=pt_hilbert_new[6];
-	pt_hilbert[7]=pt_hilbert_new[7];
-	
-	len=len/2;
-	deapth+=1;
-    
-      }
-      return false;
-  
-     
-    
+
+  if ((type & POSITIVE) == POSITIVE) {
+    unsigned int len  = (unsigned int)(1u << (m_uiMaxDepth - getLevel()));
+    unsigned int blen = ((unsigned int)(1u << (m_uiMaxDepth - _d))) - len;
+
+    if (m_uiX == (_x + blen))  _flags |= X_POS_BDY;
+    if (m_uiY == (_y + blen))  _flags |= Y_POS_BDY;
+    if (m_uiZ == (_z + blen))  _flags |= Z_POS_BDY;
   }
-  
+
+  if (flags) {
+    *flags = _flags;
+  }
+  if (_flags) {
+    return true;
+  }
+  return false;
+} //end function
+
+bool TreeNode::isBoundaryOctant(int type, unsigned char *flags) const {
+  unsigned char _flags = 0;
+  if ((type & NEGATIVE) == NEGATIVE) {
+    // test if any of the anchor values is zero ...  (sufficient ??? )
+    if (!m_uiX) _flags |= X_NEG_BDY;
+    if (!m_uiY) _flags |=  Y_NEG_BDY;
+    if (!m_uiZ) _flags |=   Z_NEG_BDY;
+  }
+
+  if ((type & POSITIVE) == POSITIVE) {
+    unsigned int len  = (unsigned int)(1u << (m_uiMaxDepth - getLevel()));
+    unsigned int blen = ((unsigned int)(1u << m_uiMaxDepth)) - len;
+
+    if (m_uiX == blen)  _flags |= X_POS_BDY;
+    if (m_uiY == blen)  _flags |= Y_POS_BDY;
+    if (m_uiZ == blen)  _flags |= Z_POS_BDY;
+  }
+
+  if (flags) *flags = _flags;
+  if (_flags) return true;
+
+  return false;
+} //end function
+
+
+int TreeNode  ::addChildren(std::vector<ot::TreeNode>& children) const {
+  unsigned int dim = m_uiDim;
+  unsigned int maxDepth = m_uiMaxDepth;
+  unsigned int childrenSz = children.size();
+  children.resize(childrenSz + (1 << dim));
+  if ((m_uiLevel & ot::TreeNode::MAX_LEVEL) == maxDepth) {
+    for (int i = 0; i < (1 << dim); i++) {
+      children[childrenSz + i] = *this;
+    }
+    return 1;
+  }
+  //The check that lev < maxD is taken care of in the constructor.
+
+  //Order: X first, Y next and Z last
+
+  unsigned int len = (unsigned int)(1u << (maxDepth - ((m_uiLevel & ot::TreeNode::MAX_LEVEL) + 1)));
+
+  TreeNode   tmpNode0(1, m_uiX, m_uiY, m_uiZ, ((m_uiLevel & ot::TreeNode::MAX_LEVEL) + 1), m_uiDim, m_uiMaxDepth);
+  children[childrenSz + 0] = tmpNode0;
+
+  TreeNode   tmpNode1(1, (m_uiX + len), m_uiY, m_uiZ, ((m_uiLevel & ot::TreeNode::MAX_LEVEL) + 1), m_uiDim, m_uiMaxDepth);
+  children[childrenSz + 1] = tmpNode1;
+
+  if (dim >= 2) {
+    TreeNode   tmpNode2(1, m_uiX, (m_uiY + len), m_uiZ, ((m_uiLevel & ot::TreeNode::MAX_LEVEL) + 1), m_uiDim, m_uiMaxDepth);
+    children[childrenSz + 2] = tmpNode2;
+
+    TreeNode   tmpNode3(1, (m_uiX + len), (m_uiY + len), m_uiZ, ((m_uiLevel & ot::TreeNode::MAX_LEVEL) + 1), m_uiDim, m_uiMaxDepth);
+    children[childrenSz + 3] = tmpNode3;
+  }
+
+  if (dim == 3) {
+    TreeNode   tmpNode4(1, m_uiX, m_uiY, (m_uiZ + len), ((m_uiLevel & ot::TreeNode::MAX_LEVEL) + 1), m_uiDim, m_uiMaxDepth);
+    children[childrenSz + 4] = tmpNode4;
+
+    TreeNode   tmpNode5(1, (m_uiX + len), m_uiY, (m_uiZ + len), ((m_uiLevel & ot::TreeNode::MAX_LEVEL) + 1), m_uiDim, m_uiMaxDepth);
+    children[childrenSz + 5] = tmpNode5;
+
+    TreeNode   tmpNode6(1, m_uiX, (m_uiY + len), (m_uiZ + len), ((m_uiLevel & ot::TreeNode::MAX_LEVEL) + 1), m_uiDim, m_uiMaxDepth);
+    children[childrenSz + 6] = tmpNode6;
+
+    TreeNode   tmpNode7(1, (m_uiX + len), (m_uiY + len), (m_uiZ + len), ((m_uiLevel & ot::TreeNode::MAX_LEVEL) + 1), m_uiDim, m_uiMaxDepth);
+    children[childrenSz + 7] = tmpNode7;
+  } //end if
+
+#ifdef HILBERT_ORDERING
+#pragma message("===FIX ME===")
+  std::sort(children.begin(), children.end());
+#endif
+  return 1;
+} //end function
+
+int TreeNode  ::addBrothers(std::vector<TreeNode>& bros) const {
+  unsigned int dim = m_uiDim;
+  bros.resize(((1 << dim) - 1));
+  if ((this->m_uiLevel & ot::TreeNode::MAX_LEVEL) == 0) {
+    for (int i = 0; i < ((1 << dim) - 1); i++) {
+      bros[i] = *this;
+    } //end for
+    return 1;
+  } //end if
+
+  TreeNode parent = this->getParent();
+  std::vector<TreeNode> childrenOfParent;
+  parent.addChildren(childrenOfParent);
+  int k = 0;
+  for (int i = 0; i < (1 << dim); i++) {
+    if (childrenOfParent[i] != (*this)) {
+      bros[k] = childrenOfParent[i];
+      k++;
+    }
+  } //end for
+  childrenOfParent.clear();
+  return 1;
+} //end fn.
+
+std::vector<TreeNode> TreeNode::getSearchKeys(bool incCorners) {
+
+  unsigned int myK = this->getChildNumber();
+  //Morton Order: X,Y,Z
+  bool zdir = (myK >= 4);
+  bool ydir = ((myK - ((zdir) ? 4 : 0)) >= 2);
+  bool xdir = (myK % 2);
+
+  unsigned int xCor = this->minX();
+  unsigned int yCor = this->minY();
+  unsigned int zCor = this->minZ();
+  if (xdir) {
+    xCor = ((this->maxX()) - 1);
+  }
+  if (ydir) {
+    yCor = ((this->maxY()) - 1);
+  }
+  if (zdir) {
+    zCor = ((this->maxZ()) - 1);
+  }
+
+  TreeNode searchCorner(1, xCor, yCor, zCor, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+  std::vector<TreeNode> tList;
+  if (xdir) {
+    tList.push_back(searchCorner.getRight());
+  } else {
+    tList.push_back(searchCorner.getLeft());
+  }
+  if (m_uiDim > 1) {
+    if (ydir) {
+      tList.push_back(searchCorner.getBack());
+    } else {
+      tList.push_back(searchCorner.getFront());
+    }
+    if (incCorners || m_uiDim > 2) {
+      if (ydir) {
+        if (xdir) {
+          tList.push_back(searchCorner.getRightBack());
+        } else {
+          tList.push_back(searchCorner.getLeftBack());
+        }
+      } else {
+        if (xdir) {
+          tList.push_back(searchCorner.getRightFront());
+        } else {
+          tList.push_back(searchCorner.getLeftFront());
+        }
+      }
+    }
+  }
+  if (m_uiDim > 2) {
+    if (zdir) {
+      tList.push_back(searchCorner.getTop());
+      if (xdir) {
+        tList.push_back(searchCorner.getTopRight());
+      } else {
+        tList.push_back(searchCorner.getTopLeft());
+      }
+      if (ydir) {
+        tList.push_back(searchCorner.getTopBack());
+      } else {
+        tList.push_back(searchCorner.getTopFront());
+      }
+    } else {
+      tList.push_back(searchCorner.getBottom());
+      if (xdir) {
+        tList.push_back(searchCorner.getBottomRight());
+      } else {
+        tList.push_back(searchCorner.getBottomLeft());
+      }
+      if (ydir) {
+        tList.push_back(searchCorner.getBottomBack());
+      } else {
+        tList.push_back(searchCorner.getBottomFront());
+      }
+    }
+    if (incCorners) {
+      if (zdir) {
+        if (xdir) {
+          if (ydir) {
+            tList.push_back(searchCorner.getTopRightBack());
+          } else {
+            tList.push_back(searchCorner.getTopRightFront());
+          }
+        } else {
+          if (ydir) {
+            tList.push_back(searchCorner.getTopLeftBack());
+          } else {
+            tList.push_back(searchCorner.getTopLeftFront());
+          }
+        }
+      } else {
+        if (xdir) {
+          if (ydir) {
+            tList.push_back(searchCorner.getBottomRightBack());
+          } else {
+            tList.push_back(searchCorner.getBottomRightFront());
+          }
+        } else {
+          if (ydir) {
+            tList.push_back(searchCorner.getBottomLeftBack());
+          } else {
+            tList.push_back(searchCorner.getBottomLeftFront());
+          }
+        }
+      }
+    }
+  }
+
+  return tList;
+} //end function
+
+std::vector<bool> ot::TreeNode  ::getMorton() const {
+  unsigned int dim = getDim();
+  unsigned int maxDepth = getMaxDepth();
+  unsigned int Ln = 1;
+  if (maxDepth > 0) {
+    Ln = binOp::binLength(maxDepth);
+  }
+  unsigned int const N = (dim * maxDepth) + Ln;
+  std::vector<bool> numBin(N);
+  std::vector<bool> xBin(maxDepth);
+  std::vector<bool> yBin(maxDepth);
+  std::vector<bool> zBin(maxDepth);
+  std::vector<bool> levBin(Ln);
+
+  //create Binary Representations
+  binOp::toBin(getX(), maxDepth, xBin);
+  if (dim > 1) {binOp::toBin(getY(), maxDepth, yBin); }
+  if (dim > 2) {binOp::toBin(getZ(), maxDepth, zBin); }
+  binOp::toBin(getLevel(), Ln, levBin);
+
+  //Interleave bits
+  if (dim > 2) {
+    for (unsigned int j = 0; j < maxDepth; j++) {
+      numBin[(j * dim)] = zBin[j];
+      numBin[((j * dim) + 1)] = yBin[j];
+      numBin[((j * dim) + 2)] = xBin[j];
+    } //end for
+  } else if (dim > 1) {
+    for (unsigned int j = 0; j < maxDepth; j++) {
+      numBin[(j * dim)] = yBin[j];
+      numBin[((j * dim) + 1)] = xBin[j];
+    } //end for
+  } else {
+    for (unsigned int j = 0; j < maxDepth; j++) {
+      numBin[j] = xBin[j];
+    } //end for
+  } //end if-else
+
+  //Append level
+  for (unsigned int j = 0; j < Ln; j++) {
+    numBin[((maxDepth * dim) + j)] = levBin[j];
+  }
+
+  return numBin;
 }
 
-
- bool TreeNode::hilbert_order_NCA(const Point& p1,const Point& p2) const
-{
-  
-  
-  int g_dim=this->m_uiDim;
-  unsigned int x1 = p1.xint();
-  unsigned int x2 = p2.xint();
-  
-  unsigned int y1 = p1.yint();
-  unsigned int y2 = p2.yint();
-  
-  unsigned int z1 = p1.zint();
-  unsigned int z2 = p2.zint();
-    
-  if(x1==x2 && y1==y2 && z1==z2)
-  {
-	return false;
-  }
- 
-  unsigned int maxDepth = this->m_uiMaxDepth;
-  unsigned int maxDiff = (unsigned int)(std::max((std::max((x1^x2),(y1^y2))),(z1^z2)));
-  int dim=g_dim;
-  unsigned int maxDiffBinLen =binOp::binLength(maxDiff);
-  //Eliminate the last maxDiffBinLen bits.
-  unsigned int ncaX = ((x1>>maxDiffBinLen)<<maxDiffBinLen);
-  unsigned int ncaY = ((y1>>maxDiffBinLen)<<maxDiffBinLen);
-  unsigned int ncaZ = ((z1>>maxDiffBinLen)<<maxDiffBinLen);
-  unsigned int ncaLev = (maxDepth - maxDiffBinLen);
-  
- 
-  
-  unsigned int xl=0;
-  unsigned int yl=0;
-  unsigned int zl=0;
-  
-  unsigned int len=1<<maxDepth;
-  int count=0;
-  unsigned int index1=0;
-  unsigned int index2=0;
-  
-  
-  if(g_dim==2)
-  {
-    int rotation[4]={0,1,2,3};
-    int rot_index[4]={0,1,2,3};
-    while ((xl!=ncaX || yl!=ncaY || zl!=ncaZ || count!=ncaLev ))
-    {
-      len=len/2;
-      
-      index1 = 0;
-      if ( ncaX >= (len + xl) ) {
-        index1 += 1;
-        xl += len;
-        if (ncaY < (len + yl)) index1 += 2;
-      }
-      if ( ncaY >= (len + yl) ) { index1 += 1; yl += len; }
-      
-      rotate(index1,rotation,rot_index,dim);
-      
-
-      count++;
-      
-    }
-    
-      len=len/2;
-      if((x1-ncaX)<len && (y1-ncaY)<len)
-      { // index 0
-        index1= rot_index[0];
-
-      }else if((x1-ncaX)<len && (y1-ncaY)>=len)
-      { // index 1
-	index1=rot_index[1];
-      }else if((x1-ncaX)>=len && (y1-ncaY)>=len)
-      { // index 2
-	index1=rot_index[2];
-      }else if ((x1-ncaX)>=len && (y1-ncaY)<len)
-      { // index 3
-	index1=rot_index[3];
-	
-      }
-      
-      
-      if((x2-ncaX)<len && (y2-ncaY)<len)
-      { // index 0
-	index2=rot_index[0];
-	
-      }else if((x2-ncaX)<len && (y2-ncaY)>=len)
-      { // index 1
-	index2=rot_index[1];
-	
-      }else if((x2-ncaX)>=len && (y2-ncaY)>=len)
-      { // index 2
-	index2=rot_index[2];
-      }else if ((x2-ncaX)>=len && (y2-ncaY)<len)
-      { // index 3
-	index2=rot_index[3];
-	
-      }
-    
-    
-  }
-  else if(g_dim==3)
-  {
-      int rotation[8]={0,1,2,3,4,5,6,7}; // Initial rotation
-      int rot_index[8]={0,1,2,3,4,5,6,7}; // Initial rotation indices 
-      while ((xl!=ncaX || yl!=ncaY || zl!=ncaZ || count!=ncaLev ) /*&& len >0*/)
-      {
-
-	len >>=1;
-	
-	index1 = 0;
-	if ( ncaZ < (len + zl) ) {
-	    if ( ncaX >= (len + xl) ) {
-	      index1 += 1;
-	      xl += len;
-	      if (ncaY < (len + yl)) 
-		index1 += 2;
-	    }
-	    if ( ncaY >= (len + yl) ) { 
-	      index1 += 1; 
-	      yl += len; 
-	    }
-	} else {
-	    index1 = 4;
-	    zl += len;
-	    if ( ncaX < (len + xl) ){ 
-	      index1 += 1;
-	      if (ncaY < (len + yl)) 
-		index1 += 2;
-	    }
-	    else {
-	      xl += len;
-	    }
-	    if ( ncaY >= (len + yl) ) { 
-	      index1 += 1; 
-	      yl += len; 
-	    }
-      }
-      
-      rotate(index1,rotation,rot_index,dim);
-      count++;
-	
-      }
-            
-      len >>=1;
-        
-       if((x1-ncaX)<len && (y1-ncaY)<len && (z1-ncaZ)<len)
-	{ 
-	  index1=rot_index[0];
-	}else if ((x1-ncaX)<len && (y1-ncaY)>=len && (z1-ncaZ)<len)
-	{ 
-	  index1=rot_index[1]; 
-	}else if((x1-ncaX)>=len && (y1-ncaY)>=len && (z1-ncaZ)<len)
-	{
-	  index1=rot_index[2];
-	}else if((x1-ncaX)>=len && (y1-ncaY)<len && (z1-ncaZ)<len)
-	{ 
-	  index1=rot_index[3];
-	}else if ((x1-ncaX)>=len && (y1-ncaY)<len && (z1-ncaZ)>=len)
-	{
-	  index1=rot_index[4];
-	}else if((x1-ncaX)>=len && (y1-ncaY)>=len && (z1-ncaZ)>=len)
-	{ 
-	  index1=rot_index[5];
-	}else if((x1-ncaX)<len && (y1-ncaY)>=len && (z1-ncaZ)>=len)
-	{ 
-	  index1=rot_index[6];
-	}else if((x1-ncaX)<len && (y1-ncaY)<len && (z1-ncaZ)>=len)
-	{
-	  index1=rot_index[7];
-	}
-	
-	
-	if((x2-ncaX)<len && (y2-ncaY)<len && (z2-ncaZ)<len)
-	{ 
-	  index2=rot_index[0];
-	}else if ((x2-ncaX)<len && (y2-ncaY)>=len && (z2-ncaZ)<len)
-	{ 
-	  index2=rot_index[1];
-	}else if((x2-ncaX)>=len && (y2-ncaY)>=len && (z2-ncaZ)<len)
-	{
-	  index2=rot_index[2];
-	}else if((x2-ncaX)>=len && (y2-ncaY)<len && (z2-ncaZ)<len)
-	{
-	  index2=rot_index[3];
-	}else if ((x2-ncaX)>=len && (y2-ncaY)<len && (z2-ncaZ)>=len)
-	{
-	  index2=rot_index[4];
-	}else if((x2-ncaX)>=len && (y2-ncaY)>=len && (z2-ncaZ)>=len)
-	{ 
-	  index2=rot_index[5];
-	}else if((x2-ncaX)<len && (y2-ncaY)>=len && (z2-ncaZ)>=len)
-	{ 
-	  index2=rot_index[6];
-	}else if((x2-ncaX)<len && (y2-ncaY)<len && (z2-ncaZ)>=len)
-	{
-	  index2=rot_index[7];
-	}
-	
-	
-    
-  }
-  
-  return index1<index2; 
-  
-}
- 
-  
- bool TreeNode::morton_order(const Point& p1, const Point& p2) const
-{
-   
-
-    unsigned int x1 = p1.xint();
-    unsigned int x2 = p2.xint();
-  
-    unsigned int y1 = p1.yint();
-    unsigned int y2 = p2.yint();
-  
-    unsigned int z1 = p1.zint();
-    unsigned int z2 = p2.zint();
-    
-    if(x1==x2 && y1==y2 && z1==z2)
-    {
-      return false;
-    }
-    
-    unsigned int x = (x1^x2);
-    unsigned int y = (y1^y2);
-    unsigned int z = (z1^z2);
-
-    //Default pref: z > y > x.
-    unsigned int maxC = z;
-    unsigned int yOrx = y;
-    if(yOrx < x) { if( (x^yOrx) >= yOrx ) {yOrx = x;} }
-    if(maxC < yOrx) { if( (maxC^yOrx) >= maxC ) {maxC = yOrx;} }
-
-    if(maxC == z) { 
-      if (z1 <z2)
-	return true;
-      else
-	return false;
-      
-    }
-    else if(maxC == y) { 
-      if(y1 < y2)
-	return true;
-      else 
-	return false;
-      
-    }
-    else {  
-      if(x1 < x2)
-	return true;
-      else
-	return false;
-      
-    }  
-   
-   
- 
+//Constructors...
+TreeNode :: TreeNode() {
+  m_uiX = m_uiY = m_uiZ = m_uiLevel =
+     m_uiWeight = m_uiDim = m_uiMaxDepth = 0;
 }
 
- bool TreeNode::morton_order_NCA(const Point& p1,const Point& p2) const
- {
-  
-  int g_dim=this->m_uiDim;
-  
-  unsigned int x1 = p1.xint();
-  unsigned int x2 = p2.xint();
-  
-  unsigned int y1 = p1.yint();
-  unsigned int y2 = p2.yint();
-  
-  unsigned int z1 = p1.zint();
-  unsigned int z2 = p2.zint();
-    
-  if(x1==x2 && y1==y2 && z1==z2)
-  {
-	return false;
+TreeNode  :: TreeNode(const int dummy, const unsigned int x, const unsigned int y,
+                      const unsigned int z, const unsigned int lev, const unsigned int dim, const unsigned int maxDepth) {
+  m_uiDim = dim;
+  m_uiMaxDepth = maxDepth;
+  m_uiX = x;
+  if (dim > 1) {m_uiY = y; } else {m_uiY = 0; }
+  if (dim > 2) {m_uiZ = z; } else {m_uiZ = 0; }
+
+  m_uiLevel = lev;
+  m_uiWeight = 1;
+} //end function
+
+TreeNode  :: TreeNode(const unsigned int dim, const unsigned int maxDepth) {
+  m_uiX = 0;
+  m_uiY = 0;
+  m_uiZ = 0;
+  m_uiLevel = 0;
+  m_uiWeight = 1;
+  m_uiDim = dim;
+  m_uiMaxDepth = maxDepth;
+#ifdef __DEBUG_TN__
+  if ((dim != 1) && (dim != 2) && (dim != 3)) {
+    std::cout << "Wrong Value for dim: " << dim << std::endl;
   }
-  
-  unsigned int maxDepth = this->m_uiMaxDepth;
-  unsigned int maxDiff = (unsigned int)(std::max((std::max((x1^x2),(y1^y2))),(z1^z2)));
-  
-  unsigned int maxDiffBinLen = binOp::binLength(maxDiff);
-  //Eliminate the last maxDiffBinLen bits.
-  unsigned int ncaX = ((x1>>maxDiffBinLen)<<maxDiffBinLen);
-  unsigned int ncaY = ((y1>>maxDiffBinLen)<<maxDiffBinLen);
-  unsigned int ncaZ = ((z1>>maxDiffBinLen)<<maxDiffBinLen);
-  unsigned int ncaLev = (maxDepth - maxDiffBinLen);
-  
-  unsigned int xl=0;
-  unsigned int yl=0;
-  unsigned int zl=0;
-  
-  unsigned int len=1<<maxDepth;
-   
-  len=len/(1<<(ncaLev+1));
-  unsigned int index1=0;
-  unsigned int index2=0;
-  
-  if(g_dim==2){
-   
-  
-      if((x1-ncaX)<len && (y1-ncaY)<len)
-      { 
-	  index1=0;
-	  
-      }else if((x1-ncaX)>=len && (y1-ncaY)<len)
-      { 
-	  index1=1;
-      }else if((x1-ncaX)<len && (y1-ncaY)>=len)
-      { 
-	  index1=2;
-	  
-      }else if ((x1-ncaX)>=len && (y1-ncaY)>=len)
-      { 
-	  index1=3;
-      }
-    
-	
-      if((x2-ncaX)<len && (y2-ncaY)<len)
-      { 
-	  index2=0;
-	  
-      }else if((x2-ncaX)>=len && (y2-ncaY)<len)
-      { 
-	  index2=1;
-      }else if((x2-ncaX)<len && (y2-ncaY)>=len)
-      { 
-	  index2=2;
-	  
-      }else if ((x2-ncaX)>=len && (y2-ncaY)>=len)
-      { 
-	index2=3;
-      }
-  }else if(g_dim==3)
-  {
-      if((x1-ncaX)<len && (y1-ncaY)<len && (z1-ncaZ)<len)
-      { 
-	index1=0;
-      }else if ((x1-ncaX)>=len && (y1-ncaY)<len && (z1-ncaZ)<len)
-      { 
-	index1=1;
-      }else if((x1-ncaX)<len && (y1-ncaY)>=len && (z1-ncaZ)<len)
-      {
-	index1=2;
-      }else if((x1-ncaX)>=len && (y1-ncaY)>=len && (z1-ncaZ)<len)
-      { 
-	index1=3;
-      }else if((x1-ncaX)<len && (y1-ncaY)<len && (z1-ncaZ)>=len)
-      { 
-	index1=4;
-      }else if ((x1-ncaX)>=len && (y1-ncaY)<len && (z1-ncaZ)>=len)
-      { 
-	index1=5;
-      }else if((x1-ncaX)<len && (y1-ncaY)>=len && (z1-ncaZ)>=len)
-      {
-      index1=6;
-      }else if((x1-ncaX)>=len && (y1-ncaY)>=len && (z1-ncaZ)>=len)
-      { index1=7;
-      }
-    
-    
-      if((x2-ncaX)<len && (y2-ncaY)<len && (z2-ncaZ)<len)
-      { 
-	index2=0;
-      }else if ((x2-ncaX)>=len && (y2-ncaY)<len && (z2-ncaZ)<len)
-      { 
-	index2=1;
-      }else if((x2-ncaX)<len && (y2-ncaY)>=len && (z2-ncaZ)<len)
-      {
-	index2=2;
-      }else if((x2-ncaX)>=len && (y2-ncaY)>=len && (z2-ncaZ)<len)
-      { 
-	index2=3;
-      }else if((x2-ncaX)<len && (y2-ncaY)<len && (z2-ncaZ)>=len)
-      { 
-	index2=4;
-      }else if ((x2-ncaX)>=len && (y2-ncaY)<len && (z2-ncaZ)>=len)
-      { 
-	index2=5;
-      }else if((x2-ncaX)<len && (y2-ncaY)>=len && (z2-ncaZ)>=len)
-      {
-	index2=6;
-      }else if((x2-ncaX)>=len && (y2-ncaY)>=len && (z2-ncaZ)>=len)
-      { index2=7;
-      }
-    
+#endif
+  assert((dim == 1) || (dim == 2) || (dim == 3));
+} //end function
+
+TreeNode  :: TreeNode(const unsigned int x, const unsigned int y,
+                      const unsigned int z, const unsigned int lev, const unsigned int dim, const unsigned int maxDepth) {
+  m_uiDim = dim;
+  m_uiMaxDepth = maxDepth;
+  m_uiX = x;
+  if (dim > 1) {m_uiY = y; } else {m_uiY = 0; }
+  if (dim > 2) {m_uiZ = z; } else {m_uiZ = 0; }
+
+  m_uiLevel = lev;
+  m_uiWeight = 1;
+
+#ifdef __DEBUG_TN__
+  if ((dim != 1) && (dim != 2) && (dim != 3)) {
+    std::cout << "Wrong Value for dim: " << dim << std::endl;
   }
-  return index1<index2;
-  
-     
- }
- 
+  assert(m_uiX < ((unsigned int)(1u << maxDepth)));
+  assert((m_uiX % ((unsigned int)(1u << (maxDepth - lev)))) == 0);
+  assert(m_uiY < ((unsigned int)(1u << maxDepth)));
+  assert((m_uiY % ((unsigned int)(1u << (maxDepth - lev)))) == 0);
+  assert(m_uiZ < ((unsigned int)(1u << maxDepth)));
+  assert((m_uiZ % ((unsigned int)(1u << (maxDepth - lev)))) == 0);
+  assert((dim == 1) || (dim == 2) || (dim == 3));
+#endif
+
+} //end function
+
+//copy constructor
+TreeNode  :: TreeNode(const TreeNode& other) {
+  m_uiX = other.m_uiX;
+  m_uiY = other.m_uiY;
+  m_uiZ = other.m_uiZ;
+  m_uiLevel = other.m_uiLevel;
+  m_uiWeight = other.m_uiWeight;
+  m_uiDim = other.m_uiDim;
+  m_uiMaxDepth = other.m_uiMaxDepth;
+} //end function
+
+/*
+ *Operator overiding implementations. 
+ *Comparison operators are based on Hilbert ordering of the points. 
+ */
+
+
+std::ostream& operator<<(std::ostream& os, TreeNode const& other) {
+  return (os << other.getX() << " " << other.getY() << " " << other.getZ() << " " << other.getLevel());
+} //end fn.
+
+/*
+ * Date: 30/05/2015
+ * ===========Hilbert Ordering Implementations==========
+ * ====================START============================
+ */
+
+
+/*
  bool  TreeNode::operator < (TreeNode const  &other) const
  {
    
@@ -1509,6 +605,8 @@ bool TreeNode::hilbert_order(const Point& p1,const Point& p2) const
   #ifdef USE_NCA_PROPERTY
     return morton_order_NCA(p1,p2);
   #else 
+#pragma message "== USING DEFAULT Morton Order =="
+
     return morton_order(p1,p2);
   #endif
 #endif
@@ -1556,775 +654,775 @@ bool TreeNode::hilbert_order(const Point& p1,const Point& p2) const
    }
  }
  
- 
- 
- /*
-  * ===========Hilbert Ordering Implementations==========
-  * ====================END============================
-  */
- 
-  //Assignment operator
-  //No checks for dim or maxD. It's ok to change dim and maxD using the
-  //assignment operator.
-  TreeNode & TreeNode  :: operator = ( TreeNode   const & other) {
-    if(this == (&other)) {return *this;}	
-    m_uiX = other.m_uiX;
-    m_uiY = other.m_uiY;
-    m_uiZ = other.m_uiZ;
-    m_uiLevel = other.m_uiLevel;
-    m_uiWeight = other.m_uiWeight;
-    m_uiDim = other.m_uiDim;
-    m_uiMaxDepth = other.m_uiMaxDepth;
-    return *this;
-  }//end fn.
+ */
 
-  int TreeNode::pickInternalBoundaryCells(std::vector<TreeNode > & allInternal,
-      std::vector<TreeNode > & boundary)  const {
-    unsigned int dim = this->getDim();
+/*
+ * ===========Hilbert Ordering Implementations==========
+ * ====================END============================
+ */
 
-    //Pre-alloc
-    boundary.resize(allInternal.size());
-    unsigned int boundarySz = 0; 
+//Assignment operator
+//No checks for dim or maxD. It's ok to change dim and maxD using the
+//assignment operator.
+TreeNode& TreeNode  :: operator = (TreeNode   const& other) {
+  if (this == (&other)) {return *this;}
+  m_uiX = other.m_uiX;
+  m_uiY = other.m_uiY;
+  m_uiZ = other.m_uiZ;
+  m_uiLevel = other.m_uiLevel;
+  m_uiWeight = other.m_uiWeight;
+  m_uiDim = other.m_uiDim;
+  m_uiMaxDepth = other.m_uiMaxDepth;
+  return *this;
+} //end fn.
 
-    int myMinX = this->minX();
-    int myMinY = this->minY();
-    int myMinZ = this->minZ();
-    int myMaxX = this->maxX();
-    int myMaxY = this->maxY();
-    int myMaxZ = this->maxZ();
+int TreeNode::pickInternalBoundaryCells(std::vector<TreeNode>& allInternal,
+                                        std::vector<TreeNode>& boundary)  const {
+  unsigned int dim = this->getDim();
 
-    for(unsigned int i = 0; i < allInternal.size(); i++) {
+  //Pre-alloc
+  boundary.resize(allInternal.size());
+  unsigned int boundarySz = 0;
+
+  int myMinX = this->minX();
+  int myMinY = this->minY();
+  int myMinZ = this->minZ();
+  int myMaxX = this->maxX();
+  int myMaxY = this->maxY();
+  int myMaxZ = this->maxZ();
+
+  for (unsigned int i = 0; i < allInternal.size(); i++) {
 #ifdef __DEBUG_TN__
-      assert(areComparable(*this, allInternal[i]));
-      if(!(this->isAncestor(allInternal[i]) )) {
-        std::cout<<(*this)<<RED<<" is not an Ancestor of "<<NRM<<allInternal[i]<<std::endl;
-      }
-      assert( this->isAncestor(allInternal[i]) );
+    assert(areComparable(*this, allInternal[i]));
+    if (!(this->isAncestor(allInternal[i]))) {
+      std::cout << (*this) << RED << " is not an Ancestor of " << NRM << allInternal[i] << std::endl;
+    }
+    assert(this->isAncestor(allInternal[i]));
 #endif
-      int testMinX = allInternal[i].minX();
-      int testMinY = allInternal[i].minY();
-      int testMinZ = allInternal[i].minZ();
-      int testMaxX = allInternal[i].maxX();
-      int testMaxY = allInternal[i].maxY(); 
-      int testMaxZ = allInternal[i].maxZ(); 
-      if((myMinX == testMinX) || (myMaxX == testMaxX)) {
-        boundary[boundarySz]=(allInternal[i]);
+    int testMinX = allInternal[i].minX();
+    int testMinY = allInternal[i].minY();
+    int testMinZ = allInternal[i].minZ();
+    int testMaxX = allInternal[i].maxX();
+    int testMaxY = allInternal[i].maxY();
+    int testMaxZ = allInternal[i].maxZ();
+    if ((myMinX == testMinX) || (myMaxX == testMaxX)) {
+      boundary[boundarySz] = (allInternal[i]);
+      boundarySz++;
+    } else if (dim > 1) {
+      if ((myMinY == testMinY) || (myMaxY == testMaxY)) {
+        boundary[boundarySz] = (allInternal[i]);
         boundarySz++;
-      }else if(dim > 1) {
-        if((myMinY == testMinY) || (myMaxY == testMaxY)) {
-          boundary[boundarySz]=(allInternal[i]);
+      } else if (dim > 2) {
+        if ((myMinZ == testMinZ) || (myMaxZ == testMaxZ)) {
+          boundary[boundarySz] = (allInternal[i]);
           boundarySz++;
-        }else if(dim > 2) {
-          if((myMinZ == testMinZ) || (myMaxZ == testMaxZ)) {
-            boundary[boundarySz]=(allInternal[i]);
-            boundarySz++;
-          }//end if
-        }//end if-else-if	
-      }//end if-else-if on boundary
-    }//end for
+        } //end if
+      } //end if-else-if
+    } //end if-else-if on boundary
+  } //end for
 
-    boundary.resize(boundarySz);
-    return 1;
-  }//end function
+  boundary.resize(boundarySz);
+  return 1;
+} //end function
 
 
-  int TreeNode::splitInternalAndBoundaryCells(std::vector<TreeNode> & allInternal,
-      std::vector<TreeNode> & onlyInternal, std::vector<TreeNode> & boundary) const{
-    unsigned int dim = this->getDim();
+int TreeNode::splitInternalAndBoundaryCells(std::vector<TreeNode>& allInternal,
+                                            std::vector<TreeNode>& onlyInternal, std::vector<TreeNode>& boundary) const {
+  unsigned int dim = this->getDim();
 
-    //Pre-alloc
-    boundary.resize(allInternal.size());
-    onlyInternal.resize(allInternal.size());
-    unsigned int boundarySz = 0; 
-    unsigned int onlyInternalSz = 0; 
+  //Pre-alloc
+  boundary.resize(allInternal.size());
+  onlyInternal.resize(allInternal.size());
+  unsigned int boundarySz = 0;
+  unsigned int onlyInternalSz = 0;
 
-    int myMinX = this->minX();
-    int myMinY = this->minY();
-    int myMinZ = this->minZ();
-    int myMaxX = this->maxX();
-    int myMaxY = this->maxY();
-    int myMaxZ = this->maxZ();
+  int myMinX = this->minX();
+  int myMinY = this->minY();
+  int myMinZ = this->minZ();
+  int myMaxX = this->maxX();
+  int myMaxY = this->maxY();
+  int myMaxZ = this->maxZ();
 
-    for(unsigned int i = 0; i < allInternal.size(); i++) {
+  for (unsigned int i = 0; i < allInternal.size(); i++) {
 #ifdef __DEBUG_TN__
-      assert(areComparable(*this, allInternal[i]));
-      if(!(this->isAncestor(allInternal[i]) )) {
-        std::cout<<(*this)<<RED<<" is not an Ancestor of "<<NRM<<allInternal[i]<<std::endl;
-      }
-      assert( this->isAncestor(allInternal[i]) );
+    assert(areComparable(*this, allInternal[i]));
+    if (!(this->isAncestor(allInternal[i]))) {
+      std::cout << (*this) << RED << " is not an Ancestor of " << NRM << allInternal[i] << std::endl;
+    }
+    assert(this->isAncestor(allInternal[i]));
 #endif
-      int testMinX = allInternal[i].minX();
-      int testMinY = allInternal[i].minY();
-      int testMinZ = allInternal[i].minZ();
-      int testMaxX = allInternal[i].maxX();
-      int testMaxY = allInternal[i].maxY(); 
-      int testMaxZ = allInternal[i].maxZ(); 
-      if((myMinX == testMinX) || (myMaxX == testMaxX)) {
-        boundary[boundarySz]=(allInternal[i]);
+    int testMinX = allInternal[i].minX();
+    int testMinY = allInternal[i].minY();
+    int testMinZ = allInternal[i].minZ();
+    int testMaxX = allInternal[i].maxX();
+    int testMaxY = allInternal[i].maxY();
+    int testMaxZ = allInternal[i].maxZ();
+    if ((myMinX == testMinX) || (myMaxX == testMaxX)) {
+      boundary[boundarySz] = (allInternal[i]);
+      boundarySz++;
+    } else if (dim > 1) {
+      if ((myMinY == testMinY) || (myMaxY == testMaxY)) {
+        boundary[boundarySz] = (allInternal[i]);
         boundarySz++;
-      }else if(dim > 1) {
-        if((myMinY == testMinY) || (myMaxY == testMaxY)) {
-          boundary[boundarySz]=(allInternal[i]);
+      } else if (dim > 2) {
+        if ((myMinZ == testMinZ) || (myMaxZ == testMaxZ)) {
+          boundary[boundarySz] = (allInternal[i]);
           boundarySz++;
-        }else if(dim > 2) {
-          if((myMinZ == testMinZ) || (myMaxZ == testMaxZ)) {
-            boundary[boundarySz]=(allInternal[i]);
-            boundarySz++;
-          }else {
-            onlyInternal[onlyInternalSz]=(allInternal[i]);
-            onlyInternalSz++;
-          }//end if
-        }else {
-          onlyInternal[onlyInternalSz]=(allInternal[i]);
+        } else {
+          onlyInternal[onlyInternalSz] = (allInternal[i]);
           onlyInternalSz++;
-        }//end if-else-if	
-      }else {
-        onlyInternal[onlyInternalSz]=(allInternal[i]);
+        } //end if
+      } else {
+        onlyInternal[onlyInternalSz] = (allInternal[i]);
         onlyInternalSz++;
-      }//end if-else-if on boundary
-    }//end for
+      } //end if-else-if
+    } else {
+      onlyInternal[onlyInternalSz] = (allInternal[i]);
+      onlyInternalSz++;
+    } //end if-else-if on boundary
+  } //end for
 
-    boundary.resize(boundarySz);
-    onlyInternal.resize(onlyInternalSz);
-    return 1;
-  }//end function
+  boundary.resize(boundarySz);
+  onlyInternal.resize(onlyInternalSz);
+  return 1;
+} //end function
 
-  int TreeNode ::balanceSubtree(std::vector<TreeNode > & inp,
-      std::vector<TreeNode  > & out, bool incCorner,
-      bool isSortedCompleteLinear) const {
+int TreeNode ::balanceSubtree(std::vector<TreeNode>& inp,
+                              std::vector<TreeNode>& out, bool incCorner,
+                              bool isSortedCompleteLinear) const {
 
-    PROF_BAL_SUBTREE_BEGIN
+  PROF_BAL_SUBTREE_BEGIN
 
-      unsigned int dim = getDim();
-    unsigned int maxDepth = getMaxDepth();	
-    unsigned int maxCornerX = this->maxX();	
-    unsigned int maxCornerY = this->maxY();	
-    unsigned int maxCornerZ = this->maxZ();	
-    unsigned int minLevInp = maxDepth;
-    unsigned int maxLevInp = 0;
+     unsigned int dim = getDim();
+  unsigned int maxDepth = getMaxDepth();
+  unsigned int maxCornerX = this->maxX();
+  unsigned int maxCornerY = this->maxY();
+  unsigned int maxCornerZ = this->maxZ();
+  unsigned int minLevInp = maxDepth;
+  unsigned int maxLevInp = 0;
 
-    out.clear();
-    if( (maxDepth == 0) || (getLevel() == maxDepth) || (inp.empty()) ) {
-      //No decendants.
-      PROF_BAL_SUBTREE_END
-    }
+  out.clear();
+  if ((maxDepth == 0) || (getLevel() == maxDepth) || (inp.empty())) {
+    //No decendants.
+    PROF_BAL_SUBTREE_END
+  }
 
-    std::vector<TreeNode > *workVec = NULL;
-    unsigned int *workVecSz = NULL;	
+  std::vector<TreeNode> * workVec = NULL;
+  unsigned int *workVecSz = NULL;
 
-    if(maxDepth - getLevel()) {
-      workVec = new std::vector<TreeNode >[maxDepth - getLevel()];	
-      workVecSz = new unsigned int [maxDepth-getLevel()];	
-    }
+  if (maxDepth - getLevel()) {
+    workVec = new std::vector<TreeNode>[maxDepth - getLevel()];
+    workVecSz = new unsigned int[maxDepth - getLevel()];
+  }
 
-    for(unsigned int i = 0; i < (maxDepth - getLevel()); i++) {
-      workVecSz[i] = 0;
-    }
+  for (unsigned int i = 0; i < (maxDepth - getLevel()); i++) {
+    workVecSz[i] = 0;
+  }
 
-    for(unsigned int i = 0; i < inp.size(); i++) {
+  for (unsigned int i = 0; i < inp.size(); i++) {
 #ifdef __DEBUG_TN__
-      assert(areComparable(*this, inp[i]));
+    assert(areComparable(*this, inp[i]));
 #endif
-      if( this->isAncestor(inp[i]) ) {
-        unsigned int currOctLev = inp[i].getLevel();
-        workVecSz[maxDepth - currOctLev]++;
-        if(currOctLev < minLevInp) {
-          minLevInp = currOctLev;
-        }
-        if(currOctLev > maxLevInp) {
-          maxLevInp = currOctLev;
-        }
-      }//end if decendant of block
-    }//end for
-
-    if(isSortedCompleteLinear && ((maxLevInp - minLevInp) < 2) ) {
-      //Already balanced
-      out = inp;
-
-      if(workVecSz) {
-        delete [] workVecSz;
-        workVecSz = NULL;
+    if (this->isAncestor(inp[i])) {
+      unsigned int currOctLev = inp[i].getLevel();
+      workVecSz[maxDepth - currOctLev]++;
+      if (currOctLev < minLevInp) {
+        minLevInp = currOctLev;
       }
-
-      if(workVec) {
-        delete [] workVec;
-        workVec = NULL;
+      if (currOctLev > maxLevInp) {
+        maxLevInp = currOctLev;
       }
+    } //end if decendant of block
+  } //end for
 
-      PROF_BAL_SUBTREE_END
-    }
+  if (isSortedCompleteLinear && ((maxLevInp - minLevInp) < 2)) {
+    //Already balanced
+    out = inp;
 
-    for(unsigned int i = 0; i < (maxDepth - getLevel()); i++) {
-      workVec[i].resize(workVecSz[i]);
-      workVecSz[i] = 0;
-    }
-
-    for(unsigned int i = 0; i < inp.size(); i++) {
-#ifdef __DEBUG_TN__
-      assert(areComparable(*this, inp[i]));
-#endif
-      if( this->isAncestor(inp[i]) ) {
-        workVec[maxDepth - (inp[i].getLevel())][workVecSz[maxDepth - (inp[i].getLevel())]] = inp[i];
-        workVecSz[maxDepth - (inp[i].getLevel())]++;
-      }
-    }//end for
-
-    if(workVecSz) {
-      delete [] workVecSz;
+    if (workVecSz) {
+      delete[] workVecSz;
       workVecSz = NULL;
     }
 
-    TreeNode tmpRoot (getDim(), getMaxDepth());
-    for(unsigned int i = 0; i < maxDepth - getLevel() -1; i++) {
-      //This also sorts.
-      seq::makeVectorUnique(workVec[i], false);
-      //Remove Brothers from a sorted list.
-      std::vector<TreeNode> tmpList (workVec[i].size());
-      unsigned int tmpListSz=0;
-      if(!workVec[i].empty()) {
-        tmpList[tmpListSz] = workVec[i][0];
-        tmpListSz++;
-      }
-      for(unsigned int j=1;j<workVec[i].size();j++) {
-        if(workVec[i][j-1].getParent() != workVec[i][j].getParent()) {
-          tmpList[tmpListSz] = workVec[i][j];
-          tmpListSz++;
-        }
-      }//end for j
-      workVec[i].clear();
-      tmpList.resize(tmpListSz);
-      workVec[i] = tmpList;
-      tmpList.clear();
-      unsigned int oldOutSz = out.size();
-      unsigned int newOut = 0;
-      out.resize(oldOutSz + (workVec[i].size()*(1 << dim)));
-      unsigned int oldNextWsz = workVec[i+1].size();
-      unsigned int newNextW = 0;
-      unsigned int wLen = workVec[i].size();
-      if(wLen > 0) {
-        workVec[i+1].resize(oldNextWsz + (26*(workVec[i].size())));
-      }
-      for(unsigned int j = 0; j < wLen; j++) {
-        out[oldOutSz + newOut]=workVec[i][j];
-        newOut++;
-        std::vector<TreeNode> bros;
-        workVec[i][j].addBrothers(bros);
-        for(int k =0;k< ((1 << dim)-1);k++) {
-          out[oldOutSz + newOut]=bros[k];
-          newOut++;
-        }//end for k
-        bros.clear();
-
-        TreeNode  parent = workVec[i][j].getParent();
-        TreeNode  tmpNode (getDim(), getMaxDepth());
-        //Add all the neighbours of parent to workVec[i+1]
-
-        tmpNode = parent.getLeft();
-        if(tmpNode > tmpRoot) {		 
-          if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-            workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-            newNextW++;
-          }
-        }
-
-        tmpNode = parent.getRight();
-        if(tmpNode > tmpRoot) {		 
-          if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-            workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-            newNextW++;
-          }
-        }
-
-        tmpNode = parent.getTop();
-        if(tmpNode > tmpRoot) {		 
-          if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-            workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-            newNextW++;
-          }
-        } 
-
-        tmpNode = parent.getBottom();
-        if(tmpNode > tmpRoot) {		 
-          if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-            workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-            newNextW++;
-          }
-        }    
-
-        tmpNode = parent.getFront();
-        if(tmpNode > tmpRoot) {		 
-          if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-            workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-            newNextW++;
-          }
-        }	     
-
-        tmpNode = parent.getBack(); 
-        if(tmpNode > tmpRoot) {		 
-          if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-            workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-            newNextW++;
-          }
-        }   	 
-        if(dim == 3 || incCorner) {
-          tmpNode = parent.getTopLeft();
-          if(tmpNode > tmpRoot) {		 
-            if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-                (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-                (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-              workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-              newNextW++;
-            }
-          }     
-
-          tmpNode = parent.getTopRight();
-          if(tmpNode > tmpRoot) {		 
-            if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-                (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-                (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-              workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-              newNextW++;
-            }
-          }	 
-
-          tmpNode = parent.getBottomLeft() ; 
-          if(tmpNode > tmpRoot) {		 
-            if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-                (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-                (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-              workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-              newNextW++;
-            }
-          }    
-
-          tmpNode = parent.getBottomRight();
-          if(tmpNode > tmpRoot) {		 
-            if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-                (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-                (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-              workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-              newNextW++;
-            }
-          } 
-
-          tmpNode = parent.getLeftFront() ;
-          if(tmpNode > tmpRoot) {		 
-            if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-                (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-                (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-              workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-              newNextW++;
-            }
-          }
-
-          tmpNode = parent.getRightFront() ;
-          if(tmpNode > tmpRoot) {		 
-            if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-                (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-                (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-              workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-              newNextW++;
-            }
-          }
-
-          tmpNode = parent.getTopFront() ;
-          if(tmpNode > tmpRoot) {		 
-            if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-                (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-                (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-              workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-              newNextW++;
-            }
-          }
-
-          tmpNode = parent.getBottomFront() ;
-          if(tmpNode > tmpRoot) {		 
-            if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-                (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-                (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-              workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-              newNextW++;
-            }
-          }
-          tmpNode = parent.getLeftBack() ;
-          if(tmpNode > tmpRoot) {		 
-            if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-                (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-                (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-              workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-              newNextW++;
-            }
-          }
-
-          tmpNode = parent.getRightBack() ;
-          if(tmpNode > tmpRoot) {		 
-            if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-                (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-                (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-              workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-              newNextW++;
-            }
-          }
-
-          tmpNode = parent.getTopBack();
-          if(tmpNode > tmpRoot) {		 
-            if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-                (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-                (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-              workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-              newNextW++;
-            }
-          }
-
-          tmpNode = parent.getBottomBack();
-          if(tmpNode > tmpRoot) {		 
-            if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-                (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-                (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-              workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-              newNextW++;
-            }
-          }
-
-
-        }//end if-incCorner or dim=3
-        if(incCorner) {
-          tmpNode = parent.getTopLeftFront() ;
-          if(tmpNode > tmpRoot) {		 
-            if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-                (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-                (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-              workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-              newNextW++;
-            }
-          }
-
-          tmpNode = parent.getTopRightFront(); 
-          if(tmpNode > tmpRoot) {		 
-            if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-                (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-                (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-              workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-              newNextW++;
-            }
-          }
-
-          tmpNode = parent.getBottomLeftFront();
-          if(tmpNode > tmpRoot) {		 
-            if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-                (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-                (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-              workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-              newNextW++;
-            }
-          }
-
-          tmpNode = parent.getBottomRightFront();
-          if(tmpNode > tmpRoot) {		 
-            if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-                (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-                (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-              workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-              newNextW++;
-            }
-          }
-
-          tmpNode = parent.getTopLeftBack();
-          if(tmpNode > tmpRoot) {		 
-            if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-                (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-                (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-              workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-              newNextW++;
-            }
-          }
-
-          tmpNode = parent.getTopRightBack();
-          if(tmpNode > tmpRoot) {		 
-            if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-                (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-                (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-              workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-              newNextW++;
-            }
-          }
-
-          tmpNode = parent.getBottomLeftBack();
-          if(tmpNode > tmpRoot) {		 
-            if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-                (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-                (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-              workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-              newNextW++;
-            }
-          }
-
-          tmpNode = parent.getBottomRightBack();
-          if(tmpNode > tmpRoot) {		 
-            if( (tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) && 
-                (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
-                (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ) ) {
-
-              workVec[i+1][oldNextWsz + newNextW]=tmpNode;
-              newNextW++;
-            }
-          }
-        }//end if-incCorner
-      }//end for j
-      workVec[i].clear();
-      if(wLen > 0) {
-        workVec[i+1].resize(oldNextWsz + newNextW);
-      }
-    }//end for i
-
-    if(workVec) {
-      if(!(workVec[maxDepth-1-getLevel()].empty())) {
-        unsigned int oldOutSz = out.size();
-        unsigned int newOut = 0;
-        out.resize(oldOutSz + (1 << dim));
-        out[oldOutSz + newOut]=workVec[maxDepth-1-getLevel()][0];
-        newOut++;
-        std::vector<TreeNode> bros;
-        workVec[maxDepth-1-getLevel()][0].addBrothers(bros);
-        workVec[maxDepth-1-getLevel()].clear();
-        for(int k =0;k < ((1 << dim) -1);k++) {
-          out[oldOutSz + newOut]=bros[k];
-          newOut++;
-        }//end for k
-
-        bros.clear();
-      }//end if
-      delete [] workVec;
+    if (workVec) {
+      delete[] workVec;
       workVec = NULL;
     }
-
-    //Sort and make unique.
-    seq::makeVectorUnique<TreeNode>(out,false);
-    //Remove overlaps.
-    std::vector<unsigned int> toRem(out.size());
-    unsigned int remCtr =0;
-    //compare i+1 with i
-    for(unsigned int i=1; i<out.size(); i++) {
-#ifdef __DEBUG_TN__
-      assert(areComparable(out[i-1], out[i]));
-#endif
-      if(out[i-1].isAncestor(out[i])) {
-        toRem[remCtr]=(i-1);
-        remCtr++;
-      }//end if
-    }//end for i
-    toRem.resize(remCtr);
-
-    if(!toRem.empty()) {
-      //Note toRem is sorted.
-      std::vector<TreeNode> tmpRem(out.size()-toRem.size());
-      unsigned int pos=0; unsigned int kk=0;
-      for(unsigned int i=0;i<toRem.size();i++) {
-        for(unsigned int j = pos; j<toRem[i];j++) {
-          tmpRem[kk]=out[j];
-          kk++;
-        }//end for j
-        pos = toRem[i]+1;
-      }//end for i
-      for(unsigned int j = pos;j < out.size(); j++) {
-        tmpRem[kk] = out[j];
-        kk++;
-      }//end for j
-      out = tmpRem;
-      tmpRem.clear();
-    }//end if 
-    toRem.clear();
 
     PROF_BAL_SUBTREE_END
-  }//end function   
+  }
 
-  int TreeNode ::completeSubtree(std::vector<TreeNode > & inp,
-      std::vector<TreeNode  > & out ) const {
+  for (unsigned int i = 0; i < (maxDepth - getLevel()); i++) {
+    workVec[i].resize(workVecSz[i]);
+    workVecSz[i] = 0;
+  }
 
-    PROF_COMPLETE_SUBTREE_BEGIN
-
-      unsigned int dim = m_uiDim;
-    unsigned int maxDepth = m_uiMaxDepth;	
-
-    out.clear();
-    if( (maxDepth == 0) || (getLevel() == maxDepth) || (inp.empty()) ) {
-      //No decendants.
-      PROF_COMPLETE_SUBTREE_END
-    }
-
-    std::vector<TreeNode > *workVec = NULL;
-    unsigned int *workVecSz = NULL;
-
-    if(maxDepth - getLevel()) {
-      workVec = new std::vector<TreeNode >[maxDepth-getLevel()];	
-      workVecSz = new unsigned int [maxDepth-getLevel()];	
-    }
-
-    for(unsigned int i = 0; i < (maxDepth - getLevel()); i++) {
-      workVecSz[i] = 0;
-    }
-
-    for(unsigned int i = 0; i < inp.size(); i++) {
+  for (unsigned int i = 0; i < inp.size(); i++) {
 #ifdef __DEBUG_TN__
-      assert(areComparable(*this, inp[i]));
+    assert(areComparable(*this, inp[i]));
 #endif
-      if( this->isAncestor(inp[i]) ) {
-        workVecSz[maxDepth - (inp[i].getLevel())]++;
-      } else {
-        std::cout<<inp[i]<<" is not a decendant of "<<(*this)<<std::endl;
-        assert(false);
-      }
-    }//end for
-
-    for(unsigned int i = 0; i < (maxDepth - getLevel()); i++) {
-      workVec[i].resize(workVecSz[i]);
-      workVecSz[i] = 0;
+    if (this->isAncestor(inp[i])) {
+      workVec[maxDepth - (inp[i].getLevel())][workVecSz[maxDepth - (inp[i].getLevel())]] = inp[i];
+      workVecSz[maxDepth - (inp[i].getLevel())]++;
     }
+  } //end for
 
-    for(unsigned int i = 0; i < inp.size(); i++) {
-#ifdef __DEBUG_TN__
-      assert(areComparable(*this, inp[i]));
-#endif
-      if( this->isAncestor(inp[i]) ) {
-        workVec[maxDepth - (inp[i].getLevel())][workVecSz[maxDepth - (inp[i].getLevel())]] = inp[i];
-        workVecSz[maxDepth - (inp[i].getLevel())]++;
-      }
-    }//end for
+  if (workVecSz) {
+    delete[] workVecSz;
+    workVecSz = NULL;
+  }
 
-    if(workVecSz) {
-      delete [] workVecSz;
-      workVecSz = NULL;
+  TreeNode tmpRoot(getDim(), getMaxDepth());
+  for (unsigned int i = 0; i < maxDepth - getLevel() - 1; i++) {
+    //This also sorts.
+    seq::makeVectorUnique(workVec[i], false);
+    //Remove Brothers from a sorted list.
+    std::vector<TreeNode> tmpList(workVec[i].size());
+    unsigned int tmpListSz = 0;
+    if (!workVec[i].empty()) {
+      tmpList[tmpListSz] = workVec[i][0];
+      tmpListSz++;
     }
-
-    TreeNode tmpRoot (m_uiDim, m_uiMaxDepth);
-    for(unsigned int i = 0; i < (maxDepth - getLevel() -1); i++) {
-      //This also sorts.
-      seq::makeVectorUnique(workVec[i], false);
-      //Remove Brothers from a sorted list.
-      std::vector<TreeNode> tmpList (workVec[i].size());
-      unsigned int tmpListSz=0;
-      if(!workVec[i].empty()) {
-        tmpList[tmpListSz] = workVec[i][0];
+    for (unsigned int j = 1; j < workVec[i].size(); j++) {
+      if (workVec[i][j - 1].getParent() != workVec[i][j].getParent()) {
+        tmpList[tmpListSz] = workVec[i][j];
         tmpListSz++;
       }
-      for(unsigned int j = 1; j < workVec[i].size(); j++) {
-        if(workVec[i][j-1].getParent() != workVec[i][j].getParent()) {
-          tmpList[tmpListSz] = workVec[i][j];
-          tmpListSz++;
+    } //end for j
+    workVec[i].clear();
+    tmpList.resize(tmpListSz);
+    workVec[i] = tmpList;
+    tmpList.clear();
+    unsigned int oldOutSz = out.size();
+    unsigned int newOut = 0;
+    out.resize(oldOutSz + (workVec[i].size() * (1 << dim)));
+    unsigned int oldNextWsz = workVec[i + 1].size();
+    unsigned int newNextW = 0;
+    unsigned int wLen = workVec[i].size();
+    if (wLen > 0) {
+      workVec[i + 1].resize(oldNextWsz + (26 * (workVec[i].size())));
+    }
+    for (unsigned int j = 0; j < wLen; j++) {
+      out[oldOutSz + newOut] = workVec[i][j];
+      newOut++;
+      std::vector<TreeNode> bros;
+      workVec[i][j].addBrothers(bros);
+      for (int k = 0; k < ((1 << dim) - 1); k++) {
+        out[oldOutSz + newOut] = bros[k];
+        newOut++;
+      } //end for k
+      bros.clear();
+
+      TreeNode  parent = workVec[i][j].getParent();
+      TreeNode  tmpNode(getDim(), getMaxDepth());
+      //Add all the neighbours of parent to workVec[i+1]
+
+      tmpNode = parent.getLeft();
+      if (tmpNode > tmpRoot) {
+        if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+            (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+            (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+          workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+          newNextW++;
         }
-      }//end for j
-      workVec[i].clear();
-      tmpList.resize(tmpListSz);
-      workVec[i] = tmpList;
-      tmpList.clear();
+      }
+
+      tmpNode = parent.getRight();
+      if (tmpNode > tmpRoot) {
+        if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+            (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+            (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+          workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+          newNextW++;
+        }
+      }
+
+      tmpNode = parent.getTop();
+      if (tmpNode > tmpRoot) {
+        if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+            (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+            (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+          workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+          newNextW++;
+        }
+      }
+
+      tmpNode = parent.getBottom();
+      if (tmpNode > tmpRoot) {
+        if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+            (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+            (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+          workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+          newNextW++;
+        }
+      }
+
+      tmpNode = parent.getFront();
+      if (tmpNode > tmpRoot) {
+        if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+            (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+            (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+          workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+          newNextW++;
+        }
+      }
+
+      tmpNode = parent.getBack();
+      if (tmpNode > tmpRoot) {
+        if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+            (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+            (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+          workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+          newNextW++;
+        }
+      }
+      if (dim == 3 || incCorner) {
+        tmpNode = parent.getTopLeft();
+        if (tmpNode > tmpRoot) {
+          if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+            workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+            newNextW++;
+          }
+        }
+
+        tmpNode = parent.getTopRight();
+        if (tmpNode > tmpRoot) {
+          if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+            workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+            newNextW++;
+          }
+        }
+
+        tmpNode = parent.getBottomLeft();
+        if (tmpNode > tmpRoot) {
+          if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+            workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+            newNextW++;
+          }
+        }
+
+        tmpNode = parent.getBottomRight();
+        if (tmpNode > tmpRoot) {
+          if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+            workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+            newNextW++;
+          }
+        }
+
+        tmpNode = parent.getLeftFront();
+        if (tmpNode > tmpRoot) {
+          if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+            workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+            newNextW++;
+          }
+        }
+
+        tmpNode = parent.getRightFront();
+        if (tmpNode > tmpRoot) {
+          if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+            workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+            newNextW++;
+          }
+        }
+
+        tmpNode = parent.getTopFront();
+        if (tmpNode > tmpRoot) {
+          if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+            workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+            newNextW++;
+          }
+        }
+
+        tmpNode = parent.getBottomFront();
+        if (tmpNode > tmpRoot) {
+          if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+            workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+            newNextW++;
+          }
+        }
+        tmpNode = parent.getLeftBack();
+        if (tmpNode > tmpRoot) {
+          if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+            workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+            newNextW++;
+          }
+        }
+
+        tmpNode = parent.getRightBack();
+        if (tmpNode > tmpRoot) {
+          if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+            workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+            newNextW++;
+          }
+        }
+
+        tmpNode = parent.getTopBack();
+        if (tmpNode > tmpRoot) {
+          if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+            workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+            newNextW++;
+          }
+        }
+
+        tmpNode = parent.getBottomBack();
+        if (tmpNode > tmpRoot) {
+          if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+            workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+            newNextW++;
+          }
+        }
+
+
+      } //end if-incCorner or dim=3
+      if (incCorner) {
+        tmpNode = parent.getTopLeftFront();
+        if (tmpNode > tmpRoot) {
+          if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+            workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+            newNextW++;
+          }
+        }
+
+        tmpNode = parent.getTopRightFront();
+        if (tmpNode > tmpRoot) {
+          if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+            workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+            newNextW++;
+          }
+        }
+
+        tmpNode = parent.getBottomLeftFront();
+        if (tmpNode > tmpRoot) {
+          if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+            workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+            newNextW++;
+          }
+        }
+
+        tmpNode = parent.getBottomRightFront();
+        if (tmpNode > tmpRoot) {
+          if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+            workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+            newNextW++;
+          }
+        }
+
+        tmpNode = parent.getTopLeftBack();
+        if (tmpNode > tmpRoot) {
+          if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+            workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+            newNextW++;
+          }
+        }
+
+        tmpNode = parent.getTopRightBack();
+        if (tmpNode > tmpRoot) {
+          if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+            workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+            newNextW++;
+          }
+        }
+
+        tmpNode = parent.getBottomLeftBack();
+        if (tmpNode > tmpRoot) {
+          if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+            workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+            newNextW++;
+          }
+        }
+
+        tmpNode = parent.getBottomRightBack();
+        if (tmpNode > tmpRoot) {
+          if ((tmpNode.m_uiX >= this->m_uiX) && (tmpNode.m_uiY >= this->m_uiY) &&
+              (tmpNode.m_uiZ >= this->m_uiZ) && (tmpNode.m_uiX < maxCornerX) &&
+              (tmpNode.m_uiY < maxCornerY) && (tmpNode.m_uiZ < maxCornerZ)) {
+
+            workVec[i + 1][oldNextWsz + newNextW] = tmpNode;
+            newNextW++;
+          }
+        }
+      } //end if-incCorner
+    } //end for j
+    workVec[i].clear();
+    if (wLen > 0) {
+      workVec[i + 1].resize(oldNextWsz + newNextW);
+    }
+  } //end for i
+
+  if (workVec) {
+    if (!(workVec[maxDepth - 1 - getLevel()].empty())) {
       unsigned int oldOutSz = out.size();
       unsigned int newOut = 0;
-      out.resize(oldOutSz + (workVec[i].size()*(1 << dim)));
-      unsigned int oldNextWsz = workVec[i+1].size();
-      unsigned int newNextW = 0;
-      unsigned int wLen = workVec[i].size();
-      if(wLen > 0) {
-        workVec[i+1].resize(oldNextWsz + (7*(workVec[i].size())));
-      }
-      for(unsigned int j = 0; j < wLen; j++) {
-        out[oldOutSz + newOut]=workVec[i][j];
+      out.resize(oldOutSz + (1 << dim));
+      out[oldOutSz + newOut] = workVec[maxDepth - 1 - getLevel()][0];
+      newOut++;
+      std::vector<TreeNode> bros;
+      workVec[maxDepth - 1 - getLevel()][0].addBrothers(bros);
+      workVec[maxDepth - 1 - getLevel()].clear();
+      for (int k = 0; k < ((1 << dim) - 1); k++) {
+        out[oldOutSz + newOut] = bros[k];
         newOut++;
-        std::vector<TreeNode> bros;
-        workVec[i][j].addBrothers(bros);
-        for(int k =0;k< ((1 << dim)-1);k++) {
-          out[oldOutSz + newOut]=bros[k];
-          newOut++;
-        }//end for k
-        bros.clear();
+      } //end for k
 
-        TreeNode  parent = workVec[i][j].getParent();
-        parent.addBrothers(bros);
-        for(int k =0;k< ((1 << dim)-1);k++) {
-          workVec[i+1][oldNextWsz + newNextW]=bros[k];
-          newNextW++;
-        }//end for k
-        bros.clear();
-        //Add all the brothers of parent to workVec[i+1]
-      }//end for j
-      workVec[i].clear();
-      if(wLen > 0) {
-        workVec[i+1].resize(oldNextWsz + newNextW);
-      }
-    }//end for i
+      bros.clear();
+    } //end if
+    delete[] workVec;
+    workVec = NULL;
+  }
 
-    if(workVec) {
-      if(!(workVec[maxDepth-1-getLevel()].empty())) {
-        unsigned int oldOutSz = out.size();
-        unsigned int newOut = 0;
-        out.resize(oldOutSz + (1 << dim));
-        out[oldOutSz + newOut]=workVec[maxDepth-1-getLevel()][0];
-        newOut++;
-        std::vector<TreeNode> bros;
-        workVec[maxDepth-1-getLevel()][0].addBrothers(bros);
-        workVec[maxDepth-1-getLevel()].clear();
-        for(int k =0;k < ((1 << dim) -1);k++) {
-          out[oldOutSz + newOut]=bros[k];
-          newOut++;
-        }//end for k
-
-        bros.clear();
-      }//end if
-      delete [] workVec;
-      workVec = NULL;
-    }
-
-    //sort and removde dups.
-    seq::makeVectorUnique<TreeNode>(out, false);
-    //Remove overlaps.
-    std::vector<unsigned int> toRem(out.size());
-    unsigned int remCtr =0;
-    //compare i+1 with i
-    for(unsigned int i = 1; i < out.size(); i++) {
+  //Sort and make unique.
+  seq::makeVectorUnique<TreeNode>(out, false);
+  //Remove overlaps.
+  std::vector<unsigned int> toRem(out.size());
+  unsigned int remCtr = 0;
+  //compare i+1 with i
+  for (unsigned int i = 1; i < out.size(); i++) {
 #ifdef __DEBUG_TN__
-      assert(areComparable(out[i-1], out[i]));
+    assert(areComparable(out[i - 1], out[i]));
 #endif
-      if(out[i-1].isAncestor(out[i])) {
-        toRem[remCtr]=(i-1);
-        remCtr++;
-      }//end if
-    }//end for i
-    toRem.resize(remCtr);
+    if (out[i - 1].isAncestor(out[i])) {
+      toRem[remCtr] = (i - 1);
+      remCtr++;
+    } //end if
+  } //end for i
+  toRem.resize(remCtr);
 
-    if(!toRem.empty()) {
-      //Note toRem is sorted.
-      std::vector<TreeNode> tmpRem(out.size()-toRem.size());
-      unsigned int pos = 0;
-      unsigned int kk=0;
-      for(unsigned int i = 0; i < toRem.size(); i++) {
-        for(unsigned int j = pos; j < toRem[i]; j++) {
-          tmpRem[kk]=out[j];
-          kk++;
-        }//end for j
-        pos = toRem[i]+1;
-      }//end for i
-      for(unsigned int j = pos; j < out.size(); j++) {
+  if (!toRem.empty()) {
+    //Note toRem is sorted.
+    std::vector<TreeNode> tmpRem(out.size() - toRem.size());
+    unsigned int pos = 0; unsigned int kk = 0;
+    for (unsigned int i = 0; i < toRem.size(); i++) {
+      for (unsigned int j = pos; j < toRem[i]; j++) {
         tmpRem[kk] = out[j];
         kk++;
-      }//end for j
-      out = tmpRem;
-      tmpRem.clear();
-    }//end if 
-    toRem.clear();
+      } //end for j
+      pos = toRem[i] + 1;
+    } //end for i
+    for (unsigned int j = pos; j < out.size(); j++) {
+      tmpRem[kk] = out[j];
+      kk++;
+    } //end for j
+    out = tmpRem;
+    tmpRem.clear();
+  } //end if
+  toRem.clear();
 
+  PROF_BAL_SUBTREE_END
+} //end function
+
+int TreeNode ::completeSubtree(std::vector<TreeNode>& inp,
+                               std::vector<TreeNode>& out) const {
+
+  PROF_COMPLETE_SUBTREE_BEGIN
+
+     unsigned int dim = m_uiDim;
+  unsigned int maxDepth = m_uiMaxDepth;
+
+  out.clear();
+  if ((maxDepth == 0) || (getLevel() == maxDepth) || (inp.empty())) {
+    //No decendants.
     PROF_COMPLETE_SUBTREE_END
+  }
 
-  }//end function   
+  std::vector<TreeNode> * workVec = NULL;
+  unsigned int *workVecSz = NULL;
 
-}//end namespace
+  if (maxDepth - getLevel()) {
+    workVec = new std::vector<TreeNode>[maxDepth - getLevel()];
+    workVecSz = new unsigned int[maxDepth - getLevel()];
+  }
+
+  for (unsigned int i = 0; i < (maxDepth - getLevel()); i++) {
+    workVecSz[i] = 0;
+  }
+
+  for (unsigned int i = 0; i < inp.size(); i++) {
+#ifdef __DEBUG_TN__
+    assert(areComparable(*this, inp[i]));
+#endif
+    if (this->isAncestor(inp[i])) {
+      workVecSz[maxDepth - (inp[i].getLevel())]++;
+    } else {
+      std::cout << inp[i] << " is not a decendant of " << (*this) << std::endl;
+      assert(false);
+    }
+  } //end for
+
+  for (unsigned int i = 0; i < (maxDepth - getLevel()); i++) {
+    workVec[i].resize(workVecSz[i]);
+    workVecSz[i] = 0;
+  }
+
+  for (unsigned int i = 0; i < inp.size(); i++) {
+#ifdef __DEBUG_TN__
+    assert(areComparable(*this, inp[i]));
+#endif
+    if (this->isAncestor(inp[i])) {
+      workVec[maxDepth - (inp[i].getLevel())][workVecSz[maxDepth - (inp[i].getLevel())]] = inp[i];
+      workVecSz[maxDepth - (inp[i].getLevel())]++;
+    }
+  } //end for
+
+  if (workVecSz) {
+    delete[] workVecSz;
+    workVecSz = NULL;
+  }
+
+  TreeNode tmpRoot(m_uiDim, m_uiMaxDepth);
+  for (unsigned int i = 0; i < (maxDepth - getLevel() - 1); i++) {
+    //This also sorts.
+    seq::makeVectorUnique(workVec[i], false);
+    //Remove Brothers from a sorted list.
+    std::vector<TreeNode> tmpList(workVec[i].size());
+    unsigned int tmpListSz = 0;
+    if (!workVec[i].empty()) {
+      tmpList[tmpListSz] = workVec[i][0];
+      tmpListSz++;
+    }
+    for (unsigned int j = 1; j < workVec[i].size(); j++) {
+      if (workVec[i][j - 1].getParent() != workVec[i][j].getParent()) {
+        tmpList[tmpListSz] = workVec[i][j];
+        tmpListSz++;
+      }
+    } //end for j
+    workVec[i].clear();
+    tmpList.resize(tmpListSz);
+    workVec[i] = tmpList;
+    tmpList.clear();
+    unsigned int oldOutSz = out.size();
+    unsigned int newOut = 0;
+    out.resize(oldOutSz + (workVec[i].size() * (1 << dim)));
+    unsigned int oldNextWsz = workVec[i + 1].size();
+    unsigned int newNextW = 0;
+    unsigned int wLen = workVec[i].size();
+    if (wLen > 0) {
+      workVec[i + 1].resize(oldNextWsz + (7 * (workVec[i].size())));
+    }
+    for (unsigned int j = 0; j < wLen; j++) {
+      out[oldOutSz + newOut] = workVec[i][j];
+      newOut++;
+      std::vector<TreeNode> bros;
+      workVec[i][j].addBrothers(bros);
+      for (int k = 0; k < ((1 << dim) - 1); k++) {
+        out[oldOutSz + newOut] = bros[k];
+        newOut++;
+      } //end for k
+      bros.clear();
+
+      TreeNode  parent = workVec[i][j].getParent();
+      parent.addBrothers(bros);
+      for (int k = 0; k < ((1 << dim) - 1); k++) {
+        workVec[i + 1][oldNextWsz + newNextW] = bros[k];
+        newNextW++;
+      } //end for k
+      bros.clear();
+      //Add all the brothers of parent to workVec[i+1]
+    } //end for j
+    workVec[i].clear();
+    if (wLen > 0) {
+      workVec[i + 1].resize(oldNextWsz + newNextW);
+    }
+  } //end for i
+
+  if (workVec) {
+    if (!(workVec[maxDepth - 1 - getLevel()].empty())) {
+      unsigned int oldOutSz = out.size();
+      unsigned int newOut = 0;
+      out.resize(oldOutSz + (1 << dim));
+      out[oldOutSz + newOut] = workVec[maxDepth - 1 - getLevel()][0];
+      newOut++;
+      std::vector<TreeNode> bros;
+      workVec[maxDepth - 1 - getLevel()][0].addBrothers(bros);
+      workVec[maxDepth - 1 - getLevel()].clear();
+      for (int k = 0; k < ((1 << dim) - 1); k++) {
+        out[oldOutSz + newOut] = bros[k];
+        newOut++;
+      } //end for k
+
+      bros.clear();
+    } //end if
+    delete[] workVec;
+    workVec = NULL;
+  }
+
+  //sort and removde dups.
+  seq::makeVectorUnique<TreeNode>(out, false);
+  //Remove overlaps.
+  std::vector<unsigned int> toRem(out.size());
+  unsigned int remCtr = 0;
+  //compare i+1 with i
+  for (unsigned int i = 1; i < out.size(); i++) {
+#ifdef __DEBUG_TN__
+    assert(areComparable(out[i - 1], out[i]));
+#endif
+    if (out[i - 1].isAncestor(out[i])) {
+      toRem[remCtr] = (i - 1);
+      remCtr++;
+    } //end if
+  } //end for i
+  toRem.resize(remCtr);
+
+  if (!toRem.empty()) {
+    //Note toRem is sorted.
+    std::vector<TreeNode> tmpRem(out.size() - toRem.size());
+    unsigned int pos = 0;
+    unsigned int kk = 0;
+    for (unsigned int i = 0; i < toRem.size(); i++) {
+      for (unsigned int j = pos; j < toRem[i]; j++) {
+        tmpRem[kk] = out[j];
+        kk++;
+      } //end for j
+      pos = toRem[i] + 1;
+    } //end for i
+    for (unsigned int j = pos; j < out.size(); j++) {
+      tmpRem[kk] = out[j];
+      kk++;
+    } //end for j
+    out = tmpRem;
+    tmpRem.clear();
+  } //end if
+  toRem.clear();
+
+  PROF_COMPLETE_SUBTREE_END
+
+} //end function
+
+} //end namespace

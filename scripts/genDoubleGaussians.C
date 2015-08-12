@@ -30,7 +30,7 @@ void writePtsToFile( const double* pts, const unsigned int ptsLen, char* filenam
 
 int main(int argc, char **argv) {
   if (argc < 3) {
-    std::cerr << "<exe> inFile halfWidth(<= 0.16) outFile" << std::endl;
+    std::cerr << argv[0] << " inFile halfWidth(<= 0.16) outFile" << std::endl;
     return -1;
   }
 

@@ -10,7 +10,7 @@
 // #include "petscpcmg.h"
 #include "petscksp.h"
 #include "petscmat.h"
-#include "../../../petsc/include/petsc-private/pcimpl.h"
+#include "petsc/private/pcimpl.h"
 #include "omg.h"
 #include "oda.h"
 #include "odaUtils.h" 
@@ -1067,14 +1067,16 @@ namespace ot {
           ierr = VecDuplicateVecs(damg[i]->b,n,&nulls);CHKERRQ(ierr);
           ierr = (*func)(damg[i],nulls);CHKERRQ(ierr);
         }
-        ierr = MatNullSpaceCreate(damg[i]->comm,has_cnst,n,nulls,&nullsp);CHKERRQ(ierr);
-        ierr = KSPSetNullSpace(damg[i]->ksp,nullsp);CHKERRQ(ierr);
+        ierr = MatNullSpaceCreate(damg[i]->comm, has_cnst, n, nulls, &nullsp);CHKERRQ(ierr);
+        ierr = MatSetNullSpace(damg[i]->J, nullsp);CHKERRQ(ierr);
+        // ierr = KSPSetNullSpace(damg[i]->ksp,nullsp);CHKERRQ(ierr);
         for (j = i; j < nlevels; j++) {
           ierr = KSPGetPC(damg[j]->ksp,&pc);CHKERRQ(ierr);
           ierr = PetscObjectTypeCompare((PetscObject)pc,PCMG,&ismg);CHKERRQ(ierr);
           if (ismg) {
-            ierr = PCMGGetSmoother(pc,i,&iksp);CHKERRQ(ierr);
-            ierr = KSPSetNullSpace(iksp, nullsp);CHKERRQ(ierr);
+            // ierr = PCMGGetSmoother(pc,i,&iksp);CHKERRQ(ierr);
+            ierr = MatSetNullSpace(damg[j]->B, nullsp);CHKERRQ(ierr);
+            // ierr = KSPSetNullSpace(iksp, nullsp);CHKERRQ(ierr);
           }
         }
         ierr = MatNullSpaceDestroy(&nullsp); CHKERRQ(ierr);

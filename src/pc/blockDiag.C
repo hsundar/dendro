@@ -6,7 +6,8 @@
 
 #include "petscmat.h"
 #include "petscpc.h"
-#include "../../../petsc/include/petsc-private/pcimpl.h"
+#include "petsc/private/pcimpl.h"
+// #include "../../../petsc/include/petsc-private/pcimpl.h"
 #include "blockDiag.h"
 #include <cassert>
 

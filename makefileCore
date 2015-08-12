@@ -19,7 +19,7 @@ EXEC_TESTS = bin/createCoarser bin/chkNl bin/chkMl bin/dumpMesh\
             bin/downSample \
              bin/checkResults bin/checkSV bin/chkCoarsen \
 	     bin/justCoarsen bin/testNodeAndVals bin/testPetscInt \
-	     bin/tstFBM bin/tstDirichlet bin/tstFBM2 
+	     bin/tstFBM bin/tstDirichlet bin/tstFBM2 bin/testPartition 
 
 EXEC_UTIL = bin/gen2spheres bin/genPrlFBMpts
 
@@ -201,6 +201,9 @@ bin/runScal : ./examples/src/drivers/runScal.o $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
 
 bin/testConAndBal : ./examples/src/drivers/testConAndBal.o $(ARCHIVES)
+	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
+
+bin/testPartition : ./examples/src/drivers/testPartition.o $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
 
 bin/testConBalAndCoarsen : ./examples/src/drivers/testConBalAndCoarsen.o $(ARCHIVES)

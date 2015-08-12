@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdio>
+#include <cstdlib>
 
 using namespace std;
 
@@ -29,7 +30,7 @@ void writePtsToFile( const double* pts, const unsigned int ptsLen, char* filenam
 
 int main(int argc, char **argv) {
   if (argc < 3) {
-    std::cerr << "splitPoints file numProcs outFilePrefix" << std::endl;
+    std::cerr << argv[0] << " infile numProcs outFilePrefix" << std::endl;
     return -1;
   }
 

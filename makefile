@@ -2,10 +2,11 @@
 SHELL = /bin/sh
 # include ${PETSC_DIR}/conf/base
 # include ${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables
-include ${PETSC_DIR}/conf/variables
+include ${PETSC_DIR}/lib/petsc/conf/variables
 
 CEXT = C
-CFLAGS = -g -fopenmp -D__USE_PVT_DA_IN_MG__
+CFLAGS = -g -fopenmp -D__USE_PVT_DA_IN_MG__  -DHILBERT_ORDERING
+# -DUSE_NCA_PROPERTY 
 # -D__USE_64_BIT_INT__ -DPETSC_USE_LOG 
 # -D__USE_A2A_FOR_MPI_ALLGATHER__ 
 
