@@ -1416,6 +1416,14 @@ namespace par {
 
       MPI_Comm_size(comm, &npes);
 
+      //--
+      int rank;
+      MPI_Comm_rank(comm, &rank);
+      
+      std::cout << rank << " : " << __func__ << arr.size() << std::endl;
+      
+      //--
+      
       assert(arr.size());
 
       if (npes == 1) {

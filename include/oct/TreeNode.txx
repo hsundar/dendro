@@ -110,6 +110,14 @@ inline bool TreeNode  :: operator  <(TreeNode   const& other)  const {
 
   const Point p1=Point(this->m_uiX,this->m_uiY,this->m_uiZ);
   const Point p2=Point(other.m_uiX,other.m_uiY,other.m_uiZ);
+  
+  
+  
+  #ifdef HILBERT_ORDERING
+    #undef HILBERT_ORDERING
+  #endif
+   #define HILBERT_ORDERING
+  #define USE_NCA_PROPERTY
    
 #ifdef HILBERT_ORDERING
   #ifdef USE_NCA_PROPERTY
@@ -257,12 +265,149 @@ inline TreeNode TreeNode  ::getDFD() const {
 } //end function
 
 inline TreeNode TreeNode  ::getDLD() const {
-#ifdef HILBERT_ORDERINGs
-  TreeNode dld(1, minX() , minY(), maxZ() - 1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+#ifdef HILBERT_ORDERING
+  //TreeNode dld(1, minX() , minY(), maxZ() - 1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+//@milinda
+//This is just a basic implementation to get the rotation patern inside an octant just to see the Dendro code is working with Hilbert curve. 
+// Just Iterate through root to the node ffiguring the rotation pattern. 
+
+  unsigned int xl = 0;
+  unsigned int yl = 0;
+  unsigned int zl = 0;
+
+  unsigned int len = 1 << this->m_uiMaxDepth;
+  int count = 0;
+  unsigned int index1 = 0;
+  unsigned int index2 = 0;
+  
+  unsigned int ncaX,ncaY,ncaZ,ncaLev; // considering the current node as the NCA. 
+  ncaX=this->m_uiX;
+  ncaY=this->m_uiY;
+  ncaZ=this->m_uiZ;
+  ncaLev=this->m_uiLevel;
+  
+
+  if (m_uiDim == 2) {
+    int rotation[4] = { 0, 1, 2, 3 };
+    int rot_index[4] = { 0, 1, 2, 3 };
+    while ((xl != ncaX || yl != ncaY || zl != ncaZ || count != ncaLev)) {
+      len >>=1;
+
+      index1 = 0;
+      if (ncaX >= (len + xl)) {
+        index1 += 1;
+        xl += len;
+        if (ncaY < (len + yl)) index1 += 2;
+      }
+      if (ncaY >= (len + yl)) {index1 += 1; yl += len; }
+
+      rotate(index1, rotation, rot_index, 2);
+
+
+      count++;
+
+    }
+
+    //len = len / 2;
+    
+    index1=rotation[3];
+    TreeNode dld;
+    if(index1==0)
+    {
+      dld=TreeNode (1, minX(), minY(), minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);    
+    }else if(index1==1)
+    {
+      dld=TreeNode (1, minX(), maxY()-1, minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+    }else if(index1==2)
+    {
+      dld=TreeNode(1, maxX()-1, maxY()-1, minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+    }else if(index1==3)
+    {
+      dld=TreeNode(1, maxX()-1, minY(), minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+    }
+    
+    return dld;
+
+  } else if (m_uiDim == 3) {
+    int rotation[8] = { 0, 1, 2, 3, 4, 5, 6, 7 }; // Initial rotation
+    int rot_index[8] = { 0, 1, 2, 3, 4, 5, 6, 7 }; // Initial rotation indices
+    while ((xl != ncaX || yl != ncaY || zl != ncaZ || count != ncaLev)/*&& len >0*/) {
+
+      len >>= 1;
+
+      index1 = 0;
+      if (ncaZ < (len + zl)) {
+        if (ncaX >= (len + xl)) {
+          index1 += 1;
+          xl += len;
+          if (ncaY < (len + yl)) index1 += 2;
+        }
+        if (ncaY >= (len + yl)) {
+          index1 += 1;
+          yl += len;
+        }
+      } else {
+        index1 = 4;
+        zl += len;
+        if (ncaX < (len + xl)) {
+          index1 += 1;
+          if (ncaY < (len + yl)) index1 += 2;
+        } else {
+          xl += len;
+        }
+        if (ncaY >= (len + yl)) {
+          index1 += 1;
+          yl += len;
+        }
+      }
+
+      rotate(index1, rotation, rot_index, 3);
+      count++;
+
+    }
+
+    //len >>= 1;
+    TreeNode dld;
+    index1=rotation[7];
+    std::cout <<"last octant index:"<<index1<< std::endl;
+    if(index1==0)
+    {
+      dld=TreeNode(1, minX(), minY(), minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);    
+    }else if(index1==1)
+    {
+      dld=TreeNode(1, minX(), maxY()-1, minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+    }else if(index1==2)
+    {
+      dld=TreeNode(1, maxX()-1, maxY()-1, minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+    }else if(index1==3)
+    {
+      dld=TreeNode(1, maxX()-1, minY(), minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+    }else if(index1==4)
+    {
+      dld=TreeNode(1, maxX()-1, minY(), maxZ()-1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+    }else if(index1==5)
+    {
+      dld=TreeNode(1, maxX()-1, maxY()-1, maxZ()-1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+    }else if(index1==6)
+    {
+      dld=TreeNode(1, minX(), maxY()-1, maxZ()-1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+    }else if(index1==7)
+    {
+      dld=TreeNode(1, minX(), minY(), maxZ()-1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+    }
+
+    return dld;
+    
+
+
+
+  }
+
 #else
   TreeNode dld(1, maxX() - 1, maxY() - 1, maxZ() - 1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-#endif
   return dld;
+#endif
+  //return dld;
 } //end function
 
 inline TreeNode TreeNode::getNext() const {

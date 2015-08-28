@@ -839,10 +839,20 @@ int points2Octree(std::vector<double>& pts, double *gLens, std::vector<TreeNode>
   std::vector<ot::TreeNode> leaves;
   std::vector<ot::TreeNode> minsAllBlocks;
 
-  blockPartStage1_p2o(nodes, leaves, dim, maxDepth, comm);
-  blockPartStage2_p2o(nodes, leaves, minsAllBlocks, dim, maxDepth, comm);
+  std::cout << "before BlkPart: " << nodes.size() << std::endl; 
+  
+  
+  // if (nodes.size() > (1 << dim) ) {
+    blockPartStage1_p2o(nodes, leaves, dim, maxDepth, comm);
+    blockPartStage2_p2o(nodes, leaves, minsAllBlocks, dim, maxDepth, comm);
+ // } else {
+    // @hari 8/18/15 - Check if this is correct.
+    // leaves.push_back(root);
+  // }
   //leaves will be sorted.
+  std::cout << "after BlkPart: " << nodes.size() << std::endl; 
 
+    
   p2oLocal(nodes, leaves, maxNumPts, dim, maxDepth);
 
   PROF_P2O_END
@@ -914,6 +924,11 @@ int p2oLocal(std::vector<TreeNode>& nodes, std::vector<TreeNode>& leaves,
              unsigned int maxNumPts, unsigned int dim, unsigned int maxDepth) {
   PROF_P2O_LOCAL_BEGIN;
 
+  std::cout << "entering p2o_local" << std::endl;
+  
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  
   std::list<TreeNode> leaves_lst;
 
   unsigned int init_size = leaves.size();
@@ -926,11 +941,14 @@ int p2oLocal(std::vector<TreeNode>& nodes, std::vector<TreeNode>& leaves,
   unsigned int curr_pt = 0;
   unsigned int next_pt = curr_pt + maxNumPts;
 
+  std::cout << rank << ": " << __func__ << ": start while loop 1" << std::endl;
   while (next_pt < num_pts) {
     while (next_node > nodes[next_pt] && curr_node.getLevel() < maxDepth) {
       curr_node = curr_node.getFirstChild();
       next_node = curr_node.getNext();
     }
+    
+  std::cout << rank << ": " << __func__ << ": end while loop 1.1" << std::endl;
     unsigned int inc = maxNumPts;
     while (next_node > nodes[next_pt]) {
       // We have more than maxNumPts points per octant because the node can
@@ -942,7 +960,9 @@ int p2oLocal(std::vector<TreeNode>& nodes, std::vector<TreeNode>& leaves,
         break;
       }
     }
-
+    
+    std::cout << rank << ": " << __func__ << ": end while loop 1.2" << std::endl;
+    
     next_pt = curr_pt + (std::lower_bound(&nodes[curr_pt], &nodes[next_pt], next_node, std::less<TreeNode>()) - &nodes[curr_pt]);
     leaves_lst.push_back(curr_node);
 
@@ -951,6 +971,9 @@ int p2oLocal(std::vector<TreeNode>& nodes, std::vector<TreeNode>& leaves,
     if (next_pt > curr_pt) curr_pt = next_pt;
     next_pt = curr_pt + maxNumPts;
   }
+  
+  std::cout << rank << ": " << __func__ << ": end while loop 1" << std::endl;
+  
   while (curr_node < last_node) {
     while (curr_node.getDLD() > last_node && curr_node.getLevel() < maxDepth) curr_node = curr_node.getFirstChild();
     leaves_lst.push_back(curr_node);
@@ -958,6 +981,8 @@ int p2oLocal(std::vector<TreeNode>& nodes, std::vector<TreeNode>& leaves,
     curr_node = curr_node.getNext();
   }
 
+  std::cout << rank << ": " << __func__ << ": end while loop 2" << std::endl;
+  
   nodes.resize(leaves_lst.size());
   unsigned int i = 0;
   for (std::list<TreeNode>::iterator it = leaves_lst.begin(); it != leaves_lst.end(); it++) {
@@ -966,8 +991,12 @@ int p2oLocal(std::vector<TreeNode>& nodes, std::vector<TreeNode>& leaves,
   }
   leaves_lst.clear();
 
+  std::cout << rank << ": leaving p2o_local" << std::endl;
   PROF_P2O_LOCAL_END
 } //*/
+
+
+
 
 //New Implementation. Written on April 19th, 2008
 //Both ends are inclusive. The output is sorted.
@@ -976,7 +1005,9 @@ int appendCompleteRegion(TreeNode first, TreeNode second,
 
   PROF_COMPLETE_REGION_BEGIN
 
-     unsigned int dim = first.getDim();
+  std::cout << "entering " << __func__ << std::endl;
+  
+  unsigned int dim = first.getDim();
   unsigned int maxDepth = first.getMaxDepth();
 
   TreeNode min = ((first < second) ? first : second);
@@ -993,9 +1024,15 @@ int appendCompleteRegion(TreeNode first, TreeNode second,
 
   //Add nodes > min and < max
   TreeNode nca = getNCA(min, max);
+  
+  //
+  //min.printTreeNode();
+  //max.printTreeNode();
+  
 
   if (min == nca) {
     //special case. Top down approach
+    std::cout<<"Special Case: min==nca"<<std::endl;
     ot::TreeNode tmpAncestor = min;
     bool repeatLoop;
     do {
@@ -1021,6 +1058,7 @@ int appendCompleteRegion(TreeNode first, TreeNode second,
     }
     while (repeatLoop);
   } else {
+    std::cout<<"nca!=min case"<<std::endl;
     TreeNode currentNode = min;
     while (currentNode > nca) {
       TreeNode parentOfCurrent = currentNode.getParent();
@@ -1058,17 +1096,24 @@ int appendCompleteRegion(TreeNode first, TreeNode second,
                 tmpAncestor = tmpChildList[j];
                 repeatLoop = true;
                 break;
-              } else {
-                if (tmpChildList[j] != max) {
-                  std::cout << "min " << min << " " << min.getMaxDepth() << std::endl;
-                  std::cout << "max " << max << " " << max.getMaxDepth() << std::endl;
-                  std::cout << "tmp " << tmpChildList[j] << " " << tmpChildList[j].getMaxDepth() << std::endl;
-                  
-                  std::cout << " min > tmp " << (min>tmpChildList[j]) << std::endl;   
-                  std::cout << " tmp < max " << (tmpChildList[j]<max) << std::endl;
-                }
-                assert(tmpChildList[j] == max);
-                break;
+              }else {
+
+//                 if (tmpChildList[j] != max) {
+//                   std::cout << "min " << min << " " << min.getMaxDepth() << std::endl;
+//                   std::cout << "max " << max << " " << max.getMaxDepth() << std::endl;
+//                   std::cout << "tmp " << tmpChildList[j] << " " << tmpChildList[j].getMaxDepth() << std::endl;
+//                   bool status=(min>tmpChildList[j]);
+//                   std::cout << " min > tmp " << status << std::endl;   
+// 		  status=(tmpChildList[j]<max);
+//                   std::cout << " tmp < max " << status << std::endl;
+//                 }
+		std::cout<<"Invalid Case"<<std::endl;
+		std::cout<<"tmp:"<<std::endl;
+		tmpChildList[j].printTreeNode();
+		std::cout<<"max:"<<std::endl;
+		max.printTreeNode();
+		assert(tmpChildList[j] == max);
+		break;
               }
             } //end for j
           }
@@ -1084,6 +1129,7 @@ int appendCompleteRegion(TreeNode first, TreeNode second,
     newNodes.push_back(max);
   }
 
+  std::cout << "leaving " << __func__ << std::endl;
   PROF_COMPLETE_REGION_END
 } //end function
 

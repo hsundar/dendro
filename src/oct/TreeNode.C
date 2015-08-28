@@ -265,12 +265,22 @@ bool TreeNode::isBoundaryOctant(int type, unsigned char *flags) const {
   return false;
 } //end function
 
+void TreeNode::printTreeNode()
+{
+  
+  std::cout<<"Coordinates: "<<this->m_uiX<<","<<this->m_uiY<<","<<this->m_uiZ<<std::endl;
+  std::cout<<":Level: "<<this->m_uiLevel<<"\t Max Depth: "<<this->m_uiMaxDepth<<std::endl;
+
+}
 
 int TreeNode  ::addChildren(std::vector<ot::TreeNode>& children) const {
   unsigned int dim = m_uiDim;
   unsigned int maxDepth = m_uiMaxDepth;
   unsigned int childrenSz = children.size();
   children.resize(childrenSz + (1 << dim));
+  
+  //#define MORTON_ORDERING
+  
   if ((m_uiLevel & ot::TreeNode::MAX_LEVEL) == maxDepth) {
     for (int i = 0; i < (1 << dim); i++) {
       children[childrenSz + i] = *this;

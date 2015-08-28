@@ -38,7 +38,7 @@ namespace ot {
 
     par::partitionW<ot::TreeNode>(nodes, NULL, comm);
 
-    assert(nodes.size() > (1 << dim) ); 
+    //assert(nodes.size() > (1 << dim) ); 
 
     // 1. First compute the localCoarse octree 
     std::vector<TreeNode> localCoarse;
@@ -561,7 +561,7 @@ namespace ot {
     MPI_Comm_size(comm,&npes);
 
     par::partitionW<ot::TreeNode>(nodes, NULL,comm);
-
+    std::cout << rank << ": " << __func__ << ":Block Part Node Size:" <<nodes.size()<< std::endl;
     assert(nodes.size() > (1 << dim) ); 
 
 #ifdef __BLOCK_PART_EQUALS_MORTON_PART__

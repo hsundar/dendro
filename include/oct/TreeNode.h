@@ -32,7 +32,10 @@ namespace ot {
   class TreeNode {
     protected:
       //Level is also used as a flag.
-      unsigned int m_uiX, m_uiY, m_uiZ, m_uiLevel, m_uiWeight, m_uiDim, m_uiMaxDepth;      
+      unsigned int m_uiX, m_uiY, m_uiZ, m_uiLevel, m_uiWeight, m_uiDim, m_uiMaxDepth;
+      int rotation_pattern[8];
+      int rot_index[8];
+      
       //constructor without checks: only for faster construction.
       TreeNode (const int dummy, const unsigned int x,const unsigned int y,
           const unsigned int z,const unsigned int level, const unsigned int dim,
@@ -340,6 +343,9 @@ namespace ot {
       unsigned int maxZ() const;
 
       std::vector<TreeNode> getSearchKeys(bool incCorners);
+      // Temporary function for debug purposes. 
+      void printTreeNode();
+      
 
       /**
         @author Rahul Sampath

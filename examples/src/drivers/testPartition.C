@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
   unsigned int ptsLen;
   unsigned int maxNumPts = 1;
   unsigned int dim = 3;
-  unsigned int maxDepth = 30;
+  unsigned int maxDepth = 10;
   double gSize[3];
 
   double localTime, totalTime;
@@ -71,15 +71,27 @@ int main(int argc, char **argv) {
   }
   MPI_Barrier(MPI_COMM_WORLD);
 
+  
+  
   ptsLen = pts.size();
+    // @milinda debug code
+  //std::cout << rank << ": read ptsLen" << ptsLen << " points" << std::endl;
+  std::cout << rank << ": read pts.size()" << pts.size() << " points" << std::endl;
+  
   std::vector<ot::TreeNode> tmpNodes;
   for (int i = 0; i < ptsLen; i += 3) {
+   
+    
+        
     if ((pts[i] > 0.0) &&
         (pts[i + 1] > 0.0)
         && (pts[i + 2] > 0.0) &&
         (((unsigned int)(pts[i] * ((double)(1u << maxDepth)))) < (1u << maxDepth)) &&
         (((unsigned int)(pts[i + 1] * ((double)(1u << maxDepth)))) < (1u << maxDepth)) &&
         (((unsigned int)(pts[i + 2] * ((double)(1u << maxDepth)))) < (1u << maxDepth))) {
+      // @milinda debug code
+      std::cout<<"Rank:"<<rank<<" x,y,z :"<<pts[i]<<","<<pts[i+1]<<","<<pts[i+2]<<std::endl;
+      
       tmpNodes.push_back(ot::TreeNode((unsigned int)(pts[i] * (double)(1u << maxDepth)),
                                       (unsigned int)(pts[i + 1] * (double)(1u << maxDepth)),
                                       (unsigned int)(pts[i + 2] * (double)(1u << maxDepth)),
@@ -87,8 +99,12 @@ int main(int argc, char **argv) {
     }
   }
   pts.clear();
-
+  
+   std::cout << rank << ": read " << tmpNodes.size() << " points" << std::endl;
+  
   par::removeDuplicates<ot::TreeNode>(tmpNodes, false, MPI_COMM_WORLD);
+  
+  std::cout << rank << "afterRemoveDuplicates: " << tmpNodes.size() << " points" << std::endl;
   linOct = tmpNodes;
   tmpNodes.clear();
   par::partitionW<ot::TreeNode>(linOct, NULL, MPI_COMM_WORLD);
