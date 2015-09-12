@@ -11,6 +11,8 @@
 
 #include "externVars.h"
 #include "dendro.h"
+#include "../../include/hilbert/rotation.h"
+
 
 //Don't want time to be synchronized. Need to check load imbalance.
 #ifdef MPI_WTIME_IS_GLOBAL
@@ -29,7 +31,9 @@ int main(int argc, char **argv) {
   unsigned int dim = 3;
   unsigned int maxDepth = 10;
   double gSize[3];
-
+  //initializeHilbetTable(2);
+  initializeHilbetTable(3);
+  
   double localTime, totalTime;
   double startTime, endTime;
   DendroIntL localSz, totalSz;
@@ -90,7 +94,7 @@ int main(int argc, char **argv) {
         (((unsigned int)(pts[i + 1] * ((double)(1u << maxDepth)))) < (1u << maxDepth)) &&
         (((unsigned int)(pts[i + 2] * ((double)(1u << maxDepth)))) < (1u << maxDepth))) {
       // @milinda debug code
-      std::cout<<"Rank:"<<rank<<" x,y,z :"<<pts[i]<<","<<pts[i+1]<<","<<pts[i+2]<<std::endl;
+      //std::cout<<"Rank:"<<rank<<" x,y,z :"<<pts[i]<<","<<pts[i+1]<<","<<pts[i+2]<<std::endl;
       
       tmpNodes.push_back(ot::TreeNode((unsigned int)(pts[i] * (double)(1u << maxDepth)),
                                       (unsigned int)(pts[i + 1] * (double)(1u << maxDepth)),

@@ -13,12 +13,85 @@
 #include "colors.h"
 #include <cassert>
 
+#include "../hilbert/hilbert.h"
+#include "../hilbert/morton.h"
+//#include "../hilbert/rotation.h"
+
+
 #define SWAP(a, b) ((&(a) == &(b)) || \
                     (((a) -= (b)), ((b) += (a)), ((a) = (b) - (a))))
 
 namespace ot {
 // Inline Functions ...
-inline unsigned char TreeNode::getChildNumber() const {
+inline unsigned char TreeNode::getChildNumber(bool real) const {
+ 
+  unsigned char childNum;
+  #ifdef HILBERT_ORDERING
+  
+  unsigned int index1=0;
+  
+  unsigned int len=1u<<(m_uiMaxDepth-getLevel());
+  //unsigned int mask_par=1u<<(m_uiMaxDepth-getLevel())<<1u;
+  
+  TreeNode parent=getParent();
+  unsigned int x_par,y_par,z_par;
+  x_par=parent.m_uiX;
+  y_par=parent.m_uiY;
+  z_par=parent.m_uiZ;
+  
+
+  if(m_uiDim==2)
+  {
+    index1 = 0;
+    if ( m_uiX >= (len + x_par) ) {
+	index1 += 1;
+	if (m_uiY < (len + y_par)){
+	  index1 += 2;
+	  
+	}
+      
+    }
+    if ( m_uiY >= (len + y_par) ) 
+    { 
+      index1 += 1;
+      
+    }
+    if(real)
+      return rotation_2d.rot_index[index1];
+    else
+      return index1;
+  }else if(m_uiDim==3)
+  {
+    	index1 = 0;
+	if ( m_uiZ < (len + z_par) ) {
+	    if ( m_uiX >= (len + x_par) ) {
+	      index1 += 1;
+	      if (m_uiY < (len + y_par)) 
+		index1 += 2;
+	    }
+	    if ( m_uiY >= (len + y_par) ) { 
+	      index1 += 1; 
+	    }
+	} else {
+	    index1 = 4;
+	    if ( m_uiX < (len + x_par) ){ 
+	      index1 += 1;
+	      if (m_uiY < (len + y_par)) 
+		index1 += 2;
+	    }
+	    if ( m_uiY >= (len + y_par) ) { 
+	      index1 += 1; 
+	    }
+      }
+      if(real)
+	return rotation_3d.rot_index[index1];
+      else
+	return index1;
+  }
+  
+  
+  #else
+ 
   unsigned int len = (1u << (m_uiMaxDepth - getLevel()));
   unsigned int len_par = (1u << (m_uiMaxDepth - getLevel() + 1u));
 
@@ -29,8 +102,10 @@ inline unsigned char TreeNode::getChildNumber() const {
   j /= len;
   k /= len;
 
-  unsigned char childNum = static_cast<unsigned char>(4 * k + 2 * j + i);
-  return childNum;
+ childNum = static_cast<unsigned char>(4 * k + 2 * j + i);
+ #endif
+ 
+ return childNum;
 
 } //end function
 
@@ -103,6 +178,13 @@ inline bool TreeNode  :: operator  <(TreeNode   const& other)  const {
 
     if (maxC == z) {return (m_uiZ < other.m_uiZ); } else if (maxC == y) {return (m_uiY < other.m_uiY); } else {return (m_uiX < other.m_uiX); }
   -- original Morton */
+//   if(initialize_count==0)
+//   {
+//     initializeHilbetTable(2);
+//     initializeHilbetTable(3);
+//     initialize_count=1;
+//   }
+  
 
   if ((this->m_uiX == other.m_uiX) && (this->m_uiY == other.m_uiY) && (this->m_uiZ == other.m_uiZ)) {
       return ((this->m_uiLevel & ot::TreeNode::MAX_LEVEL) < (other.m_uiLevel & ot::TreeNode::MAX_LEVEL));
@@ -287,30 +369,10 @@ inline TreeNode TreeNode  ::getDLD() const {
   ncaLev=this->m_uiLevel;
   
 
-  if (m_uiDim == 2) {
-    int rotation[4] = { 0, 1, 2, 3 };
-    int rot_index[4] = { 0, 1, 2, 3 };
-    while ((xl != ncaX || yl != ncaY || zl != ncaZ || count != ncaLev)) {
-      len >>=1;
+   if (m_uiDim == 2) {
 
-      index1 = 0;
-      if (ncaX >= (len + xl)) {
-        index1 += 1;
-        xl += len;
-        if (ncaY < (len + yl)) index1 += 2;
-      }
-      if (ncaY >= (len + yl)) {index1 += 1; yl += len; }
-
-      rotate(index1, rotation, rot_index, 2);
-
-
-      count++;
-
-    }
-
-    //len = len / 2;
     
-    index1=rotation[3];
+    index1=rotation_2d.rot_perm[3];
     TreeNode dld;
     if(index1==0)
     {
@@ -329,46 +391,9 @@ inline TreeNode TreeNode  ::getDLD() const {
     return dld;
 
   } else if (m_uiDim == 3) {
-    int rotation[8] = { 0, 1, 2, 3, 4, 5, 6, 7 }; // Initial rotation
-    int rot_index[8] = { 0, 1, 2, 3, 4, 5, 6, 7 }; // Initial rotation indices
-    while ((xl != ncaX || yl != ncaY || zl != ncaZ || count != ncaLev)/*&& len >0*/) {
 
-      len >>= 1;
-
-      index1 = 0;
-      if (ncaZ < (len + zl)) {
-        if (ncaX >= (len + xl)) {
-          index1 += 1;
-          xl += len;
-          if (ncaY < (len + yl)) index1 += 2;
-        }
-        if (ncaY >= (len + yl)) {
-          index1 += 1;
-          yl += len;
-        }
-      } else {
-        index1 = 4;
-        zl += len;
-        if (ncaX < (len + xl)) {
-          index1 += 1;
-          if (ncaY < (len + yl)) index1 += 2;
-        } else {
-          xl += len;
-        }
-        if (ncaY >= (len + yl)) {
-          index1 += 1;
-          yl += len;
-        }
-      }
-
-      rotate(index1, rotation, rot_index, 3);
-      count++;
-
-    }
-
-    //len >>= 1;
     TreeNode dld;
-    index1=rotation[7];
+    index1=rotation_3d.rot_perm[7];
     std::cout <<"last octant index:"<<index1<< std::endl;
     if(index1==0)
     {
@@ -387,7 +412,7 @@ inline TreeNode TreeNode  ::getDLD() const {
       dld=TreeNode(1, maxX()-1, minY(), maxZ()-1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
     }else if(index1==5)
     {
-      dld=TreeNode(1, maxX()-1, maxY()-1, maxZ()-1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+      dld=TreeNode(1, maxX()-1, maxY()-1, maxZ()-1,m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
     }else if(index1==6)
     {
       dld=TreeNode(1, minX(), maxY()-1, maxZ()-1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
@@ -398,9 +423,6 @@ inline TreeNode TreeNode  ::getDLD() const {
 
     return dld;
     
-
-
-
   }
 
 #else
@@ -412,9 +434,84 @@ inline TreeNode TreeNode  ::getDLD() const {
 
 inline TreeNode TreeNode::getNext() const {
 
+#ifdef HILBERT_ORDERING
+    
+    unsigned char childNum;
+    childNum=getChildNumber(false);
+    unsigned int lev=getLevel();
+    unsigned len=1u<<(m_uiMaxDepth-lev);
+    TreeNode next;
+    if(m_uiDim==2)
+    {
+      if(childNum<3)
+      {
+	if(childNum%2==0)
+	{
+	  if(childNum==0)
+	  {
+	    next=TreeNode(1,m_uiX,(m_uiY+len),m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth); //default rot 1
+	    
+	  }else
+	  {
+	    next=TreeNode(1,m_uiX,(m_uiY-len),m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth); //default rot 3
+	  }
+	  
+	}else
+	{
+	  next=TreeNode(1,(m_uiX+len),m_uiY,m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth); // default rot2
+	}
+	
+      }else
+      {
+	next=getParent().getNext(); // recurse; NOTE: Later we can replace this with iterative method.
+	
+      }
+      lev=getLevel(); // To get the caller node level
+      next=TreeNode(1,next.m_uiX,next.m_uiY,next.m_uiZ,lev,m_uiDim,m_uiMaxDepth);
+      
+    }else if(m_uiDim==3)
+    {
+      if(childNum<7)
+      {
+	if(childNum==0)
+	{
+	  next=TreeNode(1,m_uiX,(m_uiY+len),m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth);
+	}else if(childNum==1)
+	{
+	  next=TreeNode(1,(m_uiX+len),m_uiY,m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth);
+	}else if(childNum==2)
+	{
+	  next=TreeNode(1,m_uiX,(m_uiY-len),m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth);
+	}else if(childNum==3)
+	{
+	  next=TreeNode(1,m_uiX,m_uiY,(m_uiZ+len),m_uiLevel,m_uiDim,m_uiMaxDepth);
+	}else if (childNum==4)
+	{
+	  next=TreeNode(1,m_uiX,(m_uiY+len),m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth);
+	  
+	}else if(childNum==5)
+	{
+	  next=TreeNode(1,(m_uiX-len),m_uiY,m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth);
+	}else if(childNum==6)
+	{
+	  next=TreeNode(1,m_uiX,(m_uiY-len),m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth);
+	}
+	
+      }else
+      {
+	next=getParent().getNext();
+      }
+      lev=getLevel(); // To get the caller node level
+      next=TreeNode(1,next.m_uiX,next.m_uiY,next.m_uiZ,lev,m_uiDim,m_uiMaxDepth);
+      
+    }
+    
+    
+
+
+#else 
   TreeNode m = *this;
   unsigned int mask = (1u << (m_uiMaxDepth - getLevel()));
-
   int i;
   for (i = m.m_uiLevel; i >= 0; i--) {
     m.m_uiX = (m.m_uiX ^ mask);
@@ -427,12 +524,14 @@ inline TreeNode TreeNode::getNext() const {
   }
   m.m_uiLevel = i;
   return m;
+#endif
 
 }
 
 inline TreeNode TreeNode::getFirstChild() const {
   TreeNode m = *this;
   m.m_uiLevel++;
+  std::cout<<"getFirstChild Called"<<std::endl;
   return m;
 }
 
@@ -441,10 +540,10 @@ inline bool TreeNode :: isAncestor(TreeNode const& other) const {
   if (((this->m_uiDim) != (other.m_uiDim)) || ((this->m_uiMaxDepth) != (other.m_uiMaxDepth)))  {
     std::cout << "Me: " << (*this) << " Other: " << other << std::endl;
     std::cout << "My Dim: " << m_uiDim << " OthDim: " << other.m_uiDim << " My MaxD: " << m_uiMaxDepth << " othMD: " << other.m_uiMaxDepth << std::endl;
-    assert(false);
+    assert(false);if (!rank) 
   }
 #endif
-/*
+
 #ifdef HILBERT_ORDERING
   unsigned int min1[3], min2[3], max1[3], max2[3];
  
@@ -455,9 +554,9 @@ inline bool TreeNode :: isAncestor(TreeNode const& other) const {
   max2[0] = other.maxX(); max2[1] = other.maxY(); max2[2] = other.maxZ();
 
   return ( (this->m_uiLevel < other.m_uiLevel) && (min2[0] >= min1[0]) && (min2[1] >= min1[1]) && (min2[2] >= min1[2]) && (max2[0] <= max1[0]) && (max2[1] <= max1[1]) && (max2[2] <= max1[2]) );
-#else */
+#else
 return ((other > (*this)) && (other <= (this->getDLD())));
-//#endif
+#endif
 } //end function
 
 inline unsigned int TreeNode   :: minX() const {
@@ -481,7 +580,7 @@ inline  unsigned int TreeNode   ::  maxX() const {
 
 inline  unsigned int TreeNode   ::  maxY() const {
   if (m_uiDim < 2) {return 1;}
-  unsigned int len = (1u << (m_uiMaxDepth - getLevel()));
+  unsigned int len = (1u<< (m_uiMaxDepth - getLevel()));
   return (minY() + len);
 } //end fn.
 
@@ -1753,795 +1852,7 @@ inline std::vector<TreeNode>  TreeNode   :: getB_BottomRightBack() const {
   return it;
 } //end fn.
 
-//{  Hilbert related changes ===================
 
-inline void TreeNode::rotate(int index, int *current, int *rot_index, int dim) const {
-
-  if (dim == 2) {
-    index = rot_index[index];
-    if (index == 0) {
-      rot_index[current[1]] = 3;
-      rot_index[current[3]] = 1;
-      SWAP(current[1], current[3]); // RIGHT Rotate and flip orientation
-
-
-    } else if (index == 3) {
-      rot_index[current[0]] = 2;
-      rot_index[current[2]] = 0;
-      SWAP(current[0], current[2]); //LEFT Rotate and flip orientation:
-
-    }
-
-  } else if (dim == 3) {
-
-    index = rot_index[index];
-    if (index == 0) {
-      rot_index[current[1]] = 7;
-      rot_index[current[7]] = 1;
-      SWAP(current[1], current[7]);
-      rot_index[current[4]] = 2;
-      rot_index[current[2]] = 4;
-      SWAP(current[2], current[4]);
-
-    } else if (index == 1) {
-      rot_index[current[3]] = 7;
-      rot_index[current[7]] = 3;
-      SWAP(current[3], current[7]);
-      rot_index[current[2]] = 6;
-      rot_index[current[6]] = 2;
-      SWAP(current[2], current[6]);
-
-    } else if (index == 3) {
-      rot_index[current[3]] = 5;
-      rot_index[current[5]] = 3;
-      SWAP(current[3], current[5]);
-
-      rot_index[current[3]] = 7;
-      rot_index[current[7]] = 3;
-      SWAP(current[3], current[7]);
-
-      rot_index[current[2]] = 6;
-      rot_index[current[6]] = 2;
-      SWAP(current[2], current[6]);
-
-      rot_index[current[0]] = 2;
-      rot_index[current[2]] = 0;
-      SWAP(current[0], current[2]);
-    } else if (index == 4) {
-      rot_index[current[1]] = 7;
-      rot_index[current[7]] = 1;
-      SWAP(current[1], current[7]);
-
-      rot_index[current[1]] = 5;
-      rot_index[current[5]] = 1;
-      SWAP(current[1], current[5]);
-
-      rot_index[current[0]] = 4;
-      rot_index[current[4]] = 0;
-      SWAP(current[0], current[4]);
-
-      rot_index[current[0]] = 2;
-      rot_index[current[2]] = 0;
-      SWAP(current[0], current[2]);
-
-    } else if (index == 6) {
-      rot_index[current[1]] = 5;
-      rot_index[current[5]] = 1;
-      SWAP(current[1], current[5]);
-
-      rot_index[current[0]] = 4;
-      rot_index[current[4]] = 0;
-      SWAP(current[0], current[4]);
-
-    } else if (index == 7) {
-
-      rot_index[current[0]] = 6;
-      rot_index[current[6]] = 0;
-      SWAP(current[0], current[6]);
-
-      rot_index[current[3]] = 5;
-      rot_index[current[5]] = 3;
-      SWAP(current[3], current[5]);
-    }
-
-  }
-
-}
-
-inline int findIndex(Point *pt, int x, int y, int z, int len) {
-  for (int i = 0; i < len; i++) {
-    if (pt[i].xint() == x && pt[i].yint() == y && pt[i].zint() == z) {
-      return i;
-    }
-  }
-
-}
-
-
-inline bool TreeNode::hilbert_order(const Point& p1, const Point& p2) const {
-
-  int MAX_DEAPTH = this->m_uiMaxDepth;
-  int MAX_LIMIT = (1 << MAX_DEAPTH) - 1;
-
-  int g_dim = this->m_uiDim;
-
-  int x1 = p1.xint();
-  int y1 = p1.yint();
-  int z1 = p1.zint();
-
-  int x2 = p2.xint();
-  int y2 = p2.yint();
-  int z2 = p2.zint();
-
-  if (x1 == x2 && y1 == y2 && z1 == z2) {
-    return false;
-  }
-
-  int index1 = 0;
-  int index2 = 0;
-  int min_x, min_y, min_z, max_x, max_y, max_z;
-
-  int len = MAX_LIMIT + 1;
-  int deapth = 0;
-  min_x = 0;
-  min_y = 0;
-  min_z = 0;
-
-  max_x = len;
-  max_y = len;
-  max_z = len;
-
-
-
-  if (g_dim == 2) {
-    Point pt_hilbert[4];
-    Point pt_hilbert_new[4];
-
-    pt_hilbert[0] = Point((int)min_x, (int)min_y, (int)0);
-    pt_hilbert[1] = Point((int)min_x, (int)max_y, (int)0);
-    pt_hilbert[2] = Point((int)max_x, (int)max_y, (int)0);
-    pt_hilbert[3] = Point((int)max_x, (int)min_y, (int)0);
-
-
-
-    while (len > 1 && deapth < MAX_DEAPTH) {
-
-      int xl = pt_hilbert[0].xint();
-      int yl = pt_hilbert[0].yint();
-      int nca_index = 0;
-      index1 = 0;
-      index2 = 0;
-      for (int i = 1; i < 4; i++) {
-
-        if (xl > pt_hilbert[i].xint()) {
-          xl = pt_hilbert[i].xint();
-          yl = pt_hilbert[i].yint();
-          nca_index = i;
-        } else if (xl == pt_hilbert[i].xint()) {
-          if (yl > pt_hilbert[i].yint()) {
-            yl = pt_hilbert[i].yint();
-            nca_index = i;
-          }
-        }
-
-
-      }
-      int len_nca = len / 2;
-      // Checking the membership cell.
-      if ((x1 - xl) < len_nca && (y1 - yl) < len_nca) {
-        index1 = findIndex(pt_hilbert, xl, yl, 0, 4);
-      } else if ((x1 - xl) < len_nca && (y1 - yl) >= len_nca) {
-        index1 = findIndex(pt_hilbert, xl, yl + len, 0, 4);;
-      } else if ((x1 - xl) >= len_nca && (y1 - yl) >= len_nca) {
-        index1 = findIndex(pt_hilbert, xl + len, yl + len, 0, 4);;
-      } else if ((x1 - xl) >= len_nca && (y1 - yl) < len_nca) {
-        index1 = findIndex(pt_hilbert, xl + len, yl, 0, 4);;
-      }
-
-      if ((x2 - xl) < len_nca && (y2 - yl) < len_nca) {
-        index2 = findIndex(pt_hilbert, xl, yl, 0, 4);
-      } else if ((x2 - xl) < len_nca && (y2 - yl) >= len_nca) {
-        index2 = findIndex(pt_hilbert, xl, yl + len, 0, 4);
-      } else if ((x2 - xl) >= len_nca && (y2 - yl) >= len_nca) {
-        index2 = findIndex(pt_hilbert, xl + len, yl + len, 0, 4);
-      } else if ((x2 - xl) >= len_nca && (y2 - yl) < len_nca) {
-        index2 = findIndex(pt_hilbert, xl + len, yl, 0, 4);
-      }
-
-      if (index1 < index2) {
-        return true;
-      } else if (index1 > index2) {
-        return false;
-      }
-
-      switch (index1) {
-      case 0:
-        pt_hilbert_new[0] = pt_hilbert[0];
-        pt_hilbert_new[1] = (pt_hilbert[0] + pt_hilbert[3]) / 2;
-        pt_hilbert_new[2] = (pt_hilbert[0] + pt_hilbert[2]) / 2;
-        pt_hilbert_new[3] = (pt_hilbert[0] + pt_hilbert[1]) / 2;
-        break;
-      case 1:
-        pt_hilbert_new[0] = (pt_hilbert[0] + pt_hilbert[1]) / 2;
-        pt_hilbert_new[1] = pt_hilbert[1];
-        pt_hilbert_new[2] = (pt_hilbert[1] + pt_hilbert[2]) / 2;
-        pt_hilbert_new[3] = (pt_hilbert[1] + pt_hilbert[3]) / 2;
-        break;
-      case 2:
-        pt_hilbert_new[0] = (pt_hilbert[0] + pt_hilbert[2]) / 2;
-        pt_hilbert_new[1] = (pt_hilbert[1] + pt_hilbert[2]) / 2;
-        pt_hilbert_new[2] = pt_hilbert[2];
-        pt_hilbert_new[3] = (pt_hilbert[2] + pt_hilbert[3]) / 2;
-        break;
-      case 3:
-        pt_hilbert_new[0] = (pt_hilbert[3] + pt_hilbert[2]) / 2;
-        pt_hilbert_new[1] = (pt_hilbert[1] + pt_hilbert[3]) / 2;
-        pt_hilbert_new[2] = (pt_hilbert[3] + pt_hilbert[0]) / 2;
-        pt_hilbert_new[3] = pt_hilbert[3];
-        break;
-      default:
-        std::cout << "Hilbert ordering error:Invalid nearest cell" << std::endl;
-        break;
-
-      }
-
-
-      pt_hilbert[0] = pt_hilbert_new[0];
-      pt_hilbert[1] = pt_hilbert_new[1];
-      pt_hilbert[2] = pt_hilbert_new[2];
-      pt_hilbert[3] = pt_hilbert_new[3];
-      len = len / 2;
-      deapth += 1;
-
-    }
-    return false;
-  } else if (g_dim == 3) {
-    Point pt_hilbert[8];
-    Point pt_hilbert_new[8];
-
-    pt_hilbert[0] = Point((int)min_x, (int)min_y, (int)min_z);
-    pt_hilbert[1] = Point((int)min_x, (int)max_y, (int)min_z);
-    pt_hilbert[2] = Point((int)max_x, (int)max_y, (int)min_z);
-    pt_hilbert[3] = Point((int)max_x, (int)min_y, (int)min_z);
-
-    pt_hilbert[4] = Point((int)max_x, (int)min_y, (int)max_z);
-    pt_hilbert[5] = Point((int)max_x, (int)max_y, (int)max_z);
-    pt_hilbert[6] = Point((int)min_x, (int)max_y, (int)max_z);
-    pt_hilbert[7] = Point((int)min_x, (int)min_y, (int)max_z);
-
-
-    while (len > 1 && deapth < MAX_DEAPTH) {
-
-
-      int xl = pt_hilbert[0].xint();
-      int yl = pt_hilbert[0].yint();
-      int zl = pt_hilbert[0].zint();
-      int nca_index = 0;
-      index1 = 0;
-      index2 = 0;
-      for (int i = 1; i < 8; i++) {
-
-        if (xl > pt_hilbert[i].xint()) {
-          xl = pt_hilbert[i].xint();
-          yl = pt_hilbert[i].yint();
-          nca_index = i;
-        } else if (xl == pt_hilbert[i].xint()) {
-          if (yl > pt_hilbert[i].yint()) {
-            yl = pt_hilbert[i].yint();
-            nca_index = i;
-          } else if (yl == pt_hilbert[i].yint()) {
-            if (zl > pt_hilbert[i].zint()) {
-              zl = pt_hilbert[i].zint();
-              nca_index = i;
-            }
-          }
-
-        }
-
-
-      }
-      int len_nca = len / 2;
-
-      if ((x1 - xl) < len_nca && (y1 - yl) < len_nca && (z1 - zl) < len_nca) {
-        index1 = findIndex(pt_hilbert, xl, yl, zl, 8);
-
-      } else if ((x1 - xl) < len_nca && (y1 - yl) >= len_nca && (z1 - zl) < len_nca) {
-        index1 = findIndex(pt_hilbert, xl, yl + len, zl, 8);
-      } else if ((x1 - xl) >= len_nca && (y1 - yl) >= len_nca && (z1 - zl) < len_nca) {
-        index1 = findIndex(pt_hilbert, xl + len, yl + len, zl, 8);
-      } else if ((x1 - xl) >= len_nca && (y1 - yl) < len_nca && (z1 - zl) < len_nca) {
-        index1 = findIndex(pt_hilbert, xl + len, yl, zl, 8);
-      } else if ((x1 - xl) >= len_nca && (y1 - yl) < len_nca && (z1 - zl) >= len_nca) {
-        index1 = findIndex(pt_hilbert, xl + len, yl, zl + len, 8);
-      } else if ((x1 - xl) >= len_nca && (y1 - yl) >= len_nca && (z1 - zl) >= len_nca) {
-        index1 = findIndex(pt_hilbert, xl + len, yl + len, zl + len, 8);
-      } else if ((x1 - xl) < len_nca && (y1 - yl) >= len_nca && (z1 - zl) >= len_nca) {
-        index1 = findIndex(pt_hilbert, xl, yl + len, zl + len, 8);
-      } else if ((x1 - xl) < len_nca && (y1 - yl) < len_nca && (z1 - zl) >= len_nca) {
-        index1 = findIndex(pt_hilbert, xl, yl, zl + len, 8);
-      }
-
-      if ((x2 - xl) < len_nca && (y2 - yl) < len_nca && (z2 - zl) < len_nca) {
-        index2 = findIndex(pt_hilbert, xl, yl, zl, 8);
-
-      } else if ((x2 - xl) < len_nca && (y2 - yl) >= len_nca && (z2 - zl) < len_nca) {
-        index2 = findIndex(pt_hilbert, xl, yl + len, zl, 8);
-      } else if ((x2 - xl) >= len_nca && (y2 - yl) >= len_nca && (z2 - zl) < len_nca) {
-        index2 = findIndex(pt_hilbert, xl + len, yl + len, zl, 8);
-      } else if ((x2 - xl) >= len_nca && (y2 - yl) < len_nca && (z2 - zl) < len_nca) {
-        index2 = findIndex(pt_hilbert, xl + len, yl, zl, 8);
-      } else if ((x2 - xl) >= len_nca && (y2 - yl) < len_nca && (z2 - zl) >= len_nca) {
-        index2 = findIndex(pt_hilbert, xl + len, yl, zl + len, 8);
-      } else if ((x2 - xl) >= len_nca && (y2 - yl) >= len_nca && (z2 - zl) >= len_nca) {
-        index2 = findIndex(pt_hilbert, xl + len, yl + len, zl + len, 8);
-      } else if ((x2 - xl) < len_nca && (y2 - yl) >= len_nca && (z2 - zl) >= len_nca) {
-        index2 = findIndex(pt_hilbert, xl, yl + len, zl + len, 8);
-      } else if ((x2 - xl) < len_nca && (y2 - yl) < len_nca && (z2 - zl) >= len_nca) {
-        index2 = findIndex(pt_hilbert, xl, yl, zl + len, 8);
-      }
-
-
-      if (index1 < index2) {
-        return true;
-      } else if (index1 > index2) {
-        return false;
-      }
-      // means that index1 ==index2
-      switch (index1) {
-      case 0:
-        pt_hilbert_new[0] = pt_hilbert[0];
-        pt_hilbert_new[1] = (pt_hilbert[0] + pt_hilbert[7]) / 2;
-        pt_hilbert_new[2] = (pt_hilbert[0] + pt_hilbert[4]) / 2;
-        pt_hilbert_new[3] = (pt_hilbert[0] + pt_hilbert[3]) / 2;
-
-        pt_hilbert_new[4] = (pt_hilbert[0] + pt_hilbert[2]) / 2;
-        pt_hilbert_new[5] = (pt_hilbert[0] + pt_hilbert[5]) / 2;
-        pt_hilbert_new[6] = (pt_hilbert[0] + pt_hilbert[6]) / 2;
-        pt_hilbert_new[7] = (pt_hilbert[0] + pt_hilbert[1]) / 2;
-        break;
-      case 1:
-        pt_hilbert_new[0] = (pt_hilbert[0] + pt_hilbert[1]) / 2;
-        pt_hilbert_new[1] = pt_hilbert[1];
-        pt_hilbert_new[2] = (pt_hilbert[1] + pt_hilbert[6]) / 2;
-        pt_hilbert_new[3] = (pt_hilbert[1] + pt_hilbert[7]) / 2;
-
-        pt_hilbert_new[4] = (pt_hilbert[1] + pt_hilbert[4]) / 2;
-        pt_hilbert_new[5] = (pt_hilbert[1] + pt_hilbert[5]) / 2;
-        pt_hilbert_new[6] = (pt_hilbert[1] + pt_hilbert[2]) / 2;
-        pt_hilbert_new[7] = (pt_hilbert[1] + pt_hilbert[3]) / 2;
-        break;
-      case 2:
-        pt_hilbert_new[0] = (pt_hilbert[2] + pt_hilbert[0]) / 2;
-        pt_hilbert_new[1] = (pt_hilbert[2] + pt_hilbert[1]) / 2;
-        pt_hilbert_new[2] = pt_hilbert[2];
-        pt_hilbert_new[3] = (pt_hilbert[2] + pt_hilbert[3]) / 2;
-
-        pt_hilbert_new[4] = (pt_hilbert[2] + pt_hilbert[4]) / 2;
-        pt_hilbert_new[5] = (pt_hilbert[2] + pt_hilbert[5]) / 2;
-        pt_hilbert_new[6] = (pt_hilbert[2] + pt_hilbert[6]) / 2;
-        pt_hilbert_new[7] = (pt_hilbert[2] + pt_hilbert[7]) / 2;
-
-        break;
-      case 3:
-        pt_hilbert_new[0] = (pt_hilbert[3] + pt_hilbert[6]) / 2;
-        pt_hilbert_new[1] = (pt_hilbert[3] + pt_hilbert[1]) / 2;
-        pt_hilbert_new[2] = (pt_hilbert[3] + pt_hilbert[0]) / 2;
-        pt_hilbert_new[3] = (pt_hilbert[3] + pt_hilbert[7]) / 2;
-
-        pt_hilbert_new[4] = (pt_hilbert[3] + pt_hilbert[4]) / 2;
-        pt_hilbert_new[5] = pt_hilbert[3];
-        pt_hilbert_new[6] = (pt_hilbert[3] + pt_hilbert[2]) / 2;
-        pt_hilbert_new[7] = (pt_hilbert[3] + pt_hilbert[5]) / 2;
-        break;
-
-      case 4:
-        pt_hilbert_new[0] = (pt_hilbert[4] + pt_hilbert[2]) / 2;
-        pt_hilbert_new[1] = (pt_hilbert[4] + pt_hilbert[5]) / 2;
-        pt_hilbert_new[2] = pt_hilbert[4];
-        pt_hilbert_new[3] = (pt_hilbert[4] + pt_hilbert[3]) / 2;
-
-        pt_hilbert_new[4] = (pt_hilbert[4] + pt_hilbert[0]) / 2;
-        pt_hilbert_new[5] = (pt_hilbert[4] + pt_hilbert[7]) / 2;
-        pt_hilbert_new[6] = (pt_hilbert[4] + pt_hilbert[6]) / 2;
-        pt_hilbert_new[7] = (pt_hilbert[4] + pt_hilbert[1]) / 2;
-        break;
-      case 5:
-        pt_hilbert_new[0] = (pt_hilbert[5] + pt_hilbert[0]) / 2;
-        pt_hilbert_new[1] = (pt_hilbert[5] + pt_hilbert[1]) / 2;
-        pt_hilbert_new[2] = (pt_hilbert[5] + pt_hilbert[2]) / 2;
-        pt_hilbert_new[3] = (pt_hilbert[5] + pt_hilbert[3]) / 2;
-
-        pt_hilbert_new[4] = (pt_hilbert[5] + pt_hilbert[4]) / 2;
-        pt_hilbert_new[5] = pt_hilbert[5];
-        pt_hilbert_new[6] = (pt_hilbert[5] + pt_hilbert[6]) / 2;
-        pt_hilbert_new[7] = (pt_hilbert[5] + pt_hilbert[7]) / 2;
-        break;
-      case 6:
-        pt_hilbert_new[0] = (pt_hilbert[6] + pt_hilbert[4]) / 2;
-        pt_hilbert_new[1] = (pt_hilbert[6] + pt_hilbert[5]) / 2;
-        pt_hilbert_new[2] = (pt_hilbert[6] + pt_hilbert[2]) / 2;
-        pt_hilbert_new[3] = (pt_hilbert[6] + pt_hilbert[3]) / 2;
-
-        pt_hilbert_new[4] = (pt_hilbert[6] + pt_hilbert[0]) / 2;
-        pt_hilbert_new[5] = (pt_hilbert[6] + pt_hilbert[1]) / 2;
-        pt_hilbert_new[6] = pt_hilbert[6];
-        pt_hilbert_new[7] = (pt_hilbert[6] + pt_hilbert[7]) / 2;
-        break;
-      case 7:
-        pt_hilbert_new[0] = (pt_hilbert[7] + pt_hilbert[6]) / 2;
-        pt_hilbert_new[1] = (pt_hilbert[7] + pt_hilbert[1]) / 2;
-        pt_hilbert_new[2] = (pt_hilbert[7] + pt_hilbert[2]) / 2;
-        pt_hilbert_new[3] = (pt_hilbert[7] + pt_hilbert[5]) / 2;
-
-        pt_hilbert_new[4] = (pt_hilbert[7] + pt_hilbert[4]) / 2;
-        pt_hilbert_new[5] = (pt_hilbert[7] + pt_hilbert[3]) / 2;
-        pt_hilbert_new[6] = (pt_hilbert[7] + pt_hilbert[0]) / 2;
-        pt_hilbert_new[7] = pt_hilbert[7];
-        break;
-      default:
-        std::cout << "Hilbert ordering error:Invalid nearest cell" << std::endl;
-        break;
-
-
-      }
-
-
-      pt_hilbert[0] = pt_hilbert_new[0];
-      pt_hilbert[1] = pt_hilbert_new[1];
-      pt_hilbert[2] = pt_hilbert_new[2];
-      pt_hilbert[3] = pt_hilbert_new[3];
-
-      pt_hilbert[4] = pt_hilbert_new[4];
-      pt_hilbert[5] = pt_hilbert_new[5];
-      pt_hilbert[6] = pt_hilbert_new[6];
-      pt_hilbert[7] = pt_hilbert_new[7];
-
-      len = len / 2;
-      deapth += 1;
-
-    }
-    return false;
-
-
-
-  }
-
-}
-
-
-inline bool TreeNode::hilbert_order_NCA(const Point& p1, const Point& p2) const {
-
-
-  int g_dim = this->m_uiDim;
-  unsigned int x1 = p1.xint();
-  unsigned int x2 = p2.xint();
-
-  unsigned int y1 = p1.yint();
-  unsigned int y2 = p2.yint();
-
-  unsigned int z1 = p1.zint();
-  unsigned int z2 = p2.zint();
-
-  if (x1 == x2 && y1 == y2 && z1 == z2) {
-    return false;
-  }
-
-  unsigned int maxDepth = this->m_uiMaxDepth;
-  unsigned int maxDiff = (unsigned int)(std::max((std::max((x1 ^ x2), (y1 ^ y2))), (z1 ^ z2)));
-  int dim = g_dim;
-  unsigned int maxDiffBinLen = binOp::binLength(maxDiff);
-  //Eliminate the last maxDiffBinLen bits.
-  unsigned int ncaX = ((x1 >> maxDiffBinLen) << maxDiffBinLen);
-  unsigned int ncaY = ((y1 >> maxDiffBinLen) << maxDiffBinLen);
-  unsigned int ncaZ = ((z1 >> maxDiffBinLen) << maxDiffBinLen);
-  unsigned int ncaLev = (maxDepth - maxDiffBinLen);
-
-
-
-  unsigned int xl = 0;
-  unsigned int yl = 0;
-  unsigned int zl = 0;
-
-  unsigned int len = 1 << maxDepth;
-  int count = 0;
-  unsigned int index1 = 0;
-  unsigned int index2 = 0;
-
-
-  if (g_dim == 2) {
-    int rotation[4] = { 0, 1, 2, 3 };
-    int rot_index[4] = { 0, 1, 2, 3 };
-    while ((xl != ncaX || yl != ncaY || zl != ncaZ || count != ncaLev)) {
-      len = len / 2;
-
-      index1 = 0;
-      if (ncaX >= (len + xl)) {
-        index1 += 1;
-        xl += len;
-        if (ncaY < (len + yl)) index1 += 2;
-      }
-      if (ncaY >= (len + yl)) {index1 += 1; yl += len; }
-
-      rotate(index1, rotation, rot_index, dim);
-
-
-      count++;
-
-    }
-
-    len = len / 2;
-    if ((x1 - ncaX) < len && (y1 - ncaY) < len) { // index 0
-      index1 = rot_index[0];
-
-    } else if ((x1 - ncaX) < len && (y1 - ncaY) >= len) { // index 1
-      index1 = rot_index[1];
-    } else if ((x1 - ncaX) >= len && (y1 - ncaY) >= len) { // index 2
-      index1 = rot_index[2];
-    } else if ((x1 - ncaX) >= len && (y1 - ncaY) < len) { // index 3
-      index1 = rot_index[3];
-
-    }
-
-
-    if ((x2 - ncaX) < len && (y2 - ncaY) < len) { // index 0
-      index2 = rot_index[0];
-
-    } else if ((x2 - ncaX) < len && (y2 - ncaY) >= len) { // index 1
-      index2 = rot_index[1];
-
-    } else if ((x2 - ncaX) >= len && (y2 - ncaY) >= len) { // index 2
-      index2 = rot_index[2];
-    } else if ((x2 - ncaX) >= len && (y2 - ncaY) < len) { // index 3
-      index2 = rot_index[3];
-
-    }
-
-
-  } else if (g_dim == 3) {
-    int rotation[8] = { 0, 1, 2, 3, 4, 5, 6, 7 }; // Initial rotation
-    int rot_index[8] = { 0, 1, 2, 3, 4, 5, 6, 7 }; // Initial rotation indices
-    while ((xl != ncaX || yl != ncaY || zl != ncaZ || count != ncaLev)/*&& len >0*/) {
-
-      len >>= 1;
-
-      index1 = 0;
-      if (ncaZ < (len + zl)) {
-        if (ncaX >= (len + xl)) {
-          index1 += 1;
-          xl += len;
-          if (ncaY < (len + yl)) index1 += 2;
-        }
-        if (ncaY >= (len + yl)) {
-          index1 += 1;
-          yl += len;
-        }
-      } else {
-        index1 = 4;
-        zl += len;
-        if (ncaX < (len + xl)) {
-          index1 += 1;
-          if (ncaY < (len + yl)) index1 += 2;
-        } else {
-          xl += len;
-        }
-        if (ncaY >= (len + yl)) {
-          index1 += 1;
-          yl += len;
-        }
-      }
-
-      rotate(index1, rotation, rot_index, dim);
-      count++;
-
-    }
-
-    len >>= 1;
-
-    if ((x1 - ncaX) < len && (y1 - ncaY) < len && (z1 - ncaZ) < len) {
-      index1 = rot_index[0];
-    } else if ((x1 - ncaX) < len && (y1 - ncaY) >= len && (z1 - ncaZ) < len) {
-      index1 = rot_index[1];
-    } else if ((x1 - ncaX) >= len && (y1 - ncaY) >= len && (z1 - ncaZ) < len) {
-      index1 = rot_index[2];
-    } else if ((x1 - ncaX) >= len && (y1 - ncaY) < len && (z1 - ncaZ) < len) {
-      index1 = rot_index[3];
-    } else if ((x1 - ncaX) >= len && (y1 - ncaY) < len && (z1 - ncaZ) >= len) {
-      index1 = rot_index[4];
-    } else if ((x1 - ncaX) >= len && (y1 - ncaY) >= len && (z1 - ncaZ) >= len) {
-      index1 = rot_index[5];
-    } else if ((x1 - ncaX) < len && (y1 - ncaY) >= len && (z1 - ncaZ) >= len) {
-      index1 = rot_index[6];
-    } else if ((x1 - ncaX) < len && (y1 - ncaY) < len && (z1 - ncaZ) >= len) {
-      index1 = rot_index[7];
-    }
-
-
-    if ((x2 - ncaX) < len && (y2 - ncaY) < len && (z2 - ncaZ) < len) {
-      index2 = rot_index[0];
-    } else if ((x2 - ncaX) < len && (y2 - ncaY) >= len && (z2 - ncaZ) < len) {
-      index2 = rot_index[1];
-    } else if ((x2 - ncaX) >= len && (y2 - ncaY) >= len && (z2 - ncaZ) < len) {
-      index2 = rot_index[2];
-    } else if ((x2 - ncaX) >= len && (y2 - ncaY) < len && (z2 - ncaZ) < len) {
-      index2 = rot_index[3];
-    } else if ((x2 - ncaX) >= len && (y2 - ncaY) < len && (z2 - ncaZ) >= len) {
-      index2 = rot_index[4];
-    } else if ((x2 - ncaX) >= len && (y2 - ncaY) >= len && (z2 - ncaZ) >= len) {
-      index2 = rot_index[5];
-    } else if ((x2 - ncaX) < len && (y2 - ncaY) >= len && (z2 - ncaZ) >= len) {
-      index2 = rot_index[6];
-    } else if ((x2 - ncaX) < len && (y2 - ncaY) < len && (z2 - ncaZ) >= len) {
-      index2 = rot_index[7];
-    }
-
-
-
-  }
-
-  return index1 < index2;
-
-}
-
-
-inline bool TreeNode::morton_order(const Point& p1, const Point& p2) const {
-
-
-  unsigned int x1 = p1.xint();
-  unsigned int x2 = p2.xint();
-
-  unsigned int y1 = p1.yint();
-  unsigned int y2 = p2.yint();
-
-  unsigned int z1 = p1.zint();
-  unsigned int z2 = p2.zint();
-
-  if (x1 == x2 && y1 == y2 && z1 == z2) {
-    return false;
-  }
-
-  unsigned int x = (x1 ^ x2);
-  unsigned int y = (y1 ^ y2);
-  unsigned int z = (z1 ^ z2);
-
-  //Default pref: z > y > x.
-  unsigned int maxC = z;
-  unsigned int yOrx = y;
-  if (yOrx < x) {if ((x ^ yOrx) >= yOrx) {yOrx = x;}
-  }
-  if (maxC < yOrx) {if ((maxC ^ yOrx) >= maxC) {maxC = yOrx;}
-  }
-
-  if (maxC == z) {
-    if (z1 < z2) return true;
-    else return false;
-
-  } else if (maxC == y) {
-    if (y1 < y2) return true;
-    else return false;
-
-  } else {
-    if (x1 < x2) return true;
-    else return false;
-
-  }
-
-
-
-}
-
-inline bool TreeNode::morton_order_NCA(const Point& p1, const Point& p2) const {
-
-  int g_dim = this->m_uiDim;
-
-  unsigned int x1 = p1.xint();
-  unsigned int x2 = p2.xint();
-
-  unsigned int y1 = p1.yint();
-  unsigned int y2 = p2.yint();
-
-  unsigned int z1 = p1.zint();
-  unsigned int z2 = p2.zint();
-
-  if (x1 == x2 && y1 == y2 && z1 == z2) {
-    return false;
-  }
-
-  unsigned int maxDepth = this->m_uiMaxDepth;
-  unsigned int maxDiff = (unsigned int)(std::max((std::max((x1 ^ x2), (y1 ^ y2))), (z1 ^ z2)));
-
-  unsigned int maxDiffBinLen = binOp::binLength(maxDiff);
-  //Eliminate the last maxDiffBinLen bits.
-  unsigned int ncaX = ((x1 >> maxDiffBinLen) << maxDiffBinLen);
-  unsigned int ncaY = ((y1 >> maxDiffBinLen) << maxDiffBinLen);
-  unsigned int ncaZ = ((z1 >> maxDiffBinLen) << maxDiffBinLen);
-  unsigned int ncaLev = (maxDepth - maxDiffBinLen);
-
-  unsigned int xl = 0;
-  unsigned int yl = 0;
-  unsigned int zl = 0;
-
-  unsigned int len = 1 << maxDepth;
-
-  len = len / (1 << (ncaLev + 1));
-  unsigned int index1 = 0;
-  unsigned int index2 = 0;
-
-  if (g_dim == 2) {
-
-
-   index1 = 0;
-    if ( x1>=(len+ncaX) ) {
-	index1 += 1;
-      if (y1>=(len+ncaY)){ 
-	  index1 += 2;
-      }
-    }else if ( y1>=(len+ncaY) ) { 
-      index1 += 2;
-      
-    }
-
-    index2 = 0;
-    if ( x2>=(len+ncaX) ) {
-	index2 += 1;
-      if (y2>=(len+ncaY)){
-	index2 += 2;
-      }
-    }else if ( y2>=(len+ncaY) ) {
-      index2 += 2;
-      
-    }
-   
-   
-  } else if (g_dim == 3) {
-    
-      index1=0;
-      if ( z1 < (len + ncaZ) ) {
-	 if ( x1 >= (len + ncaX) ) {
-	    index1 += 1;
-	    if (y1 >= (len + ncaY)) 
-		index1 += 2;
-	 }else if ( y1>= (len + ncaY) ) { 
-	    index1 += 2; 
-	 }
-      } else {
-	    index1 = 4;
-	 if ( x1 >= (len + ncaX) ) {
-	    index1 += 1;
-	    if (y1 >= (len + ncaY)) 
-	      index1 += 2;
-	 }else if ( y1>= (len + ncaY) ) { 
-	    index1 += 2; 
-	 }
-      }
-      
-      index2=0;
-      if ( z2 < (len + ncaZ) ) {
-	 if ( x2 >= (len + ncaX) ) {
-	    index2 += 1;
-	    if (y2 >= (len + ncaY)) 
-		index2 += 2;
-	 }else if ( y2>= (len + ncaY) ) { 
-	    index2 += 2; 
-	 }
-      } else {
-	    index2 = 4;
-	 if ( x2 >= (len + ncaX) ) {
-	    index2 += 1;
-	    if (y2 >= (len + ncaY)) 
-	      index2 += 2;
-	 }else if ( y2>= (len + ncaY) ) { 
-	    index2 += 2; 
-	 }
-      }
-
-  }
-  return index1 < index2;
-
-
-}
-
-
-//}  Hilbert  related changes ===================
 
 } //end namespace ot
 

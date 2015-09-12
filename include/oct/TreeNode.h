@@ -12,17 +12,22 @@
 
 
 #include "octUtils.h"
-#include "Point.h"
-#include "binUtils.h"
+#include "../point/Point.h"
+#include "../binOps/binUtils.h"
 
 #include <iostream>
+#include <cassert>
+
+
+#include "../hilbert/hilbert.h"
+#include "../hilbert/morton.h"
 
 #ifdef __DEBUG__
 #ifndef __DEBUG_TN__
 #define __DEBUG_TN__
 #endif
 #endif
-
+static int initialize_count=0;
 namespace ot {
 
   /**
@@ -33,8 +38,14 @@ namespace ot {
     protected:
       //Level is also used as a flag.
       unsigned int m_uiX, m_uiY, m_uiZ, m_uiLevel, m_uiWeight, m_uiDim, m_uiMaxDepth;
-      int rotation_pattern[8];
-      int rot_index[8];
+      
+      //@milinda
+      // To store the rotation pattern and rotation index
+      // This should be a propery of the TreeNode class. 
+  
+      Rotation2D rotation_2d;
+      Rotation3D rotation_3d;
+      
       
       //constructor without checks: only for faster construction.
       TreeNode (const int dummy, const unsigned int x,const unsigned int y,
@@ -66,6 +77,16 @@ namespace ot {
       enum OctantFlagType {
        MAX_LEVEL=31, BOUNDARY=64, NODE=128 
       };
+      
+      
+      /*
+       *@author Milinda Fernando
+       *@Brief Fundemenatal Implementation of rotation pattern calculation just by iterating it from the root to node. 
+       *@changes the rotation and rot_index values of the TreeNode.      
+       */
+      
+      void calculateTreeNodeRotation();
+      
 
       /**
         @author Rahul Sampath
@@ -215,13 +236,13 @@ namespace ot {
        * Hilbert order implementation
        * */
       
-       void rotate(int index,int* current,int * rot_index,int dim) const;
-       
-       bool hilbert_order_NCA(const Point& p1,const Point& p2) const;
-       bool hilbert_order(const Point& p1,const Point& p2) const;
-       
-       bool morton_order(const Point& p1, const Point& p2) const;
-       bool morton_order_NCA(const Point& p1,const Point& p2) const;
+//        void rotate(int index,int* current,int * rot_index,int dim) const;
+//        
+//        bool hilbert_order_NCA(const Point& p1,const Point& p2) const;
+//        bool hilbert_order(const Point& p1,const Point& p2) const;
+//        
+//        bool morton_order(const Point& p1, const Point& p2) const;
+//        bool morton_order_NCA(const Point& p1,const Point& p2) const;
        
        
       
@@ -250,7 +271,7 @@ namespace ot {
       unsigned int getParentX() const;
       unsigned int getParentY() const;
       unsigned int getParentZ() const;    
-      unsigned char getChildNumber() const;
+      unsigned char getChildNumber(bool real=true) const;
       int setWeight(unsigned int w);
       int addWeight(unsigned int w);
       int setFlag(unsigned int w);

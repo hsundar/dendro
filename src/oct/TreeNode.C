@@ -4,12 +4,15 @@
   @author Rahul S. Sampath, rahul.sampath@gmail.com
   */
 
-#include "TreeNode.h"
+//#include "TreeNode.h"
 #include "parUtils.h"
 #include "seqUtils.h"
 #include <vector>
 #include <iterator>
 #include "Point.h"
+
+
+#include "TreeNode.h"
 
 
 #ifdef __DEBUG__
@@ -203,7 +206,7 @@ bool TreeNode::isBoundaryOctant(const TreeNode& block, int type, unsigned char *
 
   unsigned int _x = block.getX();
   unsigned int _y = block.getY();
-  unsigned int _z = block.getZ();
+  unsigned int _z = block.getZ();	
   unsigned int _d = block.getLevel();
 
   /*
@@ -354,6 +357,8 @@ int TreeNode  ::addBrothers(std::vector<TreeNode>& bros) const {
 
 std::vector<TreeNode> TreeNode::getSearchKeys(bool incCorners) {
 
+  std::cout<<"Get Search Keys Called"<<std::endl;
+  
   unsigned int myK = this->getChildNumber();
   //Morton Order: X,Y,Z
   bool zdir = (myK >= 4);
@@ -514,6 +519,9 @@ std::vector<bool> ot::TreeNode  ::getMorton() const {
 TreeNode :: TreeNode() {
   m_uiX = m_uiY = m_uiZ = m_uiLevel =
      m_uiWeight = m_uiDim = m_uiMaxDepth = 0;
+  
+  calculateTreeNodeRotation();  
+     
 }
 
 TreeNode  :: TreeNode(const int dummy, const unsigned int x, const unsigned int y,
@@ -526,6 +534,9 @@ TreeNode  :: TreeNode(const int dummy, const unsigned int x, const unsigned int 
 
   m_uiLevel = lev;
   m_uiWeight = 1;
+  
+  calculateTreeNodeRotation();
+  
 } //end function
 
 TreeNode  :: TreeNode(const unsigned int dim, const unsigned int maxDepth) {
@@ -542,6 +553,8 @@ TreeNode  :: TreeNode(const unsigned int dim, const unsigned int maxDepth) {
   }
 #endif
   assert((dim == 1) || (dim == 2) || (dim == 3));
+  
+  calculateTreeNodeRotation();
 } //end function
 
 TreeNode  :: TreeNode(const unsigned int x, const unsigned int y,
@@ -567,11 +580,14 @@ TreeNode  :: TreeNode(const unsigned int x, const unsigned int y,
   assert((m_uiZ % ((unsigned int)(1u << (maxDepth - lev)))) == 0);
   assert((dim == 1) || (dim == 2) || (dim == 3));
 #endif
+    
+  calculateTreeNodeRotation();
 
 } //end function
 
 //copy constructor
 TreeNode  :: TreeNode(const TreeNode& other) {
+  
   m_uiX = other.m_uiX;
   m_uiY = other.m_uiY;
   m_uiZ = other.m_uiZ;
@@ -579,6 +595,29 @@ TreeNode  :: TreeNode(const TreeNode& other) {
   m_uiWeight = other.m_uiWeight;
   m_uiDim = other.m_uiDim;
   m_uiMaxDepth = other.m_uiMaxDepth;
+  
+//   if(m_uiDim==2)
+//   {
+//     rotation=new int[4];
+//     rot_index=new int[4];
+//     for(int i=0;i<4;i++){
+//       rotation[i]=other.rotation[i];
+//       rot_index[i]=other.rot_index[i];
+//     }
+//   }else if(m_uiDim==3)
+//   {
+//     rotation=new int[8];
+//     rot_index=new int[8];
+//     
+//     for(int i=0;i<8;i++){
+//       rotation[i]=other.rotation[i];
+//       rot_index[i]=other.rot_index[i];
+//     }
+//     
+//   }
+  
+  calculateTreeNodeRotation();
+  
 } //end function
 
 /*
@@ -597,74 +636,100 @@ std::ostream& operator<<(std::ostream& os, TreeNode const& other) {
  * ====================START============================
  */
 
+void TreeNode::calculateTreeNodeRotation()
+{
+  
+  unsigned int xl = 0;
+  unsigned int yl = 0;
+  unsigned int zl = 0;
 
-/*
- bool  TreeNode::operator < (TreeNode const  &other) const
- {
-   
-    const Point p1=Point(this->m_uiX,this->m_uiY,this->m_uiZ);
-    const Point p2=Point(other.m_uiX,other.m_uiY,other.m_uiZ);
-   
-   
- 
-#ifndef HILBERT_ORDERING
-  #define DEFAULT_ORDERING
-#endif
-               
-#ifdef DEFAULT_ORDERING
-  #ifdef USE_NCA_PROPERTY
-    return morton_order_NCA(p1,p2);
-  #else 
-#pragma message "== USING DEFAULT Morton Order =="
+  unsigned int len = 1 << this->m_uiMaxDepth;
+  int count = 0;
+  unsigned int index1 = 0;
+  unsigned int index2 = 0;
+  
+  unsigned int ncaX,ncaY,ncaZ,ncaLev; // considering the current node as the NCA. 
+  ncaX=this->m_uiX;
+  ncaY=this->m_uiY;
+  ncaZ=this->m_uiZ;
+  ncaLev=this->m_uiLevel;
+  int index_temp;
 
-    return morton_order(p1,p2);
-  #endif
-#endif
+  if (m_uiDim == 2) {
+     //rotation=new int[4]{0,1,2,3};
+     //rot_index=new int[4]{0,1,2,3};
+     int current_rot=0;
+          
+    while ((xl != ncaX || yl != ncaY || zl != ncaZ || count != ncaLev)) {
+      
+      len >>=1;
+      index1 = 0;
+      if (ncaX >= (len + xl)) {
+        index1 += 1;
+        xl += len;
+        if (ncaY < (len + yl)) index1 += 2;
+      }
+      if (ncaY >= (len + yl)) {index1 += 1; yl += len; }
 
-#ifdef HILBERT_ORDERING
-  #ifdef USE_NCA_PROPERTY
-    return hilbert_order_NCA(p1,p2);
-  #else
-    return hilbert_order(p1,p2);
-  #endif
-#endif
-   
- }
- 
- bool  TreeNode::operator <= (TreeNode const  &other) const
- {
-   if(((*this)<other)|| (*this)==other)
-   {
-    return true; 
-   }else
-   {
-      return false;
-   }
- }
- 
- bool  TreeNode::operator > (TreeNode const  &other) const
- { 
-    if((*this)<=other)
-    {
-      return false;
-    }else
-    {
-      return true;
+      //rotate(index1, rotation, rot_index, 2);
+      index_temp=rotations_2d[current_rot].rot_index[index1];
+      current_rot=HILBERT_2D_TABLE[current_rot][index_temp];
+      
+      count++;
+
     }
- }
 
- bool  TreeNode::operator >= (TreeNode const  &other) const
- {
-    if(((*this)>other)|| (*this)==other)
-   {
-    return true; 
-   }else
-   {
-      return false;
-   }
- }
- 
- */
+    rotation_2d=rotations_2d[current_rot];
+    
+
+  } else if (m_uiDim == 3) {
+//     rotation = new int[8]{ 0, 1, 2, 3, 4, 5, 6, 7 }; // Initial rotation
+//     rot_index = new int[8]{ 0, 1, 2, 3, 4, 5, 6, 7 }; // Initial rotation indices
+    
+    int current_rot=0;
+    
+    while ((xl != ncaX || yl != ncaY || zl != ncaZ || count != ncaLev)/*&& len >0*/) {
+
+      len >>= 1;
+
+      index1 = 0;
+      if (ncaZ < (len + zl)) {
+        if (ncaX >= (len + xl)) {
+          index1 += 1;
+          xl += len;
+          if (ncaY < (len + yl)) index1 += 2;
+        }
+        if (ncaY >= (len + yl)) {
+          index1 += 1;
+          yl += len;
+        }
+      } else {
+        index1 = 4;
+        zl += len;
+        if (ncaX < (len + xl)) {
+          index1 += 1;
+          if (ncaY < (len + yl)) index1 += 2;
+        } else {
+          xl += len;
+        }
+        if (ncaY >= (len + yl)) {
+          index1 += 1;
+          yl += len;
+        }
+      }
+
+      index_temp=rotations_3d[current_rot].rot_index[index1];
+      current_rot=HILBERT_3D_TABLE[current_rot][index_temp];
+      count++;
+
+    }
+    rotation_3d=rotations_3d[current_rot];
+  
+}
+//std::cout<<"Tree Node Rotation Calculation Completed"<<std::endl;
+
+}
+
 
 /*
  * ===========Hilbert Ordering Implementations==========
@@ -683,6 +748,28 @@ TreeNode& TreeNode  :: operator = (TreeNode   const& other) {
   m_uiWeight = other.m_uiWeight;
   m_uiDim = other.m_uiDim;
   m_uiMaxDepth = other.m_uiMaxDepth;
+  calculateTreeNodeRotation();
+  
+//   if(m_uiDim==2)
+//   {
+//     rotation=new int[4];
+//     rot_index=new int[4];
+//     for(int i=0;i<4;i++){
+//       rotation[i]=other.rotation[i];
+//       rot_index[i]=other.rot_index[i];
+//     }
+//   }else if(m_uiDim==3)
+//   {
+//     rotation=new int[8];
+//     rot_index=new int[8];
+//     
+//     for(int i=0;i<8;i++){
+//       rotation[i]=other.rotation[i];
+//       rot_index[i]=other.rot_index[i];
+//     }
+//     
+//   }
+  
   return *this;
 } //end fn.
 

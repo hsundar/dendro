@@ -10,6 +10,7 @@
 #include "parUtils.h"
 #include <omp.h>
 #include <ompUtils.h>
+#include "testUtils.h"
 #ifdef __DEBUG__
 #ifndef __DEBUG_OCT__
 #define __DEBUG_OCT__
@@ -45,8 +46,22 @@ namespace ot {
 
     //include both the min and max elements as well  
     //The output will be sorted, unique and linear
+    
+    std::sort(nodes.begin(),nodes.end());
+    
+    std::vector<ot::TreeNode> append_complete_region;
+    append_complete_region.push_back(nodes[0]);
+    append_complete_region.push_back(nodes[nodes.size()-1]);
+    
+    assert(par::test::isUniqueAndSorted(nodes,comm));    
+    assert(nodes[0]<nodes[nodes.size()-1]);
+    
+    std::cout<<"Rank:"<<rank<<" first:"<<nodes[0]<<" last:"<<nodes[nodes.size()-1]<<std::endl;
+    
     appendCompleteRegion(nodes[0], nodes[nodes.size()-1], localCoarse, true, true);
-
+    
+    std::cout << rank << ": in BlkPart_1 after appendCompleteRegion" << std::endl;
+    
     // 2. Get local Blocks. These will be input to completeOctree that will
     // produce globalCoarse.
     std::vector<TreeNode> localBlocks;

@@ -1,6 +1,6 @@
-INCLUDE=-I./include -I./include/oct -I./include/fem -I./include/oda  -I./include/omg  -I./include/seq  -I./include/par  -I./include/omp_par  -I./include/point  -I./include/test -I./include/binOps -I./include/pc -I./include/sys -I./examples/include ${PETSC_CC_INCLUDES}
+INCLUDE=-I./include -I./include/oct -I./include/fem -I./include/oda  -I./include/omg  -I./include/seq  -I./include/par  -I./include/omp_par  -I./include/point  -I./include/test -I./include/binOps -I./include/pc -I./include/sys -I./examples/include -I./include/hilbert ${PETSC_CC_INCLUDES}
 
-ARCHIVES = ./lib/libOMG.a ./lib/libODA.a ./lib/libTest.a ./lib/libOct.a ./lib/libPar.a   ./lib/libPoint.a ./lib/libBinOps.a ./lib/libSys.a ./lib/libPC.a 
+ARCHIVES = ./lib/libOMG.a ./lib/libODA.a ./lib/libTest.a ./lib/libOct.a ./lib/libPar.a   ./lib/libPoint.a ./lib/libBinOps.a ./lib/libSys.a ./lib/libPC.a ./lib/libHilbert.a
 
 # LIBS = -L./lib -lOMG -lODA -lOct -lPar -lPoint -lTest -lBinOps -lSys -lPC ${PETSC_LIB} 
 LIBS = ${PETSC_LIB}
@@ -32,10 +32,10 @@ core : $(ARCHIVES)
 %.o: %.$(CEXT)
 	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 
-./examples/src/backend/%.o: ./examples/src/backend/%.$(CEXT)
+./examples/src/backend/%.o:TreeNode.txx ./examples/src/backend/%.$(CEXT)
 	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 
-./examples/src/drivers/%.o: ./examples/src/drivers/%.$(CEXT)
+./examples/src/drivers/%.o:TreeNode.txx ./examples/src/drivers/%.$(CEXT)
 	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 
 ./scripts/%.o: ./scripts/%.$(CEXT)
@@ -50,6 +50,9 @@ core : $(ARCHIVES)
 ./src/oct/%.o: ./src/oct/%.$(CEXT)
 	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 
+./src/oct/TreeNode_txx.o: ./include/oct/TreeNode.txx
+	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+	
 ./src/oda/%.o: ./src/oda/%.$(CEXT)
 	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 
@@ -62,6 +65,9 @@ core : $(ARCHIVES)
 ./src/binOps/%.o: ./src/binOps/%.$(CEXT)
 	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 
+./src/hilbert/%.o: ./src/hilbert/%.$(CEXT)
+	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+	
 ./src/par/%.o: ./src/par/%.$(CEXT)
 	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 
@@ -90,7 +96,7 @@ core : $(ARCHIVES)
 	${AR} ${AR_FLAGS} $@ $^
 	${RANLIB} $@
 
-./lib/libOct.a :  ./src/oct/TreeNode.o ./src/oct/TreeNodePointer.o ./src/oct/OctFunctions.o ./src/oct/Balance.o ./src/oct/BlockPart.o ./src/oct/Coarsen.o ./src/oct/Construct.o ./src/oct/pickBdy.o 
+./lib/libOct.a :  ./src/oct/TreeNode.o ./src/oct/TreeNodePointer.o ./src/oct/OctFunctions.o ./src/oct/Balance.o ./src/oct/BlockPart.o ./src/oct/Coarsen.o ./src/oct/Construct.o ./src/oct/pickBdy.o
 	${AR} ${AR_FLAGS} $@ $^
 	${RANLIB} $@
 
@@ -101,7 +107,11 @@ core : $(ARCHIVES)
 ./lib/libBinOps.a :  ./src/binOps/binUtils.o 
 	${AR} ${AR_FLAGS} $@ $^
 	${RANLIB} $@
-
+	
+./lib/libHilbert.a :  ./src/hilbert/hilbert.o ./src/hilbert/morton.o ./src/hilbert/rotation.o ./src/hilbert/sfc.o
+	${AR} ${AR_FLAGS} $@ $^
+	${RANLIB} $@
+	
 ./lib/libPoint.a :  ./src/point/Point.o 
 	${AR} ${AR_FLAGS} $@ $^
 	${RANLIB} $@
@@ -203,7 +213,7 @@ bin/runScal : ./examples/src/drivers/runScal.o $(ARCHIVES)
 bin/testConAndBal : ./examples/src/drivers/testConAndBal.o $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
 
-bin/testPartition : ./examples/src/drivers/testPartition.o $(ARCHIVES)
+bin/testPartition :./examples/src/drivers/testPartition.o $(ARCHIVES)
 	$(PCC) $(CFLAGS) $^ -o $@ $(LIBS) 
 
 bin/testConBalAndCoarsen : ./examples/src/drivers/testConBalAndCoarsen.o $(ARCHIVES)

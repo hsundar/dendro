@@ -13,6 +13,7 @@
 #include "nodeAndValues.h"
 #include "binUtils.h"
 #include "dendro.h"
+#include "testUtils.h"
 
 #ifdef __DEBUG__
 #ifndef __DEBUG_OCT__
@@ -830,18 +831,27 @@ int points2Octree(std::vector<double>& pts, double *gLens, std::vector<TreeNode>
   pts.clear();
 
   //Sort nodes (pts.) and partition them.
+  std::cout <<rank<< "before sample sort: " << nodes.size() << std::endl;
   std::vector<ot::TreeNode> tmpNodes;
   par::sampleSort<ot::TreeNode>(nodes, tmpNodes, comm);
+  //std::sort(nodes.begin(),nodes.end());
+  // @milinda check if the array is sorted properly
+  assert(par::test::isUniqueAndSorted(tmpNodes, comm)); // at this points arrays are sorted and unique checked : done
+  nodes.clear();
 
-  nodes = tmpNodes;
-  tmpNodes.clear();
-
+//   for(int i=0;i<tmpNodes.size();i++)
+//     nodes[i] = tmpNodes[i];
+  nodes=tmpNodes;
+  //tmpNodes.clear();
+ 
   std::vector<ot::TreeNode> leaves;
   std::vector<ot::TreeNode> minsAllBlocks;
 
-  std::cout << "before BlkPart: " << nodes.size() << std::endl; 
+  std::cout <<rank<< "before BlkPart: " << tmpNodes.size() << std::endl;
   
   
+  
+  assert(par::test::isUniqueAndSorted(nodes, comm));
   // if (nodes.size() > (1 << dim) ) {
     blockPartStage1_p2o(nodes, leaves, dim, maxDepth, comm);
     blockPartStage2_p2o(nodes, leaves, minsAllBlocks, dim, maxDepth, comm);
@@ -852,7 +862,14 @@ int points2Octree(std::vector<double>& pts, double *gLens, std::vector<TreeNode>
   //leaves will be sorted.
   std::cout << "after BlkPart: " << nodes.size() << std::endl; 
 
-    
+  /*
+  par::sampleSort<ot::TreeNode>(leaves, tmpNodes, comm);
+  leaves = tmpNodes;
+  tmpNodes.clear();
+  */
+  
+  assert(par::test::isUniqueAndSorted(leaves, comm));
+  
   p2oLocal(nodes, leaves, maxNumPts, dim, maxDepth);
 
   PROF_P2O_END
@@ -924,7 +941,8 @@ int p2oLocal(std::vector<TreeNode>& nodes, std::vector<TreeNode>& leaves,
              unsigned int maxNumPts, unsigned int dim, unsigned int maxDepth) {
   PROF_P2O_LOCAL_BEGIN;
 
-  std::cout << "entering p2o_local" << std::endl;
+  std::cout << "entering p2o_local=====" << std::endl;
+  
   
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -1005,7 +1023,7 @@ int appendCompleteRegion(TreeNode first, TreeNode second,
 
   PROF_COMPLETE_REGION_BEGIN
 
-  std::cout << "entering " << __func__ << std::endl;
+  // std::cout << "entering " << __func__ << std::endl;
   
   unsigned int dim = first.getDim();
   unsigned int maxDepth = first.getMaxDepth();
@@ -1025,6 +1043,10 @@ int appendCompleteRegion(TreeNode first, TreeNode second,
   //Add nodes > min and < max
   TreeNode nca = getNCA(min, max);
   
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  
+  // std::cout<<"Rank:"<<rank<<" NCA:"<<nca<<std::endl; 
   //
   //min.printTreeNode();
   //max.printTreeNode();
@@ -1058,10 +1080,12 @@ int appendCompleteRegion(TreeNode first, TreeNode second,
     }
     while (repeatLoop);
   } else {
-    std::cout<<"nca!=min case"<<std::endl;
+    
+    // std::cout<<"nca!=min case"<<std::endl;
     TreeNode currentNode = min;
     while (currentNode > nca) {
       TreeNode parentOfCurrent = currentNode.getParent();
+      if (!rank) std::cout<<"Rank:"<<rank<<" Parent Node:"<<parentOfCurrent<<std::endl;
       std::vector<ot::TreeNode> myBros;
       parentOfCurrent.addChildren(myBros);
       for (unsigned int i = 0; i < myBros.size(); i++) {
@@ -1071,8 +1095,12 @@ int appendCompleteRegion(TreeNode first, TreeNode second,
         if ((myBros[i] > min) &&
             (myBros[i] < max) && (!(myBros[i].isAncestor(max)))) {
           //Bottom-up here
+	  
+	  if (!rank) std::cout<<rank<<" adding to new nodes" << myBros[i] << std::endl;
           newNodes.push_back(myBros[i]);
         } else if (myBros[i].isAncestor(max)) {
+	  
+	  if (!rank) std::cout<<rank<<" Found ancesstor of max:"<<myBros[i]<<std::endl;
           //Top-down now
           //nca will be the parentOfCurrent
           //If myBros[i] is an acestor of max then
@@ -1092,11 +1120,15 @@ int appendCompleteRegion(TreeNode first, TreeNode second,
               if ((tmpChildList[j] < max) &&
                   (!(tmpChildList[j].isAncestor(max)))) {
                 newNodes.push_back(tmpChildList[j]);
-              } else if (tmpChildList[j].isAncestor(max)) {
+		if (!rank) std::cout << "Adding child " << j << " to newnode " << tmpChildList[j] << std::endl; 
+		    
+	      } else if (tmpChildList[j].isAncestor(max)) {
                 tmpAncestor = tmpChildList[j];
                 repeatLoop = true;
+		if (!rank)  std::cout<<rank<<" Repeating Loop "<<tmpAncestor.getLevel()<<std::endl;
+		
                 break;
-              }else {
+              } else {
 
 //                 if (tmpChildList[j] != max) {
 //                   std::cout << "min " << min << " " << min.getMaxDepth() << std::endl;
@@ -1108,10 +1140,17 @@ int appendCompleteRegion(TreeNode first, TreeNode second,
 //                   std::cout << " tmp < max " << status << std::endl;
 //                 }
 		std::cout<<"Invalid Case"<<std::endl;
-		std::cout<<"tmp:"<<std::endl;
-		tmpChildList[j].printTreeNode();
-		std::cout<<"max:"<<std::endl;
-		max.printTreeNode();
+		
+		std::cout<<"tmp:"<<tmpChildList[j]<<std::endl;
+		std::cout<<"max:"<<max<<std::endl;
+		TreeNode dld=tmpChildList[j].getDLD();
+		std::cout<<"DLD of the tmpChild:"<<dld<<std::endl;
+		
+		std::cout<< (tmpChildList[j]<max) <<std::endl;
+		std::cout<< (max<dld)<<std::endl;
+		
+		//max.printTreeNode();
+		
 		assert(tmpChildList[j] == max);
 		break;
               }
