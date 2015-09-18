@@ -73,6 +73,11 @@ namespace ot {
           return *this;
         }//end fn.
 
+        friend std::ostream& operator<<(std::ostream& os, NodeAndValues<T, ARR_LEN> const& other) {
+	  return (os << other.node.getX() << " " << other.node.getY() << " " << other.node.getZ() << " " << other.node.getLevel());
+	} //end fn.
+        
+        
         //@}
 
         /** @name Constructors */

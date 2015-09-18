@@ -22,6 +22,8 @@
 #include "../hilbert/hilbert.h"
 #include "../hilbert/morton.h"
 
+//#include "../visualization/treenode2vtk.h"
+
 #ifdef __DEBUG__
 #ifndef __DEBUG_TN__
 #define __DEBUG_TN__

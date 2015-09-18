@@ -10,10 +10,14 @@
 #include "TreeNode.h"
 #include <cassert>
 #include <list>
+#include <bits/algorithmfwd.h>
 #include "nodeAndValues.h"
 #include "binUtils.h"
 #include "dendro.h"
 #include "testUtils.h"
+
+#include "../../include/visualization/treenode2vtk.h"
+//#include "../../src/visualization/treenode2vtk.C"
 
 #ifdef __DEBUG__
 #ifndef __DEBUG_OCT__
@@ -724,7 +728,7 @@ int completeSubtree(TreeNode block, const std::vector<TreeNode>& inp, std::vecto
 
 } //end function
 
-int points2Octree(std::vector<double>& pts, double *gLens, std::vector<TreeNode>& nodes,
+int points2Octree(std::vector<double>& pts, double *gLens, std::vector<ot::TreeNode>& nodes,
                   unsigned int dim, unsigned int maxDepth, unsigned int maxNumPts, MPI_Comm comm) {
 
   PROF_P2O_BEGIN
@@ -752,7 +756,9 @@ int points2Octree(std::vector<double>& pts, double *gLens, std::vector<TreeNode>
     }
     PROF_P2O_END
   }
-
+  
+  
+  
   unsigned int ptsLen = pts.size();
   assert((dim == 1) || (dim == 2) || (dim == 3));
   assert((ptsLen % dim) == 0);
@@ -831,12 +837,15 @@ int points2Octree(std::vector<double>& pts, double *gLens, std::vector<TreeNode>
   pts.clear();
 
   //Sort nodes (pts.) and partition them.
+//   std::string vtk_file_name="bfSampleSort";
+//   treeNodesTovtk(nodes,rank,vtk_file_name);
+  
   std::cout <<rank<< "before sample sort: " << nodes.size() << std::endl;
   std::vector<ot::TreeNode> tmpNodes;
   par::sampleSort<ot::TreeNode>(nodes, tmpNodes, comm);
-  //std::sort(nodes.begin(),nodes.end());
+  std::cout <<rank<< "after sample sort: " << tmpNodes.size() << std::endl;
   // @milinda check if the array is sorted properly
-  assert(par::test::isUniqueAndSorted(tmpNodes, comm)); // at this points arrays are sorted and unique checked : done
+  //assert(par::test::isSorted(nodes, comm)); // at this points arrays are sorted and unique checked : done
   nodes.clear();
 
 //   for(int i=0;i<tmpNodes.size();i++)
@@ -847,11 +856,11 @@ int points2Octree(std::vector<double>& pts, double *gLens, std::vector<TreeNode>
   std::vector<ot::TreeNode> leaves;
   std::vector<ot::TreeNode> minsAllBlocks;
 
-  std::cout <<rank<< "before BlkPart: " << tmpNodes.size() << std::endl;
+  std::cout <<rank<< "before BlkPart: " << nodes.size() << std::endl;
   
   
   
-  assert(par::test::isUniqueAndSorted(nodes, comm));
+  //assert(par::test::isUniqueAndSorted(nodes, comm));
   // if (nodes.size() > (1 << dim) ) {
     blockPartStage1_p2o(nodes, leaves, dim, maxDepth, comm);
     blockPartStage2_p2o(nodes, leaves, minsAllBlocks, dim, maxDepth, comm);

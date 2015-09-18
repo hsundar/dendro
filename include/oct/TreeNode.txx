@@ -198,7 +198,7 @@ inline bool TreeNode  :: operator  <(TreeNode   const& other)  const {
   #ifdef HILBERT_ORDERING
     #undef HILBERT_ORDERING
   #endif
-   #define HILBERT_ORDERING
+#define MORTON_ORDERING
   #define USE_NCA_PROPERTY
    
 #ifdef HILBERT_ORDERING

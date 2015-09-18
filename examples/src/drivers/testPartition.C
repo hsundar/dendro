@@ -12,7 +12,7 @@
 #include "externVars.h"
 #include "dendro.h"
 #include "../../include/hilbert/rotation.h"
-
+#include "../../include/visualization/treenode2vtk.h"
 
 //Don't want time to be synchronized. Need to check load imbalance.
 #ifdef MPI_WTIME_IS_GLOBAL
@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
   unsigned int ptsLen;
   unsigned int maxNumPts = 1;
   unsigned int dim = 3;
-  unsigned int maxDepth = 10;
+  unsigned int maxDepth = 4;
   double gSize[3];
   //initializeHilbetTable(2);
   initializeHilbetTable(3);
@@ -73,6 +73,9 @@ int main(int argc, char **argv) {
   if (!rank) {
     std::cout << " finished reading  " << ptsFileName << std::endl; // Point size
   }
+  
+  
+  
   MPI_Barrier(MPI_COMM_WORLD);
 
   
@@ -104,7 +107,8 @@ int main(int argc, char **argv) {
   }
   pts.clear();
   
-   std::cout << rank << ": read " << tmpNodes.size() << " points" << std::endl;
+  std::cout << rank << ": read " << tmpNodes.size() << " points" << std::endl;
+  treeNodesTovtk(tmpNodes,rank,"vtkTreeNode");
   
   par::removeDuplicates<ot::TreeNode>(tmpNodes, false, MPI_COMM_WORLD);
   

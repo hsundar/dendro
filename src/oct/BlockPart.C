@@ -53,6 +53,8 @@ namespace ot {
     append_complete_region.push_back(nodes[0]);
     append_complete_region.push_back(nodes[nodes.size()-1]);
     
+    std::sort(nodes.begin(),nodes.end());
+    
     assert(par::test::isUniqueAndSorted(nodes,comm));    
     assert(nodes[0]<nodes[nodes.size()-1]);
     

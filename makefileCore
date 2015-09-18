@@ -1,6 +1,6 @@
-INCLUDE=-I./include -I./include/oct -I./include/fem -I./include/oda  -I./include/omg  -I./include/seq  -I./include/par  -I./include/omp_par  -I./include/point  -I./include/test -I./include/binOps -I./include/pc -I./include/sys -I./examples/include -I./include/hilbert ${PETSC_CC_INCLUDES}
+INCLUDE=-I./include -I./include/oct -I./include/fem -I./include/oda  -I./include/omg  -I./include/seq  -I./include/par  -I./include/omp_par  -I./include/point  -I./include/test -I./include/binOps -I./include/pc -I./include/sys -I./examples/include -I./include/hilbert -I./include/visualization ${PETSC_CC_INCLUDES}
 
-ARCHIVES = ./lib/libOMG.a ./lib/libODA.a ./lib/libTest.a ./lib/libOct.a ./lib/libPar.a   ./lib/libPoint.a ./lib/libBinOps.a ./lib/libSys.a ./lib/libPC.a ./lib/libHilbert.a
+ARCHIVES = ./lib/libOMG.a ./lib/libODA.a ./lib/libTest.a ./lib/libOct.a ./lib/libPar.a   ./lib/libPoint.a ./lib/libBinOps.a ./lib/libSys.a ./lib/libPC.a ./lib/libHilbert.a ./lib/libVisualization.a
 
 # LIBS = -L./lib -lOMG -lODA -lOct -lPar -lPoint -lTest -lBinOps -lSys -lPC ${PETSC_LIB} 
 LIBS = ${PETSC_LIB}
@@ -44,12 +44,17 @@ core : $(ARCHIVES)
 ./src/%.o: ./src/%.$(CEXT)
 	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 
+	
 ./src/pc/%.o: ./src/pc/%.$(CEXT)
 	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
-
+	
+./src/visualization/%.o: ./src/visualization/%.$(CEXT)
+	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+	
 ./src/oct/%.o: ./src/oct/%.$(CEXT)
 	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 
+	
 ./src/oct/TreeNode_txx.o: ./include/oct/TreeNode.txx
 	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 	
@@ -67,6 +72,8 @@ core : $(ARCHIVES)
 
 ./src/hilbert/%.o: ./src/hilbert/%.$(CEXT)
 	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+
+
 	
 ./src/par/%.o: ./src/par/%.$(CEXT)
 	$(PCC) -c $(CFLAGS) $(INCLUDE) $< -o $@
@@ -95,7 +102,11 @@ core : $(ARCHIVES)
 ./lib/libODA.a :  ./src/oda/private/odaBuildNlist.o ./src/oda/private/odaFactory.o ./src/oda/odaPartition.o ./src/oda/oda.o ./src/oda/odaUtils.o
 	${AR} ${AR_FLAGS} $@ $^
 	${RANLIB} $@
-
+	
+./lib/libVisualization.a :  ./src/visualization/treenode2vtk.o
+	${AR} ${AR_FLAGS} $@ $^
+	${RANLIB} $@
+	
 ./lib/libOct.a :  ./src/oct/TreeNode.o ./src/oct/TreeNodePointer.o ./src/oct/OctFunctions.o ./src/oct/Balance.o ./src/oct/BlockPart.o ./src/oct/Coarsen.o ./src/oct/Construct.o ./src/oct/pickBdy.o
 	${AR} ${AR_FLAGS} $@ $^
 	${RANLIB} $@
@@ -111,7 +122,7 @@ core : $(ARCHIVES)
 ./lib/libHilbert.a :  ./src/hilbert/hilbert.o ./src/hilbert/morton.o ./src/hilbert/rotation.o ./src/hilbert/sfc.o
 	${AR} ${AR_FLAGS} $@ $^
 	${RANLIB} $@
-	
+
 ./lib/libPoint.a :  ./src/point/Point.o 
 	${AR} ${AR_FLAGS} $@ $^
 	${RANLIB} $@

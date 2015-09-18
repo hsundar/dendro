@@ -16,7 +16,7 @@
 #include <algorithm>
 #include "dendro.h"
 #include "ompUtils.h"
-
+#include "../oct/TreeNode.h"
 #ifdef __DEBUG__
 #ifndef __DEBUG_PAR__
 #define __DEBUG_PAR__
@@ -1405,8 +1405,11 @@ namespace par {
       PROF_REMDUP_END
     }//end function
 
-  template<typename T>
-    int sampleSort(std::vector<T>& arr, std::vector<T> & SortedElem, MPI_Comm comm){ 
+    
+    
+template<typename T>
+int sampleSort(std::vector<T>& arr, std::vector<T> & SortedElem, MPI_Comm comm){ 
+   // std::cout<<"Sample Sort Execution Begin"<<std::endl;
 #ifdef __PROFILE_WITH_BARRIER__
       MPI_Barrier(comm);
 #endif
@@ -1420,7 +1423,7 @@ namespace par {
       int rank;
       MPI_Comm_rank(comm, &rank);
       
-      std::cout << rank << " : " << __func__ << arr.size() << std::endl;
+      //std::cout << rank << "Nodes Input : " << __func__ << arr.size() << std::endl;
       
       //--
       
@@ -1444,6 +1447,7 @@ namespace par {
       DendroIntL nelem = arr.size();
       DendroIntL nelemCopy = nelem;
       DendroIntL totSize;
+      /*Calculating the total size of elements*/
       par::Mpi_Allreduce<DendroIntL>(&nelemCopy, &totSize, 1, MPI_SUM, comm);
 
       DendroIntL npesLong = npes;
@@ -1454,7 +1458,7 @@ namespace par {
           std::cout <<" Using bitonic sort since totSize < (5*(npes^2)). totSize: "
             <<totSize<<" npes: "<<npes <<std::endl;
         }
-        par::partitionW<T>(arr, NULL, comm);
+        	
 
 #ifdef __DEBUG_PAR__
         MPI_Barrier(comm);
@@ -1509,8 +1513,8 @@ namespace par {
       par::partitionW<T>(arr, NULL, comm);
 
       nelem = arr.size();
-
-//      std::sort(arr.begin(),arr.end());
+     
+      // std::sort(arr.begin(),arr.end());
       omp_par::merge_sort(arr.begin(),arr.end());
 
       std::vector<T> sendSplits(npes-1);
@@ -1521,8 +1525,13 @@ namespace par {
         sendSplits[i-1] = arr[i*nelem/npes];        
       }//end for i
 
+      //std::cout << myrank << ": snedSplit " << sendSplits[0] << "  ||||  " <<  sendSplits[1] << std::endl;
+      //NOTE: @hari fails for npes=2
       // sort sendSplits using bitonic ...
       par::bitonicSort<T>(sendSplits,comm);
+      
+      
+      //std::cout << myrank << ": afterBitonic " << sendSplits[0] << "  ||||  " <<  sendSplits[1] << std::endl;
 
       // All gather with last element of splitters.
       T* sendSplitsPtr = NULL;
@@ -1535,6 +1544,12 @@ namespace par {
       }
       par::Mpi_Allgather<T>(sendSplitsPtr, splittersPtr, 1, comm);
 
+
+//       std::cout<<"Rank:"<<rank<<" :splittersPtr Size"<<sizeof(splittersPtr)<<std::endl;
+//       //for(int i=0;i<sizeof(splittersPtr);i++){
+// 	  std::cout<<"Rank:"<<rank<<":"<<(splittersPtr->m_uiX)<<std::endl;
+	  //splittersPtr[i].printTreeNode();
+      //}
       sendSplits.clear();
 
       int *sendcnts = new int[npes];
@@ -1661,7 +1676,7 @@ namespace par {
       delete [] rdispls;
       rdispls = NULL;
 
-//      sort(SortedElem.begin(), SortedElem.end());
+      // sort(SortedElem.begin(), SortedElem.end());
       omp_par::merge_sort(&SortedElem[0], &SortedElem[nsorted]);
 
       PROF_SORT_END
