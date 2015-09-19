@@ -302,7 +302,7 @@ namespace ot {
 
 #ifdef __DEBUG_DA_PUBLIC__
     if ( m_ucpOctLevels[m_uiCurrent] & ot::TreeNode::BOUNDARY ) {
-      std::cerr << RED"ERROR, Boundary eleme in incre Curr offset"NRM << std::endl;
+      std::cerr << RED "ERROR, Boundary eleme in incre Curr offset" NRM << std::endl;
       assert(false);
     }
 #endif

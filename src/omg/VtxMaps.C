@@ -15,6 +15,7 @@ namespace ot {
       unsigned short *****&map3, unsigned short ******&map4) {
 
     FILE* infile;
+    int res;
     char fname[100];
     sprintf(fname,"vtxMap.inp");
     infile = fopen(fname,"r");
@@ -38,7 +39,7 @@ namespace ot {
         for(int eTypeCoarse = 0; eTypeCoarse < 18; eTypeCoarse++) {
           map1[fineElemNum][cNumCoarse][eTypeCoarse] = new unsigned short[8];
           for(int vCtr = 0; vCtr < 8; vCtr++) {
-            fscanf(infile,"%hu",
+            res = fscanf(infile,"%hu",
                 &(map1[fineElemNum][cNumCoarse][eTypeCoarse][vCtr]));
           }
         }
@@ -51,7 +52,7 @@ namespace ot {
           for(int eTypeCoarse = 0; eTypeCoarse < 18; eTypeCoarse++) {
             map2[fineElemNum][cNumFine][cNumCoarse][eTypeCoarse] = new unsigned short[8];
             for(int vCtr = 0; vCtr < 8; vCtr++) {
-              fscanf(infile,"%hu",
+              res = fscanf(infile,"%hu",
                   &(map2[fineElemNum][cNumFine][cNumCoarse][eTypeCoarse][vCtr]));
             }
           }
@@ -71,7 +72,7 @@ namespace ot {
           for(int eTypeCoarse = 0; eTypeCoarse < 18; eTypeCoarse++) {
             map3[fineElemNum][scalingCtr][cNumCoarse][eTypeCoarse] =new unsigned short[8];
             for(int vCtr = 0; vCtr < 8; vCtr++) {
-              fscanf(infile,"%hu",
+              res = fscanf(infile,"%hu",
                   &(map3[fineElemNum][scalingCtr][cNumCoarse][eTypeCoarse][vCtr]));
             }
           }
@@ -84,7 +85,7 @@ namespace ot {
             for(int eTypeCoarse = 0; eTypeCoarse < 18; eTypeCoarse++) {
               map4[fineElemNum][scalingCtr][cNumFine][cNumCoarse][eTypeCoarse] = new unsigned short[8];
               for(int vCtr = 0; vCtr < 8; vCtr++) {
-                fscanf(infile,"%hu",
+                res = fscanf(infile,"%hu",
                     &(map4[fineElemNum][scalingCtr][cNumFine][cNumCoarse][eTypeCoarse][vCtr]));
               }
             }
@@ -101,6 +102,7 @@ namespace ot {
       unsigned short *****&map3, unsigned short ******&map4, int rank) {
 
     FILE* infile;
+    int res;
     char fname[250];
     sprintf(fname,"vtxMap_%d.inp", rank);
     infile = fopen(fname,"r");
@@ -124,7 +126,7 @@ namespace ot {
         for(int eTypeCoarse = 0; eTypeCoarse < 18; eTypeCoarse++) {
           map1[fineElemNum][cNumCoarse][eTypeCoarse] = new unsigned short[8];
           for(int vCtr = 0; vCtr < 8; vCtr++) {
-            fscanf(infile,"%hu",
+            res = fscanf(infile,"%hu",
                 &(map1[fineElemNum][cNumCoarse][eTypeCoarse][vCtr]));
           }
         }
@@ -137,7 +139,7 @@ namespace ot {
           for(int eTypeCoarse = 0; eTypeCoarse < 18; eTypeCoarse++) {
             map2[fineElemNum][cNumFine][cNumCoarse][eTypeCoarse] = new unsigned short[8];
             for(int vCtr = 0; vCtr < 8; vCtr++) {
-              fscanf(infile,"%hu",
+              res = fscanf(infile,"%hu",
                   &(map2[fineElemNum][cNumFine][cNumCoarse][eTypeCoarse][vCtr]));
             }
           }
@@ -157,7 +159,7 @@ namespace ot {
           for(int eTypeCoarse = 0; eTypeCoarse < 18; eTypeCoarse++) {
             map3[fineElemNum][scalingCtr][cNumCoarse][eTypeCoarse] =new unsigned short[8];
             for(int vCtr = 0; vCtr < 8; vCtr++) {
-              fscanf(infile,"%hu",
+              res = fscanf(infile,"%hu",
                   &(map3[fineElemNum][scalingCtr][cNumCoarse][eTypeCoarse][vCtr]));
             }
           }
@@ -170,7 +172,7 @@ namespace ot {
             for(int eTypeCoarse = 0; eTypeCoarse < 18; eTypeCoarse++) {
               map4[fineElemNum][scalingCtr][cNumFine][cNumCoarse][eTypeCoarse] = new unsigned short[8];
               for(int vCtr = 0; vCtr < 8; vCtr++) {
-                fscanf(infile,"%hu",
+                res = fscanf(infile,"%hu",
                     &(map4[fineElemNum][scalingCtr][cNumFine][cNumCoarse][eTypeCoarse][vCtr]));
               }
             }

@@ -1779,7 +1779,7 @@ namespace ot {
 
   int createShapeFnCoeffs_Type3(MPI_Comm comm) {
     FILE* infile;
-    int rank;
+    int rank, res;
     MPI_Comm_rank(comm, &rank); 
     char fname[250];
     sprintf(fname,"ShapeFnCoeffs_%d.inp", rank);
@@ -1801,7 +1801,7 @@ namespace ot {
         for(unsigned int i = 0; i < 8; i++) {
           ShapeFnCoeffs[cNum][eType][i] = new double[8];
           for(unsigned int j = 0; j < 8; j++) {
-            fscanf(infile,"%lf",&(ShapeFnCoeffs[cNum][eType][i][j]));
+            res = fscanf(infile,"%lf",&(ShapeFnCoeffs[cNum][eType][i][j]));
           }
         }
       }
@@ -1814,7 +1814,7 @@ namespace ot {
   int createShapeFnCoeffs_Type2(MPI_Comm comm) {
     FILE* infile;
 
-    int rank, npes;
+    int rank, npes, res;
     MPI_Comm_rank(comm, &rank);
     MPI_Comm_size(comm, &npes);
 
@@ -1869,7 +1869,7 @@ namespace ot {
           ShapeFnCoeffs[cNum][eType][i] = new double[8];
           if((rank % THOUSAND) == 0){
             for(unsigned int j = 0; j < 8; j++) {
-              fscanf(infile,"%lf",&(ShapeFnCoeffs[cNum][eType][i][j]));
+              res = fscanf(infile,"%lf",&(ShapeFnCoeffs[cNum][eType][i][j]));
             }
           }
         }
@@ -1920,7 +1920,7 @@ namespace ot {
 
   int createShapeFnCoeffs_Type1(MPI_Comm comm) {
     FILE* infile;
-    int rank;
+    int rank, res;
     MPI_Comm_rank(comm, &rank);
     if(!rank) {
       char fname[250];
@@ -1945,7 +1945,7 @@ namespace ot {
           ShapeFnCoeffs[cNum][eType][i] = new double[8];
           if(!rank){
             for(unsigned int j = 0; j < 8; j++) {
-              fscanf(infile,"%lf",&(ShapeFnCoeffs[cNum][eType][i][j]));
+              res = fscanf(infile,"%lf",&(ShapeFnCoeffs[cNum][eType][i][j]));
             }
           }
         }

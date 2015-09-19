@@ -312,16 +312,17 @@ namespace ot {
 
   int readPtsFromFile(char* filename, std::vector<double>& pts) {
     FILE* infile;
+    size_t res;
     infile = fopen(filename,"rb");
     unsigned int temp;
-    fread(&temp,sizeof(unsigned int),1,infile);
+    res = fread(&temp,sizeof(unsigned int),1,infile);
 
     double* ptsTemp = NULL;
 
     if(temp) {
       ptsTemp = new double[3*temp];
       assert(ptsTemp);
-      fread(ptsTemp, sizeof(double),3*temp,infile);
+      res = fread(ptsTemp, sizeof(double),3*temp,infile);
     }
 
     fclose(infile);
@@ -348,19 +349,20 @@ namespace ot {
     // N*8 weights attached to points (double)
     // 
     FILE* infile;
+    size_t res;
     unsigned int temp;
 
     assert(sizeof(double)==8);
     assert(sizeof(unsigned int)==4);
 
     infile = fopen(filename,"rb");
-    fread(&temp,sizeof(unsigned int),1,infile);
+    res = fread(&temp,sizeof(unsigned int),1,infile);
 
     pts.resize(3*temp);
     ptVals.resize(temp);
 
-    fread(&(pts[0]), sizeof(double),3*temp,infile);
-    fread(&(ptVals[0]), sizeof(double),temp,infile);
+    res = fread(&(pts[0]), sizeof(double),3*temp,infile);
+    res = fread(&(ptVals[0]), sizeof(double),temp,infile);
 
     fclose(infile);
 
@@ -401,20 +403,21 @@ namespace ot {
   }//end function
 
   int readNodesFromFile (char* filename, std::vector<TreeNode > & nodes) {
+    int res;
     FILE* infile = fopen(filename,"r");
     unsigned int numNode;
     unsigned int dim, maxDepth;
-    fscanf(infile,"%u",&dim);
-    fscanf(infile,"%u",&maxDepth); 
-    fscanf(infile,"%u",&numNode);
+    res = fscanf(infile,"%u",&dim);
+    res = fscanf(infile,"%u",&maxDepth); 
+    res = fscanf(infile,"%u",&numNode);
     nodes.resize(numNode) ;   
 
     for (unsigned int i =0; i< nodes.size(); i++) {
       unsigned int x,y,z,d;
-      fscanf(infile,"%u",&x);
-      fscanf(infile,"%u",&y);
-      fscanf(infile,"%u",&z);
-      fscanf(infile,"%u",&d); 
+      res = fscanf(infile,"%u",&x);
+      res = fscanf(infile,"%u",&y);
+      res = fscanf(infile,"%u",&z);
+      res = fscanf(infile,"%u",&d); 
       nodes[i] = ot::TreeNode (x,y,z,d, dim, maxDepth);
     }
     fclose(infile);

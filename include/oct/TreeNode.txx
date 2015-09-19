@@ -203,18 +203,18 @@ inline bool TreeNode  :: operator  <(TreeNode   const& other)  const {
    
 #ifdef HILBERT_ORDERING
   #ifdef USE_NCA_PROPERTY
-    #pragma message GRN"Hilbert NCA \e[0m"
+//    #pragma message GRN"Hilbert NCA \e[0m"
     return hilbert_order_NCA(p1,p2);
   #else
-    #pragma message GRN"Hilbert \e[0m"
+//    #pragma message GRN"Hilbert \e[0m"
     return hilbert_order(p1,p2);
   #endif
 #else 
   #ifdef USE_NCA_PROPERTY
-    #pragma message(RED"Morton NCA\e[0m")
+//    #pragma message(RED "Morton NCA\e[0m")
     return morton_order_NCA(p1,p2);
   #else 
-    #pragma message(RED"Morton \e[0m")
+//    #pragma message(RED"Morton \e[0m")
     return morton_order(p1,p2);
   #endif
 #endif

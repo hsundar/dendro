@@ -5,12 +5,12 @@ project(dendro)
 set (Dendro_VERSION_MAJOR 4)
 set (Dendro_VERSION_MINOR 0)
 
-# so that it canfind PETSc
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
+
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 
 find_package(OpenMP REQUIRED)
 find_package(MPI REQUIRED)
-find_package(PETSc COMPONENTS CXX)
 
 if(OPENMP_FOUND)
   set ($CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -44,7 +44,8 @@ include_directories(${MPI_INCLUDE_PATH}
                     examples/include 
                     include/hilbert 
                     include/visualization 
-                    ${PETSC_INCLUDES}
+                    $ENV{PETSC_DIR}/include 
+                    $ENV{PETSC_DIR}/$ENV{PETSC_ARCH}/include 
                     )
 
 # Sources

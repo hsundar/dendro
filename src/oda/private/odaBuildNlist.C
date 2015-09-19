@@ -151,7 +151,7 @@ void DA::buildNodeList(std::vector<ot::TreeNode> &in) {
 #ifdef __DEBUG_DA_NLIST__
       if ( !ch_num || (ch_num==7) ) {
         if ( !(in[i].getFlag() & ot::TreeNode::NODE) ) {
-          std::cerr << RED"Nodes are marked wrongly "NRM << std::endl;
+          std::cerr << RED "Nodes are marked wrongly " NRM << std::endl;
           assert(false);
         }
       }

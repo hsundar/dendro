@@ -1114,7 +1114,7 @@ namespace ot {
 #endif
 #ifdef __DEBUG_DA__    
     if ( m_ucpLutMasksPtr[2*m_uiCurrent+1] == ot::DA_FLAGS::FOREIGN ) {
-      std::cerr << RED"Passing foreign mask for index "NRM << m_uiCurrent << std::endl;
+      std::cerr << RED "Passing foreign mask for index " NRM << m_uiCurrent << std::endl;
       assert(false);
     }
 #endif    
@@ -3745,7 +3745,7 @@ namespace ot {
 #ifdef __DEBUG_DA__
       for ( unsigned int i=0; i<8; i++) {
         if (nodes[i] >= m_uiLocalBufferSize) {
-          std::cout << m_iRankActive << RED" Node index is out of bounds( "<<nodes[i]<<" ) for element "NRM<< m_uiCurrent << std::endl;
+          std::cout << m_iRankActive << RED " Node index is out of bounds( "<<nodes[i]<<" ) for element " NRM<< m_uiCurrent << std::endl;
           std::cout << m_iRankActive << " preElem: "<<m_uiPreGhostElementSize<<" elemBeg: "<<m_uiElementBegin<<" elemEnd: "<<m_uiElementEnd<<" postBeg: "<<m_uiPostGhostBegin<<" bufSz: "<<m_uiLocalBufferSize << std::endl;
           std::cout<<"CNum: "<<this->getChildNumber()<<std::endl;
           std::cout<<"nlist after decompression..."<<std::endl;

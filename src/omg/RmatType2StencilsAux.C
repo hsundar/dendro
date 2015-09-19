@@ -17,6 +17,7 @@ namespace ot {
     typedef double** double2Ptr;
     typedef double* doublePtr;
     FILE* infile;
+    int res;
     char fname[100];
     sprintf(fname,"RmatType2Stencils.inp");
     infile = fopen(fname,"r");
@@ -32,7 +33,7 @@ namespace ot {
         for(int m=0;m<8;m++) {
           lut[j][k][m] = new double[8];
           for(int n=0;n<8;n++) {
-            fscanf(infile,"%lf",&(lut[j][k][m][n]));
+            res = fscanf(infile,"%lf",&(lut[j][k][m][n]));
           }//end for n
         }//end for m
       }//end for k
@@ -47,6 +48,7 @@ namespace ot {
     typedef double** double2Ptr;
     typedef double* doublePtr;
     FILE* infile;
+    int res;
     char fname[250];
     sprintf(fname,"RmatType2Stencils_%d.inp", rank);
     infile = fopen(fname,"r");
@@ -62,7 +64,7 @@ namespace ot {
         for(int m=0;m<8;m++) {
           lut[j][k][m] = new double[8];
           for(int n=0;n<8;n++) {
-            fscanf(infile,"%lf",&(lut[j][k][m][n]));
+            res = fscanf(infile,"%lf",&(lut[j][k][m][n]));
           }//end for n
         }//end for m
       }//end for k
