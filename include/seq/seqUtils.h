@@ -91,7 +91,7 @@ namespace seq {
 
 }//end namespace
 
-#include "seqUtils.txx"
+#include "seqUtils.tcc"
 
 #endif
 

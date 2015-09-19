@@ -442,7 +442,7 @@ namespace ot {
 
 }//end namespace
 
-#include "TreeNode.txx"
+#include "TreeNode.tcc"
 
 namespace par {
 

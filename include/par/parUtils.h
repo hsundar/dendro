@@ -562,9 +562,9 @@ namespace par {
 }//end namespace
 
 #ifdef USE_OLD_SORT
-#include "parUtils_old.txx"
+#include "parUtils_old.tcc"
 #else
-#include "parUtils.txx"
+#include "parUtils.tcc"
 #endif
 
 #endif
