@@ -1,4 +1,4 @@
-#include "../../include/hilbert/sfc.h"
+#include "sfc.h"
 
 int G_MAX_DEPTH=0;
 int G_dim=0;

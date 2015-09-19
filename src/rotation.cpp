@@ -1,4 +1,4 @@
-#include "../../include/hilbert/rotation.h"
+#include "rotation.h"
 
 std::vector<Rotation3D> rotations_3d;
 std::vector<Rotation2D> rotations_2d;

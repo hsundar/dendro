@@ -9,7 +9,7 @@
 /*
  * Recursive Hilbert order implementation. 2D and 3D
  */
-#include "../../include/hilbert/hilbert.h"
+#include "hilbert.h"
 
 int findIndex(Point * pt, int x, int y, int z,int len)
 {

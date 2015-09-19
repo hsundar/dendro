@@ -13,10 +13,6 @@
 #include "colors.h"
 #include <cassert>
 
-#include "../hilbert/hilbert.h"
-#include "../hilbert/morton.h"
-//#include "../hilbert/rotation.h"
-
 
 #define SWAP(a, b) ((&(a) == &(b)) || \
                     (((a) -= (b)), ((b) += (a)), ((a) = (b) - (a))))

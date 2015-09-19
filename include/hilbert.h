@@ -4,7 +4,7 @@
 #include<iostream>
 
 #include "sfc.h"
-#include "../binOps/binUtils.h"
+#include "binUtils.h"
 #include "rotation.h"
 
 

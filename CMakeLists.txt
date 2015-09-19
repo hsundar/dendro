@@ -48,12 +48,8 @@ include_directories(${MPI_INCLUDE_PATH}
                     include/omp_par
                     include/point 
                     include/test 
-                    include/binOps 
                     include/pc 
-                    include/sys 
                     examples/include 
-                    include/hilbert 
-                    include/visualization 
                     $ENV{PETSC_DIR}/include 
                     $ENV{PETSC_DIR}/$ENV{PETSC_ARCH}/include 
                     )
@@ -65,23 +61,26 @@ file(GLOB OMG_SOURCES src/omg/*.C)
 file(GLOB ODA_SOURCES src/oda/*.C)
 file(GLOB ODA_PRIVATE_SOURCES src/oda/private/*.C)
 file(GLOB OCT_SOURCES src/oct/*.C)
-file(GLOB HILBERT_SOURCES src/hilbert/*.cpp)
+#file(GLOB HILBERT_SOURCES src/hilbert/*.cpp)
 
+file(GLOB DENDRO_SOURCES src/*.cpp)
+file(GLOB DENDRO_HEADERS include/*.h)
+file(GLOB DENDRO_TEMPLATES include/*.tcc)
 
 #### Libraries ...
-set(DENDRO_LIBS OMG ODA Test Oct Par Point BinOps Sys PC Hilbert Viz)
+set(DENDRO_LIBS OMG ODA Test Oct Par Point dendro PC)
+
 add_library(OMG ${OMG_SOURCES})
 add_library(ODA ${ODA_SOURCES} ${ODA_PRIVATE_SOURCES})
-add_library(Viz src/visualization/treenode2vtk.C)
 add_library(Oct ${OCT_SOURCES})
 add_library(Par src/par/parUtils.C)
-add_library(BinOps src/binOps/binUtils.C)
-add_library(Hilbert ${HILBERT_SOURCES})
 add_library(Point src/point/Point.C)
 add_library(Test src/test/testUtils.C)
-add_library(Sys src/sys/sys.C)
 add_library(PC src/pc/blockDiag.C)
 
+add_library(dendro ${DENDRO_SOURCES} 
+                   ${DENDRO_HEADERS}
+                   ${DENDRO_TEMPLATES})
 
 ## executables 
 
@@ -131,3 +130,4 @@ target_link_libraries(testPartition ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
 ##---------------------------------------------------------------------------------------
 #add_executable(justBal examples/src/drivers/)
 #target_link_libraries( ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
+

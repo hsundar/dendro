@@ -13,7 +13,7 @@
  * This is the current implementation in the dendro. 
  */
 
-#include "../../include/hilbert/morton.h"
+#include "morton.h"
 
 bool morton_order(Point p1, Point p2)
 {

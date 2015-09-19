@@ -1,4 +1,4 @@
-#include "../../include/visualization/treenode2vtk.h"
+#include "treenode2vtk.h"
 
 void treeNodesTovtk(std::vector<ot::TreeNode>& nodes,int mpi_rank,std::string vtk_file_name)
 {

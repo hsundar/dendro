@@ -16,8 +16,7 @@
 #include "dendro.h"
 #include "testUtils.h"
 
-#include "../../include/visualization/treenode2vtk.h"
-//#include "../../src/visualization/treenode2vtk.C"
+#include "treenode2vtk.h"
 
 #ifdef __DEBUG__
 #ifndef __DEBUG_OCT__
