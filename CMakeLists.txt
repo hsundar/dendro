@@ -8,13 +8,23 @@ set (Dendro_VERSION_MINOR 0)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 find_package(OpenMP REQUIRED)
 find_package(MPI REQUIRED)
 
 if(OPENMP_FOUND)
-  set ($CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-  set ($CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+endif()
+
+if(MPI_COMPILE_FLAGS)
+  set(COMPILE_FLAGS "${COMPILE_FLAGS} ${MPI_COMPILE_FLAGS}")
+endif()
+
+if(MPI_LINK_FLAGS)
+  set(LINK_FLAGS "${LINK_FLAGS} ${MPI_LINK_FLAGS}")
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -48,6 +58,8 @@ include_directories(${MPI_INCLUDE_PATH}
                     $ENV{PETSC_DIR}/$ENV{PETSC_ARCH}/include 
                     )
 
+link_directories($ENV{PETSC_DIR}/$ENV{PETSC_ARCH}/lib)
+
 # Sources
 file(GLOB OMG_SOURCES src/omg/*.C)
 file(GLOB ODA_SOURCES src/oda/*.C)
@@ -57,7 +69,7 @@ file(GLOB HILBERT_SOURCES src/hilbert/*.cpp)
 
 
 #### Libraries ...
-add_library(sys src/sys/sys.C)
+set(DENDRO_LIBS OMG ODA Test Oct Par Point BinOps Sys PC Hilbert Viz)
 add_library(OMG ${OMG_SOURCES})
 add_library(ODA ${ODA_SOURCES} ${ODA_PRIVATE_SOURCES})
 add_library(Viz src/visualization/treenode2vtk.C)
@@ -67,6 +79,13 @@ add_library(BinOps src/binOps/binUtils.C)
 add_library(Hilbert ${HILBERT_SOURCES})
 add_library(Point src/point/Point.C)
 add_library(Test src/test/testUtils.C)
+add_library(Sys src/sys/sys.C)
+add_library(PC src/pc/blockDiag.C)
 
-##------
 
+## executables 
+add_executable(genGauss scripts/genGaussSeq.C)
+add_executable(splitPoints scripts/splitPoints.C)
+
+add_executable(testRipple examples/src/drivers/tstRipple.C)
+target_link_libraries(testRipple ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m) 
