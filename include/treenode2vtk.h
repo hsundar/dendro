@@ -1,8 +1,8 @@
 #ifndef TREENODE22VTK
 #define TREENODE22VTK
 
-#include "../oct/TreeNode.h"
-#include "../point/Point.h"
+#include "TreeNode.h"
+#include "Point.h"
 
 
 #include <iostream>

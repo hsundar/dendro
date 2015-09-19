@@ -5,7 +5,7 @@
 #include<iostream>
 #include<vector>
 
-#include "../point/Point.h"
+#include "Point.h"
 
 #define SWAP(a, b) ((&(a) == &(b)) || \
                     (((a) -= (b)), ((b) += (a)), ((a) = (b) - (a))))

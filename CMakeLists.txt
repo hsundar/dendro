@@ -43,10 +43,6 @@ include_directories(${MPI_INCLUDE_PATH}
                     include/fem
                     include/oda 
                     include/omg 
-                    include/seq 
-                    include/par 
-                    include/omp_par
-                    include/point 
                     include/test 
                     include/pc 
                     examples/include 
@@ -68,13 +64,11 @@ file(GLOB DENDRO_HEADERS include/*.h)
 file(GLOB DENDRO_TEMPLATES include/*.tcc)
 
 #### Libraries ...
-set(DENDRO_LIBS OMG ODA Test Oct Par Point dendro PC)
+set(DENDRO_LIBS OMG ODA Test Oct dendro PC)
 
 add_library(OMG ${OMG_SOURCES})
 add_library(ODA ${ODA_SOURCES} ${ODA_PRIVATE_SOURCES})
 add_library(Oct ${OCT_SOURCES})
-add_library(Par src/par/parUtils.C)
-add_library(Point src/point/Point.C)
 add_library(Test src/test/testUtils.C)
 add_library(PC src/pc/blockDiag.C)
 
