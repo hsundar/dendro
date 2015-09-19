@@ -84,8 +84,50 @@ add_library(PC src/pc/blockDiag.C)
 
 
 ## executables 
+
+##---------------------------------------------------------------------------------------
+##  Helper APPS - No dendro
+##---------------------------------------------------------------------------------------
 add_executable(genGauss scripts/genGaussSeq.C)
 add_executable(splitPoints scripts/splitPoints.C)
+##---------------------------------------------------------------------------------------
 
+
+
+##---------------------------------------------------------------------------------------
+## 2:1-Balance Apps 
+##---------------------------------------------------------------------------------------
 add_executable(testRipple examples/src/drivers/tstRipple.C)
-target_link_libraries(testRipple ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m) 
+target_link_libraries(testRipple ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
+
+add_executable(runScal examples/src/drivers/runScal.C)
+target_link_libraries(runScal ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
+
+add_executable(rippleBal examples/src/drivers/rippleBal.C)
+target_link_libraries(rippleBal ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
+
+add_executable(seqRipple examples/src/drivers/seqRipple.C)
+target_link_libraries(seqRipple ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
+
+add_executable(seqRipplePtr examples/src/drivers/seqRipplePtr.C)
+target_link_libraries(seqRipplePtr ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
+
+add_executable(justBal examples/src/drivers/justBal.C)
+target_link_libraries(justBal ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
+
+add_executable(testConAndBal examples/src/drivers/testConAndBal)
+target_link_libraries(testConAndBal ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
+
+add_executable(testConBalAndCoarsen
+  examples/src/drivers/testConBalAndCoarsen)
+target_link_libraries(testConBalAndCoarsen ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
+
+add_executable(testPartition examples/src/drivers/testPartition.C)
+target_link_libraries(testPartition ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
+##---------------------------------------------------------------------------------------
+
+##---------------------------------------------------------------------------------------
+##    OTHER APPS
+##---------------------------------------------------------------------------------------
+#add_executable(justBal examples/src/drivers/)
+#target_link_libraries( ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
