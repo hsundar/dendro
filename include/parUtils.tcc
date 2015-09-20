@@ -16,7 +16,8 @@
 #include <algorithm>
 #include "dendro.h"
 #include "ompUtils.h"
-#include "../oct/TreeNode.h"
+#include "TreeNode.h"
+
 #ifdef __DEBUG__
 #ifndef __DEBUG_PAR__
 #define __DEBUG_PAR__
