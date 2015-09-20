@@ -35,8 +35,6 @@ option(__USE_PVT_DA_IN_MG__ "Use private DA in Multigrid" ON)
 option(HILBERT_ORDERING "Use Hilbert ordering instead of Morton" ON)
 
 ##------
-# initially a copy of makefileCore ...
-
 include_directories(${MPI_INCLUDE_PATH}
                     include
                     include/fem
@@ -85,37 +83,146 @@ add_executable(splitPoints scripts/splitPoints.C)
 ## 2:1-Balance Apps 
 ##---------------------------------------------------------------------------------------
 add_executable(testRipple examples/src/drivers/tstRipple.C)
-target_link_libraries(testRipple ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
+target_link_libraries(testRipple dendro petsc ${MPI_LIBRARIES} m)
 
 add_executable(runScal examples/src/drivers/runScal.C)
-target_link_libraries(runScal ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
+target_link_libraries(runScal dendro petsc ${MPI_LIBRARIES} m)
 
 add_executable(rippleBal examples/src/drivers/rippleBal.C)
-target_link_libraries(rippleBal ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
+target_link_libraries(rippleBal dendro petsc ${MPI_LIBRARIES} m)
 
 add_executable(seqRipple examples/src/drivers/seqRipple.C)
-target_link_libraries(seqRipple ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
+target_link_libraries(seqRipple dendro petsc ${MPI_LIBRARIES} m)
 
 add_executable(seqRipplePtr examples/src/drivers/seqRipplePtr.C)
-target_link_libraries(seqRipplePtr ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
+target_link_libraries(seqRipplePtr dendro petsc ${MPI_LIBRARIES} m)
 
 add_executable(justBal examples/src/drivers/justBal.C)
-target_link_libraries(justBal ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
+target_link_libraries(justBal dendro petsc ${MPI_LIBRARIES} m)
 
 add_executable(testConAndBal examples/src/drivers/testConAndBal)
-target_link_libraries(testConAndBal ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
+target_link_libraries(testConAndBal dendro petsc ${MPI_LIBRARIES} m)
 
 add_executable(testConBalAndCoarsen
   examples/src/drivers/testConBalAndCoarsen)
-target_link_libraries(testConBalAndCoarsen ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
+target_link_libraries(testConBalAndCoarsen dendro petsc ${MPI_LIBRARIES} m)
+##---------------------------------------------------------------------------------------
 
+##---------------------------------------------------------------------------------------
+##    Dendro DA APPS
+##---------------------------------------------------------------------------------------
 add_executable(testPartition examples/src/drivers/testPartition.C)
-target_link_libraries(testPartition ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
+target_link_libraries(testPartition dendroDA dendro petsc ${MPI_LIBRARIES} m)
+
+add_executable(tstMatVec examples/src/drivers/tstMatVec.C examples/src/backend/odaJac.C examples/src/backend/handleType2Stencils.C)
+target_link_libraries(tstMatVec dendroDA dendro petsc ${MPI_LIBRARIES} m)
+
+add_executable(buildDA examples/src/drivers/buildDA.C)
+target_link_libraries(buildDA dendroDA dendro petsc ${MPI_LIBRARIES} m)
+
+add_executable(buildRgDA examples/src/drivers/buildRgDA.C)
+target_link_libraries(buildRgDA dendroDA dendro petsc ${MPI_LIBRARIES} m)
+
+#add_executable(octLaplacian examples/src/drivers/octLaplacian.C)
+#target_link_libraries(octLaplacian dendroDA dendro petsc ${MPI_LIBRARIES} m)
 ##---------------------------------------------------------------------------------------
 
 ##---------------------------------------------------------------------------------------
-##    OTHER APPS
+##    Dendro MG APPS
 ##---------------------------------------------------------------------------------------
-#add_executable(justBal examples/src/drivers/)
-#target_link_libraries( ${DENDRO_LIBS} petsc ${MPI_LIBRARIES} m)
+add_executable(checkError   examples/src/drivers/checkError.C
+                            examples/src/backend/omgJac.C
+                            examples/src/backend/matProp.C
+                            examples/src/backend/odaJac.C
+                            examples/src/backend/omgRhs.C
+                            examples/src/backend/handleType2Stencils.C
+                            examples/src/backend/handleType1Stencils.C)
+target_link_libraries(checkError dendroMG dendroDA dendro petsc ${MPI_LIBRARIES} m)
 
+add_executable(newElasMesh  examples/src/drivers/newElasMesh.C
+                            examples/src/backend/elasticityJac.C
+                            examples/src/backend/elasticityRhs.C
+                            examples/src/backend/omgJac.C
+                            examples/src/backend/odaJac.C
+                            examples/src/backend/omgRhs.C
+                            examples/src/backend/vecMass.C
+                            examples/src/backend/handleType2Stencils.C )
+target_link_libraries(newElasMesh dendroMG dendroDA dendro petsc ${MPI_LIBRARIES} m)
+
+add_executable(newElasSolver    examples/src/drivers/newElasSolver.C
+                                examples/src/backend/elasticityJac.C
+                                examples/src/backend/elasticityRhs.C
+                                examples/src/backend/omgJac.C
+                                examples/src/backend/odaJac.C
+                                examples/src/backend/omgRhs.C
+                                examples/src/backend/vecMass.C
+                                examples/src/backend/handleType2Stencils.C )
+target_link_libraries(newElasSolver dendroMG dendroDA dendro petsc ${MPI_LIBRARIES} m)
+
+add_executable(elasticitySolver examples/src/drivers/elasticitySolver.C
+                                examples/src/backend/elasticityJac.C
+                                examples/src/backend/elasticityRhs.C
+                                examples/src/backend/omgJac.C
+                                examples/src/backend/odaJac.C
+                                examples/src/backend/omgRhs.C
+                                examples/src/backend/vecMass.C
+                                examples/src/backend/handleType2Stencils.C )
+target_link_libraries(elasticitySolver dendroMG dendroDA dendro petsc ${MPI_LIBRARIES} m)
+
+add_executable(tstMg    examples/src/drivers/tstMg.C
+                        examples/src/backend/omgJac.C
+                        examples/src/backend/matProp.C
+                        examples/src/backend/odaJac.C
+                        examples/src/backend/omgRhs.C
+                        examples/src/backend/handleType2Stencils.C
+                        examples/src/backend/handleType1Stencils.C )
+target_link_libraries(tstMg dendroMG dendroDA dendro petsc ${MPI_LIBRARIES} m)
+
+add_executable(omgNeumann_ex1   examples/src/drivers/omgNeumann_ex1.C
+                                examples/src/backend/omgNeumann.C
+                                examples/src/backend/handleType2Stencils.C )
+target_link_libraries(omgNeumann_ex1 dendroMG dendroDA dendro petsc ${MPI_LIBRARIES} m)
+
+add_executable(omgNeumann_ex2   examples/src/drivers/omgNeumann_ex2.C
+                                examples/src/backend/omgNeumann.C
+                                examples/src/backend/handleType2Stencils.C )
+target_link_libraries(omgNeumann_ex2 dendroMG dendroDA dendro petsc ${MPI_LIBRARIES} m)
+
+add_executable(omgNeumann_ex3   examples/src/drivers/omgNeumann_ex3.C
+                                examples/src/backend/omgNeumann.C
+                                examples/src/backend/handleType2Stencils.C )
+target_link_libraries(omgNeumann_ex3 dendroMG dendroDA dendro petsc ${MPI_LIBRARIES} m)
+
+add_executable(omgNeumann_2spheres  examples/src/drivers/omgNeumann_2spheres.C
+                                    examples/src/backend/omgNeumann.C
+                                    examples/src/backend/handleType2Stencils.C )
+target_link_libraries(omgNeumann_2spheres dendroMG dendroDA dendro petsc ${MPI_LIBRARIES} m)
+
+add_executable(tstMgReg examples/src/drivers/tstRegularMg.C
+                        examples/src/backend/omgJac.C
+                        examples/src/backend/matProp.C
+                        examples/src/backend/odaJac.C
+                        examples/src/backend/omgRhs.C
+                        examples/src/backend/handleType2Stencils.C
+                        examples/src/backend/handleType1Stencils.C )
+target_link_libraries(tstMgReg dendroMG dendroDA dendro petsc ${MPI_LIBRARIES} m)
+
+add_executable(testElasMatVec   examples/src/drivers/testElasMatVec.C
+                                examples/src/backend/elasticityJac.C
+                                examples/src/backend/elasticityRhs.C
+                                examples/src/backend/omgJac.C
+                                examples/src/backend/odaJac.C
+                                examples/src/backend/omgRhs.C
+                                examples/src/backend/vecMass.C
+                                examples/src/backend/handleType2Stencils.C )
+target_link_libraries(testElasMatVec dendroMG dendroDA dendro petsc ${MPI_LIBRARIES} m)
+
+add_executable(pts2Mesh examples/src/drivers/pts2Mesh.C
+                        examples/src/backend/elasticityJac.C
+                        examples/src/backend/elasticityRhs.C
+                        examples/src/backend/omgJac.C
+                        examples/src/backend/odaJac.C
+                        examples/src/backend/omgRhs.C
+                        examples/src/backend/vecMass.C
+                        examples/src/backend/handleType2Stencils.C )
+target_link_libraries(pts2Mesh dendroMG dendroDA dendro petsc ${MPI_LIBRARIES} m)
