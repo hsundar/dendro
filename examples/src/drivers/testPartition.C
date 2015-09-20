@@ -11,8 +11,8 @@
 
 #include "externVars.h"
 #include "dendro.h"
-#include "../../include/hilbert/rotation.h"
-#include "../../include/visualization/treenode2vtk.h"
+#include "rotation.h"
+#include "treenode2vtk.h"
 
 //Don't want time to be synchronized. Need to check load imbalance.
 #ifdef MPI_WTIME_IS_GLOBAL

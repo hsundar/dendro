@@ -133,7 +133,7 @@ int main(int argc, char**argv) {
 		assert(false);
 	}
 
-	int rank, npes;
+	int rank, npes, res;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &npes);
 
@@ -152,11 +152,11 @@ int main(int argc, char**argv) {
 		FILE * fptr = fopen(fileName,"rb");
 		assert(fptr != NULL);
 		unsigned int numElems = 0;
-		fread(&numElems, sizeof(unsigned int), 1, fptr);
+		res = fread(&numElems, sizeof(unsigned int), 1, fptr);
 		vals1.resize(numElems);
 		for(unsigned int i = 0; i < numElems; i++ ) {	
 			unsigned int record[9];
-			fread(record, sizeof(unsigned int), 9, fptr);
+			res = fread(record, sizeof(unsigned int), 9, fptr);
 			vals1[i] = MeshRecord(record[0], (record+1));
 		}
 		fclose(fptr);
@@ -176,11 +176,11 @@ int main(int argc, char**argv) {
 		FILE * fptr = fopen(fileName,"rb");
 		assert(fptr != NULL);
 		unsigned int numElems = 0;
-		fread(&numElems, sizeof(unsigned int), 1, fptr);
+		res = fread(&numElems, sizeof(unsigned int), 1, fptr);
 		vals2.resize(numElems);
 		for(unsigned int i = 0; i < numElems; i++ ) {	
 			unsigned int record[9];
-			fread(record, sizeof(unsigned int), 9, fptr);
+			res = fread(record, sizeof(unsigned int), 9, fptr);
 			vals2[i] = MeshRecord(record[0], (record+1));
 		}
 		fclose(fptr);

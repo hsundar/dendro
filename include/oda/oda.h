@@ -1295,7 +1295,7 @@ namespace ot {
 
 }// end namespace
 
-#include "oda.txx"
+#include "oda.tcc"
 
 #endif
 

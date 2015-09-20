@@ -137,6 +137,7 @@ int main(int argc, char**argv) {
 	}
 
 	int rank, npes;
+	size_t res;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &npes);
 
@@ -155,11 +156,11 @@ int main(int argc, char**argv) {
 		FILE * fptr = fopen(fileName,"rb");
 		assert(fptr != NULL);
 		unsigned int numElems = 0;
-		fread(&numElems, sizeof(unsigned int), 1, fptr);
+		res = fread(&numElems, sizeof(unsigned int), 1, fptr);
 		vals1.resize(numElems);
 		for(unsigned int i = 0; i < numElems; i++ ) {	
 			unsigned int xyzi[4];
-			fread(xyzi, sizeof(unsigned int), 4, fptr);
+			res = fread(xyzi, sizeof(unsigned int), 4, fptr);
 			vals1[i] = Vertex(xyzi[0], xyzi[1], xyzi[2], xyzi[3]);
 		}
 		fclose(fptr);
@@ -179,11 +180,11 @@ int main(int argc, char**argv) {
 		FILE * fptr = fopen(fileName,"rb");
 		assert(fptr != NULL);
 		unsigned int numElems = 0;
-		fread(&numElems, sizeof(unsigned int), 1, fptr);
+		res = fread(&numElems, sizeof(unsigned int), 1, fptr);
 		vals2.resize(numElems);
 		for(unsigned int i = 0; i < numElems; i++ ) {	
 			unsigned int xyzi[4];
-			fread(xyzi, sizeof(unsigned int), 4, fptr);
+			res = fread(xyzi, sizeof(unsigned int), 4, fptr);
 			vals2[i] = Vertex(xyzi[0], xyzi[1], xyzi[2], xyzi[3]);
 		}
 		fclose(fptr);

@@ -7,13 +7,14 @@ int dim=2;
 
 void readPtsFromFile( double* & pts, unsigned int* ptsLen, char* filename) {
   FILE* infile = fopen(filename,"rb");
+  size_t res;
   unsigned int temp;
-  fread(&temp, sizeof(unsigned int),1,infile);
+  res = fread(&temp, sizeof(unsigned int),1,infile);
   *ptsLen = dim*temp;
   pts = new double[dim*temp];
   std::cout << temp << " points" << std::endl;
 
-  fread(pts, sizeof(double),dim*temp,infile);
+  res = fread(pts, sizeof(double),dim*temp,infile);
 
   fclose(infile);
 }//end function
