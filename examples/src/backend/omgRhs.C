@@ -1930,6 +1930,7 @@ PetscErrorCode ComputeRHS9(ot::DAMG damg, Vec in) {
 
   unsigned int balOctMaxD = (maxDepth - 1);
 
+  int res;
   char fname[250];
   sprintf(fname,"deltaSources_%d_%d.txt", rankAll, npesAll);
 
@@ -1939,16 +1940,16 @@ PetscErrorCode ComputeRHS9(ot::DAMG damg, Vec in) {
   }
 
   unsigned int numLocalDelta; 
-  fscanf(inFile,"%u",&numLocalDelta);
+  res = fscanf(inFile,"%u",&numLocalDelta);
 
   std::vector<ot::NodeAndValues<double, 4> > tnAndVal(numLocalDelta);
 
   for(unsigned int i = 0; i < numLocalDelta; i++) {
     double x, y, z, v;
-    fscanf(inFile,"%lf",&x);
-    fscanf(inFile,"%lf",&y);
-    fscanf(inFile,"%lf",&z);
-    fscanf(inFile,"%lf",&v);
+    res = fscanf(inFile,"%lf",&x);
+    res = fscanf(inFile,"%lf",&y);
+    res = fscanf(inFile,"%lf",&z);
+    res = fscanf(inFile,"%lf",&v);
 
     assert(x >= 0.0);
     assert(y >= 0.0);

@@ -30,7 +30,7 @@ int createMmatType1(double *****& Mmat) {
 
 int createMmatType1_Type3(double *****& Mmat) {
   FILE* infile;
-  int rank;
+  int rank, res;
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
   char fname[100];
@@ -56,7 +56,7 @@ int createMmatType1_Type3(double *****& Mmat) {
         for(unsigned int i = 0; i < 8; i++) {
           Mmat[cNumCoarse][eType][cNumFine][i] = new double[8];
           for(unsigned int j = 0; j < 8; j++) {
-            fscanf(infile,"%lf",&(Mmat[cNumCoarse][eType][cNumFine][i][j]));
+            res = fscanf(infile,"%lf",&(Mmat[cNumCoarse][eType][cNumFine][i][j]));
           }
         }
       }
@@ -72,7 +72,7 @@ int createMmatType1_Type2(double *****& Mmat) {
   FILE* infile;
   MPI_Comm comm = MPI_COMM_WORLD;
 
-  int rank, npes;
+  int rank, npes, res;
   MPI_Comm_rank(comm, &rank);
   MPI_Comm_size(comm, &npes);
 
@@ -129,7 +129,7 @@ int createMmatType1_Type2(double *****& Mmat) {
           Mmat[cNumCoarse][eType][cNumFine][i] = new double[8];
           if((rank % THOUSAND) == 0) {
             for(unsigned int j = 0; j < 8; j++) {
-              fscanf(infile,"%lf",&(Mmat[cNumCoarse][eType][cNumFine][i][j]));
+              res = fscanf(infile,"%lf",&(Mmat[cNumCoarse][eType][cNumFine][i][j]));
             }
           }
         }
@@ -184,7 +184,7 @@ int createMmatType1_Type2(double *****& Mmat) {
 
 int createMmatType1_Type1(double *****& Mmat) {
   FILE* infile;
-  int rank;
+  int rank, res;
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
   if(!rank) {
@@ -213,7 +213,7 @@ int createMmatType1_Type1(double *****& Mmat) {
           Mmat[cNumCoarse][eType][cNumFine][i] = new double[8];
           if(!rank) {
             for(unsigned int j = 0; j < 8; j++) {
-              fscanf(infile,"%lf",&(Mmat[cNumCoarse][eType][cNumFine][i][j]));
+              res = fscanf(infile,"%lf",&(Mmat[cNumCoarse][eType][cNumFine][i][j]));
             }
           }
         }
@@ -283,7 +283,7 @@ int createLmatType1(double *****& Lmat) {
 
 int createLmatType1_Type3(double *****& Lmat) {
   FILE* infile;
-  int rank;
+  int rank, res;
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
   char fname[100];
@@ -309,7 +309,7 @@ int createLmatType1_Type3(double *****& Lmat) {
         for(unsigned int i = 0; i < 8; i++) {
           Lmat[cNumCoarse][eType][cNumFine][i] = new double[8];
           for(unsigned int j = 0; j < 8; j++) {
-            fscanf(infile,"%lf",&(Lmat[cNumCoarse][eType][cNumFine][i][j]));
+            res = fscanf(infile,"%lf",&(Lmat[cNumCoarse][eType][cNumFine][i][j]));
           }
         }
       }
@@ -325,7 +325,7 @@ int createLmatType1_Type2(double *****& Lmat) {
   FILE* infile;
   MPI_Comm comm = MPI_COMM_WORLD;
 
-  int rank, npes;
+  int rank, npes, res;
   MPI_Comm_rank(comm, &rank);
   MPI_Comm_size(comm, &npes);
 
@@ -382,7 +382,7 @@ int createLmatType1_Type2(double *****& Lmat) {
           Lmat[cNumCoarse][eType][cNumFine][i] = new double[8];
           if((rank % THOUSAND) == 0) {
             for(unsigned int j = 0; j < 8; j++) {
-              fscanf(infile,"%lf",&(Lmat[cNumCoarse][eType][cNumFine][i][j]));
+              res = fscanf(infile,"%lf",&(Lmat[cNumCoarse][eType][cNumFine][i][j]));
             }
           }
         }
@@ -438,7 +438,7 @@ int createLmatType1_Type2(double *****& Lmat) {
 
 int createLmatType1_Type1(double *****& Lmat) {
   FILE* infile;
-  int rank;
+  int rank, res;
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
   if(!rank) {
@@ -467,7 +467,7 @@ int createLmatType1_Type1(double *****& Lmat) {
           Lmat[cNumCoarse][eType][cNumFine][i] = new double[8];
           if(!rank) {
             for(unsigned int j = 0; j < 8; j++) {
-              fscanf(infile,"%lf",&(Lmat[cNumCoarse][eType][cNumFine][i][j]));
+              res = fscanf(infile,"%lf",&(Lmat[cNumCoarse][eType][cNumFine][i][j]));
             }
           }
         }
