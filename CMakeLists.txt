@@ -44,7 +44,6 @@ include_directories(${MPI_INCLUDE_PATH}
                     include/oda 
                     include/omg 
                     include/test 
-                    include/pc 
                     examples/include 
                     $ENV{PETSC_DIR}/include 
                     $ENV{PETSC_DIR}/$ENV{PETSC_ARCH}/include 
@@ -57,20 +56,18 @@ file(GLOB OMG_SOURCES src/omg/*.C)
 file(GLOB ODA_SOURCES src/oda/*.C)
 file(GLOB ODA_PRIVATE_SOURCES src/oda/private/*.C)
 file(GLOB OCT_SOURCES src/oct/*.C)
-#file(GLOB HILBERT_SOURCES src/hilbert/*.cpp)
 
 file(GLOB DENDRO_SOURCES src/*.cpp)
 file(GLOB DENDRO_HEADERS include/*.h)
 file(GLOB DENDRO_TEMPLATES include/*.tcc)
 
 #### Libraries ...
-set(DENDRO_LIBS OMG ODA Test Oct dendro PC)
+set(DENDRO_LIBS OMG ODA Test Oct dendro)
 
 add_library(OMG ${OMG_SOURCES})
 add_library(ODA ${ODA_SOURCES} ${ODA_PRIVATE_SOURCES})
 add_library(Oct ${OCT_SOURCES})
 add_library(Test src/test/testUtils.C)
-add_library(PC src/pc/blockDiag.C)
 
 add_library(dendro ${DENDRO_SOURCES} 
                    ${DENDRO_HEADERS}

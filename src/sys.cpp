@@ -21,7 +21,7 @@ namespace ot {
     PetscFunctionBegin;
 
     // PCRegister("blockDiag","${DENDRO_DIR}/lib/libPC","ot::PCCreate_BlockDiag", ot::PCCreate_BlockDiag);
-    PCRegister("blockDiag", ot::PCCreate_BlockDiag);
+    // PCRegister("blockDiag", ot::PCCreate_BlockDiag);
 
 #ifdef PETSC_USE_LOG
     PetscClassId classid;
