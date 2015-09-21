@@ -529,7 +529,7 @@ inline TreeNode TreeNode::getFirstChild() const {
   
   if(m_uiDim==2)
   {
-    char fchild=m.rot_perm[0];
+    char fchild=m.rotation_2d.rot_perm[0];
     
     if(fchild==0)
     {
@@ -550,7 +550,7 @@ inline TreeNode TreeNode::getFirstChild() const {
     
   }else if(m_uiDim==3)
   {
-    char fchild=m.rot_perm[0];
+    char fchild=m.rotation_3d.rot_perm[0];
     
     if(fchild==0)
     {
