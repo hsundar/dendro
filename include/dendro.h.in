@@ -12,7 +12,7 @@
 #define DENDRO_VERSION_MINOR @Dendro_VERSION_MINOR@
 
 
-#ifdef __USE_64_BIT_INT__
+#ifdef USE_64BIT_INDICES
 #define DendroIntL long long
 #define DendroIntLSpecifier %lld
 #define DendroUIntLSpecifier %llu

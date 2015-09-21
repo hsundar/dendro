@@ -47,7 +47,7 @@ option(BUILD_MG_EXAMPLES "Build test applications using dendro::MG" ON)
 
 
 if(USE_64Bit_INDICES)
-    add_definitions(-D__USE_64_BIT_INT__)
+    add_definitions(-DUSE_64BIT_INDICES)
 endif()
 
 if(HILBERT_ORDERING)
@@ -332,3 +332,7 @@ if(BUILD_TESTS)
     target_link_libraries(tstDirichlet dendroMG dendroDA dendro petsc ${MPI_LIBRARIES} m)
 
 endif()
+
+## copy config files etc ...
+file(GLOB COPY ${CMAKE_SOURCE_DIR}/bin/options* DESTINATION ${PROJECT_BINARY_DIR})
+file(GLOB COPY ${CMAKE_SOURCE_DIR}/Stencils/*.inp DESTINATION ${PROJECT_BINARY_DIR})
