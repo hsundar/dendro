@@ -138,6 +138,10 @@ int main(int argc, char **argv) {
   #ifdef PETSC_USE_LOG
   PetscLogStagePop();
 #endif
+  
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  treeNodesTovtk(linOct,rank,"bfBalancing");
+  
   localTime = endTime - startTime;
   par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);
   if (!rank) {
@@ -166,6 +170,10 @@ int main(int argc, char **argv) {
   startTime = MPI_Wtime();
   ot::balanceOctree(linOct, balOct, dim, maxDepth, incCorner, MPI_COMM_WORLD, NULL, NULL);
   endTime = MPI_Wtime();
+  
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  treeNodesTovtk(balOct,rank,"afBalancing");
+  
 #ifdef PETSC_USE_LOG
   PetscLogStagePop();
 #endif

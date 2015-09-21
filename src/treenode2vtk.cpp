@@ -75,12 +75,13 @@ void treeNodesTovtk(std::vector<ot::TreeNode>& nodes,int mpi_rank,std::string vt
        
     //myfile<<"CELL_DATA "<<num_cells<<std::endl;
     //myfile<<"POINT_DATA "<<(num_cells*unit_points)<<std::endl;
-    myfile<<"FIELD FieldData "<<num_feilddata<<std::endl;
+    myfile<<"FIELD cell_level 1"<<std::endl;
     myfile<<"cell_level "<<num_cells<<" 1"<<" int"<<std::endl;
     for(int i=0;i<nodes.size();i++)
       myfile<<nodes[i].getLevel()<<std::endl;
     
-    myfile<<"mpi_rank "<<num_cells<<" "<<" int"<<std::endl;
+    myfile<<"FIELD mpi_rank 1"<<std::endl;
+    myfile<<"mpi_rank "<<num_cells<<" 1"<<" int"<<std::endl;
     for(int i=0;i<nodes.size();i++)
       myfile<<mpi_rank<<std::endl;
     
