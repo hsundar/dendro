@@ -5,6 +5,12 @@ project(dendro)
 set (Dendro_VERSION_MAJOR 4)
 set (Dendro_VERSION_MINOR 0)
 
+# configure a header file to pass some of the CMake settings
+# to the source code
+configure_file (
+        "${PROJECT_SOURCE_DIR}/include/dendro.h.in"
+        "${PROJECT_BINARY_DIR}/dendro.h"
+)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
@@ -30,7 +36,8 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 
-# Options 
+# Options
+option(USE_64BIT_INDICES "Use 64-Bit indices. Reverts to 32-bit if turned off" ON)
 option(PRIVATE_DA_IN_MG "Use private DA in Multigrid" ON)
 option(HILBERT_ORDERING "Use Hilbert ordering instead of Morton" ON)
 option(USE_NCA_PROPERTY "Use the NCA based approach" ON)
@@ -38,6 +45,10 @@ option(BUILD_TESTS "Build test applications" ON)
 option(BUILD_DA_EXAMPLES "Build examples using dendro::DA" ON)
 option(BUILD_MG_EXAMPLES "Build test applications using dendro::MG" ON)
 
+
+if(USE_64Bit_INDICES)
+    add_definitions(-D__USE_64_BIT_INT__)
+endif()
 
 if(HILBERT_ORDERING)
     add_definitions(-DHILBERT_ORDERING)
@@ -52,7 +63,8 @@ if(PRIVATE_DA_IN_MG)
 endif()
 
 ##------
-include_directories(${MPI_INCLUDE_PATH}
+include_directories(${PROJECT_BINARY_DIR}
+                    ${MPI_INCLUDE_PATH}
                     include
                     include/fem
                     include/oda 

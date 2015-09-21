@@ -198,18 +198,18 @@ namespace ot {
 
 #ifdef HILBERT_ORDERING
 #ifdef USE_NCA_PROPERTY
-    #pragma message "Hilbert NCA"
+//    #pragma message "Hilbert NCA"
         return hilbert_order_NCA(p1,p2);
 #else
-    #pragma message "Hilbert"
+//    #pragma message "Hilbert"
         return hilbert_order(p1,p2);
 #endif
 #else
 #ifdef USE_NCA_PROPERTY
-    #pragma message "Morton NCA"
+//    #pragma message "Morton NCA"
         return morton_order_NCA(p1,p2);
 #else
-    #pragma message "Morton"
+//    #pragma message "Morton"
     return morton_order(p1, p2);
 #endif
 #endif
