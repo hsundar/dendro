@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
   unsigned int ptsLen;
   unsigned int maxNumPts = 1;
   unsigned int dim = 3;
-  unsigned int maxDepth = 7;
+  unsigned int maxDepth = 8;
   double gSize[3];
   //initializeHilbetTable(2);
   initializeHilbetTable(3);
@@ -59,43 +59,29 @@ int main(int argc, char **argv) {
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-  // if(argc > 2) { compressLut = (bool)(atoi(argv[2]));}
-  // sprintf(bFile, "%s%d_%d.ot", argv[1], rank, size);
-  //=============================================================
   sprintf(ptsFileName, "%s%d_%d.pts", argv[1], rank, size);
 
   //Read pts from files
-  MPI_Barrier(MPI_COMM_WORLD);
   if (!rank) {
-    std::cout << RED " Reading  " << ptsFileName << NRM << std::endl; // Point size
+    std::cout << RED " Reading  " << argv[1] << NRM << std::endl; // Point size
   }
   ot::readPtsFromFile(ptsFileName, pts);
+
   if (!rank) {
-    std::cout << GRN " Finished reading  " << ptsFileName << NRM << std::endl; // Point size
+    std::cout << GRN " Finished reading  " << argv[1] << NRM << std::endl; // Point size
   }
-
-
-  MPI_Barrier(MPI_COMM_WORLD);
 
 
   ptsLen = pts.size();
-  // @milinda debug code
-  //std::cout << rank << ": read ptsLen" << ptsLen << " points" << std::endl;
-  std::cout << YLW << rank << ": read pts.size()" << pts.size() << " points" NRM << std::endl;
 
   std::vector<ot::TreeNode> tmpNodes;
   for (int i = 0; i < ptsLen; i += 3) {
-
-
     if ((pts[i] > 0.0) &&
         (pts[i + 1] > 0.0)
         && (pts[i + 2] > 0.0) &&
         (((unsigned int) (pts[i] * ((double) (1u << maxDepth)))) < (1u << maxDepth)) &&
         (((unsigned int) (pts[i + 1] * ((double) (1u << maxDepth)))) < (1u << maxDepth)) &&
         (((unsigned int) (pts[i + 2] * ((double) (1u << maxDepth)))) < (1u << maxDepth))) {
-      // @milinda debug code
-      //std::cout<<"Rank:"<<rank<<" x,y,z :"<<pts[i]<<","<<pts[i+1]<<","<<pts[i+2]<<std::endl;
-
       tmpNodes.push_back(ot::TreeNode((unsigned int) (pts[i] * (double) (1u << maxDepth)),
                                       (unsigned int) (pts[i + 1] * (double) (1u << maxDepth)),
                                       (unsigned int) (pts[i + 2] * (double) (1u << maxDepth)),
@@ -104,23 +90,22 @@ int main(int argc, char **argv) {
   }
   pts.clear();
 
-  std::cout << YLW << rank << ": read " << tmpNodes.size() << " points" NRM << std::endl;
   // treeNodesTovtk(tmpNodes, rank, "vtkTreeNode");
 
   par::removeDuplicates<ot::TreeNode>(tmpNodes, false, MPI_COMM_WORLD);
 
-  std::cout << YLW << rank << "afterRemoveDuplicates: " << tmpNodes.size() << " points" NRM << std::endl;
+  // std::cout << YLW << rank << "afterRemoveDuplicates: " << tmpNodes.size() << " points" NRM << std::endl;
+
   linOct = tmpNodes;
   tmpNodes.clear();
   par::partitionW<ot::TreeNode>(linOct, NULL, MPI_COMM_WORLD);
+
   // reduce and only print the total ...
   localSz = linOct.size();
   par::Mpi_Reduce<DendroIntL>(&localSz, &totalSz, 1, MPI_SUM, 0, MPI_COMM_WORLD);
-  MPI_Barrier(MPI_COMM_WORLD);
   if (rank == 0) {
-    std::cout << "Total number of pts= " << totalSz << std::endl;
+    std::cout << GRN " After partitionW: Total number of pts= " << totalSz << NRM << std::endl;
   }
-  MPI_Barrier(MPI_COMM_WORLD);
 
   pts.resize(3 * (linOct.size()));
   ptsLen = (3 * (linOct.size()));
@@ -134,32 +119,47 @@ int main(int argc, char **argv) {
   gSize[1] = 1.0;
   gSize[2] = 1.0;
 
-  //Points2Octree....
+  // ========== Points2Octree ===========
   MPI_Barrier(MPI_COMM_WORLD);
+  if (!rank) {
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+    std::cout << RED " Starting Points to Octree" NRM << std::endl;
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+  }
+
 #ifdef PETSC_USE_LOG
   PetscLogStagePush(stages[0]);
 #endif
+
   startTime = MPI_Wtime();
   ot::points2Octree(pts, gSize, linOct, dim, maxDepth, maxNumPts, MPI_COMM_WORLD);
   endTime = MPI_Wtime();
-#ifdef PETSC_USE_LOG
+
+  #ifdef PETSC_USE_LOG
   PetscLogStagePop();
 #endif
   localTime = endTime - startTime;
   par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);
   if (!rank) {
-    std::cout << "P2n Time: " << totalTime << std::endl;
+    std::cout << GRN " P2n Time: " YLW << totalTime << NRM << std::endl;
   }
   // reduce and only print the total ...
   localSz = linOct.size();
   par::Mpi_Reduce<DendroIntL>(&localSz, &totalSz, 1, MPI_SUM, 0, MPI_COMM_WORLD);
   if (rank == 0) {
-    std::cout << "# of Unbalanced Octants: " << totalSz << std::endl;
+    std::cout << GRN " # of Unbalanced Octants: " YLW << totalSz << NRM << std::endl;
   }
   pts.clear();
 
-  //Balancing...
+  treeNodesTovtk(linOct, rank, "p2o_output");
+
+  // =========== Balancing ============
   MPI_Barrier(MPI_COMM_WORLD);
+  if (!rank) {
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+    std::cout << RED " Starting 2:1 Balance" NRM << std::endl;
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+  }
 #ifdef PETSC_USE_LOG
   PetscLogStagePush(stages[1]);
 #endif
@@ -181,6 +181,7 @@ int main(int argc, char **argv) {
     std::cout << "bal Time: " << totalTime << std::endl;
   }
 
+  treeNodesTovtk(balOct, rank, "bal_output");
 
 
   //=============================================================

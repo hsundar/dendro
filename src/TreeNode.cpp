@@ -357,7 +357,7 @@ int TreeNode  ::addBrothers(std::vector<TreeNode>& bros) const {
 
 std::vector<TreeNode> TreeNode::getSearchKeys(bool incCorners) {
 
-  std::cout<<"Get Search Keys Called"<<std::endl;
+  // std::cout<<"Get Search Keys Called"<<std::endl;
   
   unsigned int myK = this->getChildNumber();
   //Morton Order: X,Y,Z
@@ -748,7 +748,7 @@ TreeNode& TreeNode  :: operator = (TreeNode   const& other) {
   m_uiWeight = other.m_uiWeight;
   m_uiDim = other.m_uiDim;
   m_uiMaxDepth = other.m_uiMaxDepth;
-  calculateTreeNodeRotation();
+  // calculateTreeNodeRotation();
   
 //   if(m_uiDim==2)
 //   {

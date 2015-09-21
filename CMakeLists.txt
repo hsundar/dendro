@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(dendro)
 
-# version number 
+# version number
 set (Dendro_VERSION_MAJOR 4)
 set (Dendro_VERSION_MINOR 0)
 
@@ -31,12 +31,25 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 
 # Options 
-option(__USE_PVT_DA_IN_MG__ "Use private DA in Multigrid" ON)
+option(PRIVATE_DA_IN_MG "Use private DA in Multigrid" ON)
 option(HILBERT_ORDERING "Use Hilbert ordering instead of Morton" ON)
 option(USE_NCA_PROPERTY "Use the NCA based approach" ON)
 option(BUILD_TESTS "Build test applications" ON)
 option(BUILD_DA_EXAMPLES "Build examples using dendro::DA" ON)
 option(BUILD_MG_EXAMPLES "Build test applications using dendro::MG" ON)
+
+
+if(HILBERT_ORDERING)
+    add_definitions(-DHILBERT_ORDERING)
+endif()
+
+if(USE_NCA_PROPERTY)
+    add_definitions(-DUSE_NCA_PROPERTY)
+endif()
+
+if(PRIVATE_DA_IN_MG)
+    add_definitions(-D__USE_PVT_DA_IN_MG__)
+endif()
 
 ##------
 include_directories(${MPI_INCLUDE_PATH}
