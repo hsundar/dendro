@@ -519,9 +519,9 @@ std::vector<bool> ot::TreeNode  ::getMorton() const {
 TreeNode :: TreeNode() {
   m_uiX = m_uiY = m_uiZ = m_uiLevel =
      m_uiWeight = m_uiDim = m_uiMaxDepth = 0;
-  
+  #ifdef HILBERT_ORDERING
   calculateTreeNodeRotation();  
-     
+#endif
 }
 
 TreeNode  :: TreeNode(const int dummy, const unsigned int x, const unsigned int y,
@@ -534,8 +534,9 @@ TreeNode  :: TreeNode(const int dummy, const unsigned int x, const unsigned int 
 
   m_uiLevel = lev;
   m_uiWeight = 1;
-  
+  #ifdef HILBERT_ORDERING
   calculateTreeNodeRotation();
+  #endif
   
 } //end function
 
@@ -553,8 +554,9 @@ TreeNode  :: TreeNode(const unsigned int dim, const unsigned int maxDepth) {
   }
 #endif
   assert((dim == 1) || (dim == 2) || (dim == 3));
-  
+  #ifdef HILBERT_ORDERING
   calculateTreeNodeRotation();
+  #endif
 } //end function
 
 TreeNode  :: TreeNode(const unsigned int x, const unsigned int y,
@@ -580,9 +582,9 @@ TreeNode  :: TreeNode(const unsigned int x, const unsigned int y,
   assert((m_uiZ % ((unsigned int)(1u << (maxDepth - lev)))) == 0);
   assert((dim == 1) || (dim == 2) || (dim == 3));
 #endif
-    
+  #ifdef HILBERT_ORDERING  
   calculateTreeNodeRotation();
-
+#endif
 } //end function
 
 //copy constructor
@@ -615,9 +617,9 @@ TreeNode  :: TreeNode(const TreeNode& other) {
 //     }
 //     
 //   }
-  
+#ifdef HILBERT_ORDERING
   calculateTreeNodeRotation();
-  
+#endif  
 } //end function
 
 /*
@@ -748,7 +750,9 @@ TreeNode& TreeNode  :: operator = (TreeNode   const& other) {
   m_uiWeight = other.m_uiWeight;
   m_uiDim = other.m_uiDim;
   m_uiMaxDepth = other.m_uiMaxDepth;
+#ifdef HILBERT_ORDERING
   calculateTreeNodeRotation();
+#endif
   
 //   if(m_uiDim==2)
 //   {

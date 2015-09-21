@@ -525,10 +525,77 @@ inline TreeNode TreeNode::getNext() const {
 }
 
 inline TreeNode TreeNode::getFirstChild() const {
+  
+  #ifdef HILBERT_ORDERING
+  
+  TreeNode m=*this;
+  unsigned int len=1<<((m.m_uiMaxDepth-m.m_uiLevel)-1);
+  //len=len/2;
+  
+  if(m_uiDim==2)
+  {
+    char fchild=m.rot_perm[0];
+    
+    if(fchild==0)
+    {
+      
+      m.m_uiLevel++;
+    }else if (fchild==1)
+    {
+      m=TreeNode(1,m_uiX,(m_uiY+len),m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+    }else if (fchild==2)
+    {
+      m=TreeNode(1,(m_uiX+len),(m_uiY+len),m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+    }else if (fchild==3)
+    {
+      m=TreeNode(1,(m_uiX+len),m_uiY,m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+    }
+    
+    
+    
+  }else if(m_uiDim==3)
+  {
+    char fchild=m.rot_perm[0];
+    
+    if(fchild==0)
+    {
+      m.m_uiLevel++;
+    }else if (fchild==1)
+    {
+      m=TreeNode(1,m_uiX,(m_uiY+len),m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+    
+    }else if (fchild==2)
+    {
+      m=TreeNode(1,(m_uiX+len),(m_uiY+len),m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+    
+    }else if (fchild==3)
+    {
+       m=TreeNode(1,(m_uiX+len),m_uiY,m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);    
+    }else if(fchild==4)
+    {
+       m=TreeNode(1,(m_uiX+len),m_uiY,(m_uiZ+len),(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+    }else if(fchild==5)
+    {
+      m=TreeNode(1,(m_uiX+len),(m_uiY+len),(m_uiZ+len),(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+    }else if (fchild==6)
+    {
+      m=TreeNode(1,m_uiX,(m_uiY+len),(m_uiZ+len),(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+    }else if (fchild==7)
+    {
+      m=TreeNode(1,m_uiX,m_uiY,(m_uiZ+len),(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+    }
+  
+  
+  }
+  
+  return m;
+  
+  
+  #else
   TreeNode m = *this;
   m.m_uiLevel++;
-  std::cout<<"getFirstChild Called"<<std::endl;
   return m;
+  #endif
 }
 
 inline bool TreeNode :: isAncestor(TreeNode const& other) const {
