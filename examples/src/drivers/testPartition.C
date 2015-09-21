@@ -107,9 +107,9 @@ int main(int argc, char **argv) {
   }
   pts.clear();
   
-  std::cout << rank << ": read " << tmpNodes.size() << " points" << std::endl;
-  treeNodesTovtk(tmpNodes,rank,"vtkTreeNode");
-  
+//   std::cout << rank << ": read " << tmpNodes.size() << " points" << std::endl;
+//   treeNodesTovtk(tmpNodes,rank,"vtkTreeNode");
+//   
   par::removeDuplicates<ot::TreeNode>(tmpNodes, false, MPI_COMM_WORLD);
   
   std::cout << rank << "afterRemoveDuplicates: " << tmpNodes.size() << " points" << std::endl;

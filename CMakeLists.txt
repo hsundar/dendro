@@ -33,6 +33,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 # Options 
 option(__USE_PVT_DA_IN_MG__ "Use private DA in Multigrid" ON)
 option(HILBERT_ORDERING "Use Hilbert ordering instead of Morton" ON)
+option(USE_NCA_PROPERTY "Use the NCA based approach" ON)
 option(BUILD_TESTS "Build test applications" ON)
 option(BUILD_DA_EXAMPLES "Build examples using dendro::DA" ON)
 option(BUILD_MG_EXAMPLES "Build test applications using dendro::MG" ON)
