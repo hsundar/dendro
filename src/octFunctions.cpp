@@ -337,7 +337,7 @@ namespace ot {
       ptsTemp = NULL;
     }
 
-    std::cout << __func__ << ": size " << temp << ", " << pts.size() << std::endl;
+    // std::cout << __func__ << ": size " << temp << ", " << pts.size() << std::endl;
     return 1;
   }//end function
 

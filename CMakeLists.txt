@@ -1,10 +1,16 @@
 cmake_minimum_required(VERSION 2.8)
 project(dendro)
 
-# version number 
+# version number
 set (Dendro_VERSION_MAJOR 4)
 set (Dendro_VERSION_MINOR 0)
 
+# configure a header file to pass some of the CMake settings
+# to the source code
+configure_file (
+        "${PROJECT_SOURCE_DIR}/include/dendro.h.in"
+        "${PROJECT_BINARY_DIR}/dendro.h"
+)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
@@ -30,16 +36,35 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 
-# Options 
-option(__USE_PVT_DA_IN_MG__ "Use private DA in Multigrid" ON)
+# Options
+option(USE_64BIT_INDICES "Use 64-Bit indices. Reverts to 32-bit if turned off" ON)
+option(PRIVATE_DA_IN_MG "Use private DA in Multigrid" ON)
 option(HILBERT_ORDERING "Use Hilbert ordering instead of Morton" ON)
 option(USE_NCA_PROPERTY "Use the NCA based approach" ON)
 option(BUILD_TESTS "Build test applications" ON)
 option(BUILD_DA_EXAMPLES "Build examples using dendro::DA" ON)
 option(BUILD_MG_EXAMPLES "Build test applications using dendro::MG" ON)
 
+
+if(USE_64Bit_INDICES)
+    add_definitions(-DUSE_64BIT_INDICES)
+endif()
+
+if(HILBERT_ORDERING)
+    add_definitions(-DHILBERT_ORDERING)
+endif()
+
+if(USE_NCA_PROPERTY)
+    add_definitions(-DUSE_NCA_PROPERTY)
+endif()
+
+if(PRIVATE_DA_IN_MG)
+    add_definitions(-D__USE_PVT_DA_IN_MG__)
+endif()
+
 ##------
-include_directories(${MPI_INCLUDE_PATH}
+include_directories(${PROJECT_BINARY_DIR}
+                    ${MPI_INCLUDE_PATH}
                     include
                     include/fem
                     include/oda 
@@ -307,3 +332,7 @@ if(BUILD_TESTS)
     target_link_libraries(tstDirichlet dendroMG dendroDA dendro petsc ${MPI_LIBRARIES} m)
 
 endif()
+
+## copy config files etc ...
+file(GLOB COPY_FILES ${CMAKE_SOURCE_DIR}/bin/options* DESTINATION ${PROJECT_BINARY_DIR})
+file(GLOB COPY_FILES ${CMAKE_SOURCE_DIR}/Stencils/*.inp DESTINATION ${PROJECT_BINARY_DIR})

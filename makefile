@@ -4,7 +4,7 @@ SHELL = /bin/sh
 # include ${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables
 include ${PETSC_DIR}/lib/petsc/conf/variables
 
-CEXT = C
+CEXT = cpp
 CTXX =txx
 CFLAGS = -g -fopenmp -D__USE_PVT_DA_IN_MG__  -DHILBERT_ORDERING
 # -DUSE_NCA_PROPERTY 
