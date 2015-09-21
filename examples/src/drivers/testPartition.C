@@ -19,7 +19,7 @@
 #undef MPI_WTIME_IS_GLOBAL
 #endif
 
-int main(int argc, char **argv) { 
+int main(int argc, char **argv) {
   int size, rank;
   bool incCorner = 1;
   // char bFile[50];
@@ -29,11 +29,11 @@ int main(int argc, char **argv) {
   unsigned int ptsLen;
   unsigned int maxNumPts = 1;
   unsigned int dim = 3;
-  unsigned int maxDepth = 4;
+  unsigned int maxDepth = 7;
   double gSize[3];
   //initializeHilbetTable(2);
   initializeHilbetTable(3);
-  
+
   double localTime, totalTime;
   double startTime, endTime;
   DendroIntL localSz, totalSz;
@@ -67,52 +67,49 @@ int main(int argc, char **argv) {
   //Read pts from files
   MPI_Barrier(MPI_COMM_WORLD);
   if (!rank) {
-    std::cout << " reading  " << ptsFileName << std::endl; // Point size
+    std::cout << RED " Reading  " << ptsFileName << NRM << std::endl; // Point size
   }
   ot::readPtsFromFile(ptsFileName, pts);
   if (!rank) {
-    std::cout << " finished reading  " << ptsFileName << std::endl; // Point size
+    std::cout << GRN " Finished reading  " << ptsFileName << NRM << std::endl; // Point size
   }
-  
-  
-  
+
+
   MPI_Barrier(MPI_COMM_WORLD);
 
-  
-  
+
   ptsLen = pts.size();
-    // @milinda debug code
+  // @milinda debug code
   //std::cout << rank << ": read ptsLen" << ptsLen << " points" << std::endl;
-  std::cout << rank << ": read pts.size()" << pts.size() << " points" << std::endl;
-  
+  std::cout << YLW << rank << ": read pts.size()" << pts.size() << " points" NRM << std::endl;
+
   std::vector<ot::TreeNode> tmpNodes;
   for (int i = 0; i < ptsLen; i += 3) {
-   
-    
-        
+
+
     if ((pts[i] > 0.0) &&
         (pts[i + 1] > 0.0)
         && (pts[i + 2] > 0.0) &&
-        (((unsigned int)(pts[i] * ((double)(1u << maxDepth)))) < (1u << maxDepth)) &&
-        (((unsigned int)(pts[i + 1] * ((double)(1u << maxDepth)))) < (1u << maxDepth)) &&
-        (((unsigned int)(pts[i + 2] * ((double)(1u << maxDepth)))) < (1u << maxDepth))) {
+        (((unsigned int) (pts[i] * ((double) (1u << maxDepth)))) < (1u << maxDepth)) &&
+        (((unsigned int) (pts[i + 1] * ((double) (1u << maxDepth)))) < (1u << maxDepth)) &&
+        (((unsigned int) (pts[i + 2] * ((double) (1u << maxDepth)))) < (1u << maxDepth))) {
       // @milinda debug code
       //std::cout<<"Rank:"<<rank<<" x,y,z :"<<pts[i]<<","<<pts[i+1]<<","<<pts[i+2]<<std::endl;
-      
-      tmpNodes.push_back(ot::TreeNode((unsigned int)(pts[i] * (double)(1u << maxDepth)),
-                                      (unsigned int)(pts[i + 1] * (double)(1u << maxDepth)),
-                                      (unsigned int)(pts[i + 2] * (double)(1u << maxDepth)),
+
+      tmpNodes.push_back(ot::TreeNode((unsigned int) (pts[i] * (double) (1u << maxDepth)),
+                                      (unsigned int) (pts[i + 1] * (double) (1u << maxDepth)),
+                                      (unsigned int) (pts[i + 2] * (double) (1u << maxDepth)),
                                       maxDepth, dim, maxDepth));
     }
   }
   pts.clear();
-  
-  std::cout << rank << ": read " << tmpNodes.size() << " points" << std::endl;
-  treeNodesTovtk(tmpNodes,rank,"vtkTreeNode");
-  
+
+  std::cout << YLW << rank << ": read " << tmpNodes.size() << " points" NRM << std::endl;
+  // treeNodesTovtk(tmpNodes, rank, "vtkTreeNode");
+
   par::removeDuplicates<ot::TreeNode>(tmpNodes, false, MPI_COMM_WORLD);
-  
-  std::cout << rank << "afterRemoveDuplicates: " << tmpNodes.size() << " points" << std::endl;
+
+  std::cout << YLW << rank << "afterRemoveDuplicates: " << tmpNodes.size() << " points" NRM << std::endl;
   linOct = tmpNodes;
   tmpNodes.clear();
   par::partitionW<ot::TreeNode>(linOct, NULL, MPI_COMM_WORLD);
@@ -121,16 +118,16 @@ int main(int argc, char **argv) {
   par::Mpi_Reduce<DendroIntL>(&localSz, &totalSz, 1, MPI_SUM, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
   if (rank == 0) {
-    std::cout << "# pts= " << totalSz << std::endl;
+    std::cout << "Total number of pts= " << totalSz << std::endl;
   }
   MPI_Barrier(MPI_COMM_WORLD);
 
   pts.resize(3 * (linOct.size()));
   ptsLen = (3 * (linOct.size()));
   for (int i = 0; i < linOct.size(); i++) {
-    pts[3 * i] = (((double)(linOct[i].getX())) + 0.5) / ((double)(1u << maxDepth));
-    pts[(3 * i) + 1] = (((double)(linOct[i].getY())) + 0.5) / ((double)(1u << maxDepth));
-    pts[(3 * i) + 2] = (((double)(linOct[i].getZ())) + 0.5) / ((double)(1u << maxDepth));
+    pts[3 * i] = (((double) (linOct[i].getX())) + 0.5) / ((double) (1u << maxDepth));
+    pts[(3 * i) + 1] = (((double) (linOct[i].getY())) + 0.5) / ((double) (1u << maxDepth));
+    pts[(3 * i) + 2] = (((double) (linOct[i].getZ())) + 0.5) / ((double) (1u << maxDepth));
   } //end for i
   linOct.clear();
   gSize[0] = 1.0;
@@ -213,9 +210,9 @@ int main(int argc, char **argv) {
 
   //! Quality of the partition ...
   DendroIntL maxNodeSize, minNodeSize,
-     maxBdyNode, minBdyNode,
-     maxIndepSize, minIndepSize,
-     maxElementSize, minElementSize;
+      maxBdyNode, minBdyNode,
+      maxIndepSize, minIndepSize,
+      maxElementSize, minElementSize;
 
   localSz = da.getNodeSize();
   par::Mpi_Reduce<DendroIntL>(&localSz, &maxNodeSize, 1, MPI_MAX, 0, MPI_COMM_WORLD);
