@@ -100,6 +100,8 @@ int main(int argc, char **argv) {
   tmpNodes.clear();
   par::partitionW<ot::TreeNode>(linOct, NULL, MPI_COMM_WORLD);
 
+  treeNodesTovtk(linOct,rank,"par_1");
+
   // reduce and only print the total ...
   localSz = linOct.size();
   par::Mpi_Reduce<DendroIntL>(&localSz, &totalSz, 1, MPI_SUM, 0, MPI_COMM_WORLD);
@@ -155,7 +157,7 @@ int main(int argc, char **argv) {
   }
   pts.clear();
 
-  treeNodesTovtk(linOct, rank, "p2o_output");
+  //treeNodesTovtk(linOct, rank, "p2o_output");
 
   // =========== Balancing ============
   MPI_Barrier(MPI_COMM_WORLD);

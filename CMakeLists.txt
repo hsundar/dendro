@@ -5,16 +5,18 @@ project(dendro)
 set (Dendro_VERSION_MAJOR 4)
 set (Dendro_VERSION_MINOR 0)
 
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+
+
+
 # configure a header file to pass some of the CMake settings
 # to the source code
 configure_file (
         "${PROJECT_SOURCE_DIR}/include/dendro.h.in"
         "${PROJECT_BINARY_DIR}/dendro.h"
 )
-
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 find_package(OpenMP REQUIRED)
 find_package(MPI REQUIRED)
@@ -71,11 +73,11 @@ include_directories(${PROJECT_BINARY_DIR}
                     include/omg 
                     include/test 
                     examples/include 
-                    $ENV{PETSC_DIR}/include 
-                    $ENV{PETSC_DIR}/$ENV{PETSC_ARCH}/include 
+                    ${PETSC_DIR}/include 
+                    ${PETSC_DIR}/${PETSC_ARCH}/include 
                     )
 
-link_directories($ENV{PETSC_DIR}/$ENV{PETSC_ARCH}/lib)
+link_directories(${PETSC_DIR}/${PETSC_ARCH}/lib)
 
 # Sources
 file(GLOB OMG_SOURCES src/omg/*.cpp)
