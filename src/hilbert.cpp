@@ -9,7 +9,7 @@
 /*
  * Recursive Hilbert order implementation. 2D and 3D
  */
-#include "hilbert.h"
+#include "../include/hilbert.h"
 
 int findIndex(Point * pt, int x, int y, int z,int len)
 {
@@ -461,6 +461,34 @@ bool hilbert_order_NCA(const Point& p1,const Point& p2)
      char rotation[4]={0,1,2,3};
      char rot_index[4]={0,1,2,3};
      int current_rot=0;
+     /*NOTE: This is a test code which eliminates the brancing. 
+     */
+     unsigned int m_x=0,m_y=0;
+     unsigned int m;
+     unsigned int x_m=1,y_m=1;
+    /* 
+     for(int i=1;i<=G_MAX_DEPTH;i++)
+     { 
+       m=1u<<(G_MAX_DEPTH-i);
+       m_x=m_x+(2*x_m-1)*m;
+       m_y=m_y+(2*y_m-1)*m;
+       
+       x_m=(ncaX& m_x)>>(G_MAX_DEPTH-i);
+       y_m=(ncaY& m_y)>>(G_MAX_DEPTH-i);
+       
+       index1=x_m+y_m+2*x_m*(1-y_m);
+       
+       index_temp=rotations_2d[current_rot].rot_index[index1];
+       current_rot=HILBERT_2D_TABLE[current_rot][index_temp];
+       
+       if((ncaX==(ncaX& m_x)) & (ncaY==(ncaY& m_x)) & (count==ncaLev))
+	 break;
+	 
+       count++;
+     }
+     */
+     
+     
       while ((xl!=ncaX || yl!=ncaY || zl!=ncaZ || count!=ncaLev ))
       {
 	    len=len>>1;
@@ -478,7 +506,7 @@ bool hilbert_order_NCA(const Point& p1,const Point& p2)
 	  //rotate_table_based(index1,current_rot,dim);
 	  //temp_2d=rotations_2d[current_rot];
 	  index_temp=rotations_2d[current_rot].rot_index[index1];
-	  current_rot=HILBERT_2D_TABLE[current_rot][index_temp];
+	  current_rot=HILBERT_TABLE[current_rot*4+index_temp];
 	  count++;
 	  
       }
@@ -567,7 +595,7 @@ bool hilbert_order_NCA(const Point& p1,const Point& p2)
       
       //temp_3d=rotations_3d[current_rot];
       index_temp=rotations_3d[current_rot].rot_index[index1];
-      current_rot=HILBERT_3D_TABLE[current_rot][index_temp];
+      current_rot=HILBERT_TABLE[current_rot*8+index_temp];
       
       count++;
 	

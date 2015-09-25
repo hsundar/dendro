@@ -18,7 +18,9 @@
 
 namespace ot {
 // Inline Functions ...
-  inline unsigned char TreeNode::getChildNumber(bool real) const {
+  // the boolean value is just to sepecify whether you need the actual Hilbert index or index i default notation.
+
+inline unsigned char TreeNode::getChildNumber(bool real) const {
 
     unsigned char childNum;
 #ifdef HILBERT_ORDERING
@@ -39,30 +41,35 @@ namespace ot {
     {
       index1 = 0;
       if ( m_uiX >= (len + x_par) ) {
-    index1 += 1;
-    if (m_uiY < (len + y_par)){
-      index1 += 2;
-
-    }
+	index1 += 1;
+	if (m_uiY < (len + y_par)){
+	  index1 += 2;
+	}
 
       }
+      
       if ( m_uiY >= (len + y_par) )
       {
         index1 += 1;
 
       }
-      if(real)
-        return rotation_2d.rot_index[index1];
+      
+      if(real){
+	
+	char rot_id=calculateTreeNodeRotation();
+	return rotations_2d[rot_id].rot_index[index1];
+      }
       else
         return index1;
+      
     }else if(m_uiDim==3)
     {
         index1 = 0;
-    if ( m_uiZ < (len + z_par) ) {
-        if ( m_uiX >= (len + x_par) ) {
-          index1 += 1;
-          if (m_uiY < (len + y_par))
-      index1 += 2;
+	if ( m_uiZ < (len + z_par) ) {
+	    if ( m_uiX >= (len + x_par) ) {
+	      index1 += 1;
+	    if (m_uiY < (len + y_par))
+	      index1 += 2;
         }
         if ( m_uiY >= (len + y_par) ) {
           index1 += 1;
@@ -72,16 +79,18 @@ namespace ot {
         if ( m_uiX < (len + x_par) ){
           index1 += 1;
           if (m_uiY < (len + y_par))
-      index1 += 2;
+	  index1 += 2;
         }
         if ( m_uiY >= (len + y_par) ) {
           index1 += 1;
         }
-        }
-        if(real)
-    return rotation_3d.rot_index[index1];
+    }
+        if(real){
+	  char rot_id=calculateTreeNodeRotation();        
+	  return rotations_3d[rot_id].rot_index[index1];
+	}
         else
-    return index1;
+	  return index1;
     }
 
 
@@ -190,29 +199,24 @@ namespace ot {
 
 
 
-//   #ifdef HILBERT_ORDERING
-//     #undef HILBERT_ORDERING
-//   #endif
-//  #define HILBERT_ORDERING
-//   #define USE_NCA_PROPERTY
 
-#ifdef HILBERT_ORDERING
-#ifdef USE_NCA_PROPERTY
-//    #pragma message "Hilbert NCA"
-        return hilbert_order_NCA(p1,p2);
-#else
-//    #pragma message "Hilbert"
-        return hilbert_order(p1,p2);
-#endif
-#else
-#ifdef USE_NCA_PROPERTY
-//    #pragma message "Morton NCA"
-        return morton_order_NCA(p1,p2);
-#else
-//    #pragma message "Morton"
-    return morton_order(p1, p2);
-#endif
-#endif
+    #ifdef HILBERT_ORDERING
+    #ifdef USE_NCA_PROPERTY
+	#pragma message "Hilbert NCA"
+	    return hilbert_order_NCA(p1,p2);
+    #else
+	#pragma message "Hilbert"
+	    return hilbert_order(p1,p2);
+    #endif
+    #else
+    #ifdef USE_NCA_PROPERTY
+	#pragma message "Morton NCA"
+	    return morton_order_NCA(p1,p2);
+    #else
+	#pragma message "Morton"
+	return morton_order(p1, p2);
+    #endif
+    #endif
 
   } //end function
 
@@ -365,9 +369,11 @@ namespace ot {
 
 
      if (m_uiDim == 2) {
-
-
-      index1=rotation_2d.rot_perm[3];
+      
+//       if(rotation_id<0)
+// 	calculateTreeNodeRotation();
+      char rot_id=calculateTreeNodeRotation();
+      index1=rotations_2d[rot_id].rot_perm[3];
       TreeNode dld;
       if(index1==0)
       {
@@ -388,7 +394,10 @@ namespace ot {
     } else if (m_uiDim == 3) {
 
       TreeNode dld;
-      index1=rotation_3d.rot_perm[7];
+      
+      char rot_id=calculateTreeNodeRotation();
+      
+      index1=rotations_3d[rot_id].rot_perm[7];
       std::cout <<"last octant index:"<<index1<< std::endl;
       if(index1==0)
       {
@@ -430,78 +439,93 @@ namespace ot {
 
   inline TreeNode TreeNode::getNext() const {
 
-#ifdef HILBERT_ORDERING
-    unsigned char childNum;
-    childNum=getChildNumber(false);
-    unsigned int lev=getLevel();
-    unsigned len=1u<<(m_uiMaxDepth-lev);
-    TreeNode next;
-    if(m_uiDim==2)
-    {
-      if(childNum<3)
-      {
-  if(childNum%2==0)
-  {
-    if(childNum==0)
-    {
-      next=TreeNode(1,m_uiX,(m_uiY+len),m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth); //default rot 1
-
-    }else
-    {
-      next=TreeNode(1,m_uiX,(m_uiY-len),m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth); //default rot 3
-    }
-
-  }else
-  {
-    next=TreeNode(1,(m_uiX+len),m_uiY,m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth); // default rot2
-  }
-
-      }else
-      {
-  next=getParent().getNext(); // recurse; NOTE: Later we can replace this with iterative method.
-
-      }
-      lev=getLevel(); // To get the caller node level
-      next=TreeNode(1,next.m_uiX,next.m_uiY,next.m_uiZ,lev,m_uiDim,m_uiMaxDepth);
-
-    }else if(m_uiDim==3)
-    {
-      if(childNum<7)
-      {
-  if(childNum==0)
-  {
-    next=TreeNode(1,m_uiX,(m_uiY+len),m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth);
-  }else if(childNum==1)
-  {
-    next=TreeNode(1,(m_uiX+len),m_uiY,m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth);
-  }else if(childNum==2)
-  {
-    next=TreeNode(1,m_uiX,(m_uiY-len),m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth);
-  }else if(childNum==3)
-  {
-    next=TreeNode(1,m_uiX,m_uiY,(m_uiZ+len),m_uiLevel,m_uiDim,m_uiMaxDepth);
-  }else if (childNum==4)
-  {
-    next=TreeNode(1,m_uiX,(m_uiY+len),m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth);
-
-  }else if(childNum==5)
-  {
-    next=TreeNode(1,(m_uiX-len),m_uiY,m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth);
-  }else if(childNum==6)
-  {
-    next=TreeNode(1,m_uiX,(m_uiY-len),m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth);
-  }
-
-      }else
-      {
-  next=getParent().getNext();
-      }
-      lev=getLevel(); // To get the caller node level
-      next=TreeNode(1,next.m_uiX,next.m_uiY,next.m_uiZ,lev,m_uiDim,m_uiMaxDepth);
-      
-    }
-
-#else
+// #ifdef HILBERT_ORDERING
+//     unsigned char childNum;
+//     TreeNode next;
+//     if(m_uiLevel==0)
+//     {
+//       std::cout << BLU << "===============================================" << NRM << std::endl;
+//       std::cout << RED " Next of the root node" NRM << std::endl;
+//       std::cout << BLU << "===============================================" << NRM << std::endl;
+//       
+//       next=TreeNode(1,0,0,0,1,m_uiDim,m_uiMaxDepth);
+//       return next;
+//       
+//     }
+//     
+//     
+//     childNum=getChildNumber(false);
+//     unsigned int lev=getLevel();
+//     unsigned len=1u<<(m_uiMaxDepth-lev);
+//     
+//     if(m_uiDim==2)
+//     {
+//       if(childNum<3)
+//       {
+// 	if(childNum%2==0)
+// 	{
+// 	  if(childNum==0)
+// 	  {
+// 	    next=TreeNode(1,m_uiX,(m_uiY+len),m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth); //default rot 1
+// 
+// 	  }else
+// 	  {
+// 	    next=TreeNode(1,m_uiX,(m_uiY-len),m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth); //default rot 3
+// 	  }
+// 
+// 	}else
+// 	{
+// 	  next=TreeNode(1,(m_uiX+len),m_uiY,m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth); // default rot2
+// 	}
+//       return next;
+//       }else
+//       {
+// 	next=getParent().getNext(); // recurse; NOTE: Later we can replace this with iterative method.
+//       }
+//       
+// //       lev=getLevel(); // To get the caller node level
+// //       next=TreeNode(1,next.m_uiX,next.m_uiY,next.m_uiZ,lev,m_uiDim,m_uiMaxDepth);
+// 
+//     }else if(m_uiDim==3)
+//     {
+//       if(childNum<7)
+//       {
+// 	  if(childNum==0)
+// 	  {
+// 	    next=TreeNode(1,m_uiX,(m_uiY+len),m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth);
+// 	  }else if(childNum==1)
+// 	  {
+// 	    next=TreeNode(1,(m_uiX+len),m_uiY,m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth);
+// 	  }else if(childNum==2)
+// 	  {
+// 	    next=TreeNode(1,m_uiX,(m_uiY-len),m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth);
+// 	  }else if(childNum==3)
+// 	  {
+// 	    next=TreeNode(1,m_uiX,m_uiY,(m_uiZ+len),m_uiLevel,m_uiDim,m_uiMaxDepth);
+// 	  }else if (childNum==4)
+// 	  {
+// 	    next=TreeNode(1,m_uiX,(m_uiY+len),m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth);
+// 
+// 	  }else if(childNum==5)
+// 	  {
+// 	    next=TreeNode(1,(m_uiX-len),m_uiY,m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth);
+// 	  }else if(childNum==6)
+// 	  {
+// 	    next=TreeNode(1,m_uiX,(m_uiY-len),m_uiZ,m_uiLevel,m_uiDim,m_uiMaxDepth);
+// 	  }
+// 
+//       return next;
+//       }else
+//       {
+// 	next=getParent().getNext();
+//       }
+//       
+//       //lev=getLevel(); // To get the caller node level
+//       //next=TreeNode(1,next.m_uiX,next.m_uiY,next.m_uiZ,lev,m_uiDim,m_uiMaxDepth);
+//       
+//     }
+// 
+// #else
     TreeNode m = *this;
     unsigned int mask = (1u << (m_uiMaxDepth - getLevel()));
     int i;
@@ -516,7 +540,7 @@ namespace ot {
     }
     m.m_uiLevel = i;
     return m;
-#endif
+//#endif
   }
 
 inline TreeNode TreeNode::getFirstChild() const {
@@ -529,7 +553,8 @@ inline TreeNode TreeNode::getFirstChild() const {
   
   if(m_uiDim==2)
   {
-    char fchild=m.rotation_2d.rot_perm[0];
+    char rot_id=calculateTreeNodeRotation();
+    char fchild=rotations_2d[rot_id].rot_perm[0];
     
     if(fchild==0)
     {
@@ -550,7 +575,9 @@ inline TreeNode TreeNode::getFirstChild() const {
     
   }else if(m_uiDim==3)
   {
-    char fchild=m.rotation_3d.rot_perm[0];
+    char rot_id=calculateTreeNodeRotation();
+    
+    char fchild=rotations_3d[rot_id].rot_perm[0];
     
     if(fchild==0)
     {

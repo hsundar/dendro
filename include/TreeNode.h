@@ -45,9 +45,7 @@ namespace ot {
       // To store the rotation pattern and rotation index
       // This should be a propery of the TreeNode class. 
   
-      Rotation2D rotation_2d;
-      Rotation3D rotation_3d;
-      
+     
       
       //constructor without checks: only for faster construction.
       TreeNode (const int dummy, const unsigned int x,const unsigned int y,
@@ -87,7 +85,7 @@ namespace ot {
        *@changes the rotation and rot_index values of the TreeNode.      
        */
       
-      void calculateTreeNodeRotation();
+      char calculateTreeNodeRotation() const;
       
 
       /**

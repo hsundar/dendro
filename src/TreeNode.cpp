@@ -519,9 +519,9 @@ std::vector<bool> ot::TreeNode  ::getMorton() const {
 TreeNode :: TreeNode() {
   m_uiX = m_uiY = m_uiZ = m_uiLevel =
      m_uiWeight = m_uiDim = m_uiMaxDepth = 0;
-  #ifdef HILBERT_ORDERING
-  calculateTreeNodeRotation();  
-#endif
+//   #ifdef HILBERT_ORDERING
+//   calculateTreeNodeRotation();  
+// #endif
 }
 
 TreeNode  :: TreeNode(const int dummy, const unsigned int x, const unsigned int y,
@@ -534,9 +534,9 @@ TreeNode  :: TreeNode(const int dummy, const unsigned int x, const unsigned int 
 
   m_uiLevel = lev;
   m_uiWeight = 1;
-  #ifdef HILBERT_ORDERING
-  calculateTreeNodeRotation();
-  #endif
+//   #ifdef HILBERT_ORDERING
+//   //calculateTreeNodeRotation();
+//   #endif
   
 } //end function
 
@@ -554,9 +554,9 @@ TreeNode  :: TreeNode(const unsigned int dim, const unsigned int maxDepth) {
   }
 #endif
   assert((dim == 1) || (dim == 2) || (dim == 3));
-  #ifdef HILBERT_ORDERING
-  calculateTreeNodeRotation();
-  #endif
+//   #ifdef HILBERT_ORDERING
+//   calculateTreeNodeRotation();
+//   #endif
 } //end function
 
 TreeNode  :: TreeNode(const unsigned int x, const unsigned int y,
@@ -582,9 +582,9 @@ TreeNode  :: TreeNode(const unsigned int x, const unsigned int y,
   assert((m_uiZ % ((unsigned int)(1u << (maxDepth - lev)))) == 0);
   assert((dim == 1) || (dim == 2) || (dim == 3));
 #endif
-  #ifdef HILBERT_ORDERING  
-  calculateTreeNodeRotation();
-#endif
+//   #ifdef HILBERT_ORDERING  
+//   calculateTreeNodeRotation();
+// #endif
 } //end function
 
 //copy constructor
@@ -617,9 +617,9 @@ TreeNode  :: TreeNode(const TreeNode& other) {
 //     }
 //     
 //   }
-#ifdef HILBERT_ORDERING
-  calculateTreeNodeRotation();
-#endif  
+// #ifdef HILBERT_ORDERING
+//   calculateTreeNodeRotation();
+// #endif  
 } //end function
 
 /*
@@ -638,7 +638,7 @@ std::ostream& operator<<(std::ostream& os, TreeNode const& other) {
  * ====================START============================
  */
 
-void TreeNode::calculateTreeNodeRotation()
+char TreeNode::calculateTreeNodeRotation() const
 {
   
   unsigned int xl = 0;
@@ -650,17 +650,19 @@ void TreeNode::calculateTreeNodeRotation()
   unsigned int index1 = 0;
   unsigned int index2 = 0;
   
+  char rotation_id;
+  
   unsigned int ncaX,ncaY,ncaZ,ncaLev; // considering the current node as the NCA. 
   ncaX=this->m_uiX;
   ncaY=this->m_uiY;
   ncaZ=this->m_uiZ;
   ncaLev=this->m_uiLevel;
   int index_temp;
-
+  int num_children=1u<<m_uiDim;
   if (m_uiDim == 2) {
      //rotation=new int[4]{0,1,2,3};
      //rot_index=new int[4]{0,1,2,3};
-     int current_rot=0;
+     char current_rot=0;
           
     while ((xl != ncaX || yl != ncaY || zl != ncaZ || count != ncaLev)) {
       
@@ -675,21 +677,17 @@ void TreeNode::calculateTreeNodeRotation()
 
       //rotate(index1, rotation, rot_index, 2);
       index_temp=rotations_2d[current_rot].rot_index[index1];
-      current_rot=HILBERT_2D_TABLE[current_rot][index_temp];
+      current_rot=HILBERT_TABLE[current_rot*num_children+index_temp];
       
       count++;
 
     }
 
-    rotation_2d=rotations_2d[current_rot];
+    //rotation_id=current_rot;
     
 
   } else if (m_uiDim == 3) {
-//     rotation = new int[8]{ 0, 1, 2, 3, 4, 5, 6, 7 }; // Initial rotation
-//     rot_index = new int[8]{ 0, 1, 2, 3, 4, 5, 6, 7 }; // Initial rotation indices
-    
-    int current_rot=0;
-    
+    char current_rot=0;
     while ((xl != ncaX || yl != ncaY || zl != ncaZ || count != ncaLev)/*&& len >0*/) {
 
       len >>= 1;
@@ -721,13 +719,14 @@ void TreeNode::calculateTreeNodeRotation()
       }
 
       index_temp=rotations_3d[current_rot].rot_index[index1];
-      current_rot=HILBERT_3D_TABLE[current_rot][index_temp];
+      current_rot=HILBERT_TABLE[current_rot*num_children+index_temp];
       count++;
 
     }
-    rotation_3d=rotations_3d[current_rot];
-  
+    //rotation_id=current_rot;
+    
 }
+return rotation_id;
 //std::cout<<"Tree Node Rotation Calculation Completed"<<std::endl;
 
 }
@@ -750,9 +749,9 @@ TreeNode& TreeNode  :: operator = (TreeNode   const& other) {
   m_uiWeight = other.m_uiWeight;
   m_uiDim = other.m_uiDim;
   m_uiMaxDepth = other.m_uiMaxDepth;
-#ifdef HILBERT_ORDERING
-  calculateTreeNodeRotation();
-#endif
+// #ifdef HILBERT_ORDERING
+//   calculateTreeNodeRotation();
+// #endif
 
 //   if(m_uiDim==2)
 //   {

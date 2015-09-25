@@ -1,3 +1,14 @@
+/*
+ *@author: Milinda Fernando
+ *@date: 09/04/2015 // This is refactored code from HilbertBenchmark code.
+ *School of Computing, University of Utah
+ * 
+ * Contains the code to gernerate the Hilbert Table
+ * Later we can hardcorde the table to the dendro header file. 
+ * 
+ */
+
+
 #ifndef ROTATION_H
 #define ROTATION_H
 
@@ -5,13 +16,9 @@
 #include <cstring>
 #include <vector>
 #include <algorithm>
-#include <cstdio>
 
 
-
-extern char **HILBERT_2D_TABLE;
-extern char **HILBERT_3D_TABLE;
-
+extern char *HILBERT_TABLE;
 
 
 /*

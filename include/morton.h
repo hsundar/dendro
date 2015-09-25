@@ -4,9 +4,9 @@
 
 #include "sfc.h"
 #include <iostream>
+#include"dendro.h"
+#include "../include/Point.h"
 
-#include "Point.h"
-#include "binUtils.h"
 
 bool morton_order(Point p1,Point p2);
 bool morton_order_NCA(const Point& p1,const Point& p2);
