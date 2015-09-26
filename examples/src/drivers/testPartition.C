@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
   bool compressLut = false;
 
   unsigned int ptsLen;
-  unsigned int maxNumPts = 1;
+  unsigned int maxNumPts = 100;
   unsigned int dim = 3;
   unsigned int maxDepth = 8;
   double gSize[3];
@@ -157,7 +157,7 @@ int main(int argc, char **argv) {
   }
   pts.clear();
 
-  //treeNodesTovtk(linOct, rank, "p2o_output");
+  treeNodesTovtk(linOct, rank, "p2o_output");
 
   // =========== Balancing ============
   MPI_Barrier(MPI_COMM_WORLD);

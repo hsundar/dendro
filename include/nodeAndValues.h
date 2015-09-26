@@ -22,8 +22,8 @@ namespace ot {
     */
   template<typename T, unsigned int ARR_LEN>
     class NodeAndValues {
-      public:
 
+    public:
         ot::TreeNode node; /**< The octant */
         T values[ARR_LEN]; /**< The values */
 
@@ -64,7 +64,7 @@ namespace ot {
         }//end fn.
 
         //Asignment Operator
-        NodeAndValues<T, ARR_LEN>& operator = ( NodeAndValues<T, ARR_LEN> const & other) {
+       NodeAndValues<T, ARR_LEN>& operator = ( NodeAndValues<T, ARR_LEN> const & other) {
           if(this == (&other)) {return *this;}	
           this->node = other.node;
           for(unsigned int i = 0; i < ARR_LEN; i++) {
@@ -72,6 +72,8 @@ namespace ot {
           }
           return *this;
         }//end fn.
+
+
 
         friend std::ostream& operator<<(std::ostream& os, NodeAndValues<T, ARR_LEN> const& other) {
 	  return (os << other.node.getX() << " " << other.node.getY() << " " << other.node.getZ() << " " << other.node.getLevel());

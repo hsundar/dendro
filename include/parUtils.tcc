@@ -18,6 +18,8 @@
 #include "ompUtils.h"
 #include "TreeNode.h"
 
+#include "treenode2vtk.h"
+
 #ifdef __DEBUG__
 #ifndef __DEBUG_PAR__
 #define __DEBUG_PAR__
@@ -1459,7 +1461,8 @@ int sampleSort(std::vector<T>& arr, std::vector<T> & SortedElem, MPI_Comm comm){
           std::cout <<" Using bitonic sort since totSize < (5*(npes^2)). totSize: "
             <<totSize<<" npes: "<<npes <<std::endl;
         }
-        	
+
+
 
 #ifdef __DEBUG_PAR__
         MPI_Barrier(comm);
@@ -1511,26 +1514,56 @@ int sampleSort(std::vector<T>& arr, std::vector<T> & SortedElem, MPI_Comm comm){
 #endif
 
       //Re-part arr so that each proc. has atleast p elements.
+
       par::partitionW<T>(arr, NULL, comm);
 
       nelem = arr.size();
+
      
       // std::sort(arr.begin(),arr.end());
       omp_par::merge_sort(arr.begin(),arr.end());
 
       std::vector<T> sendSplits(npes-1);
       splitters.resize(npes);
-
+      std::vector<ot::TreeNode> treenode_split;
+    ot::TreeNode temp;
       #pragma omp parallel for
       for(int i = 1; i < npes; i++)         {
-        sendSplits[i-1] = arr[i*nelem/npes];        
+
+        sendSplits[i-1] = arr[i*nelem/npes];
+
+          //std::cout << BLU << "===============================================" << NRM << std::endl;
+         // std::cout << RED " Splittersn in Sample Sort Rank:"<<rank<< NRM << std::endl;
+          //std::cout << BLU << "===============================================" << NRM << std::endl;
+
+          std::ostringstream convert;
+          convert<<sendSplits[i-1];
+          std::vector<std::string> results;
+          std::stringstream s(convert.str());
+          while(!s.eof()) {
+              std::string tmp;
+              s >> tmp;
+              results.push_back(tmp);
+          }
+
+          temp=ot::TreeNode(1,atoi(results[0].c_str()),atoi(results[1].c_str()),atoi(results[2].c_str()),atoi(results[3].c_str()),3,8);
+          treenode_split.push_back(temp);
+          std::cout <<"Rank: "<<rank<<"  "<<sendSplits[i-1]<<std::endl;
+
+
+
       }//end for i
 
+
+      treeNodesTovtk(treenode_split,rank,"SplittersbfBiTonicSort");
       //std::cout << myrank << ": snedSplit " << sendSplits[0] << "  ||||  " <<  sendSplits[1] << std::endl;
       //NOTE: @hari fails for npes=2
       // sort sendSplits using bitonic ...
       par::bitonicSort<T>(sendSplits,comm);
-      
+
+
+      //treeNodesTovtk(treenode_spliters,rank,"SplitersafBitTonicSort");
+
       
       //std::cout << myrank << ": afterBitonic " << sendSplits[0] << "  ||||  " <<  sendSplits[1] << std::endl;
 

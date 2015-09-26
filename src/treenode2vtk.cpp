@@ -3,7 +3,7 @@
 void treeNodesTovtk(std::vector<ot::TreeNode>& nodes,int mpi_rank,std::string vtk_file_name)
 {
   
-  //std::sort(nodes.begin(),nodes.end());
+  std::sort(nodes.begin(),nodes.end());
   std::cout<<"vtk TreeNode started"<<std::endl;
   std::ostringstream convert;
   convert<<vtk_file_name<<"_"<<mpi_rank<<".vtk";

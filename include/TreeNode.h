@@ -48,11 +48,12 @@ namespace ot {
      
       
       //constructor without checks: only for faster construction.
-      TreeNode (const int dummy, const unsigned int x,const unsigned int y,
-          const unsigned int z,const unsigned int level, const unsigned int dim,
-          const unsigned int maxDepth);
+
 
     public:
+      TreeNode (const int dummy, const unsigned int x,const unsigned int y,
+                const unsigned int z,const unsigned int level, const unsigned int dim,
+                const unsigned int maxDepth);
 
       /**
         @brief The type of boundary
