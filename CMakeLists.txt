@@ -73,11 +73,11 @@ include_directories(${PROJECT_BINARY_DIR}
                     include/omg 
                     include/test 
                     examples/include 
-                    ${PETSC_DIR}/include 
-                    ${PETSC_DIR}/${PETSC_ARCH}/include 
+                    ${ENV}${PETSC_DIR}/include 
+                    ${ENV}${PETSC_DIR}/${PETSC_ARCH}/include 
                     )
 
-link_directories(${PETSC_DIR}/${PETSC_ARCH}/lib)
+link_directories(${ENV}${PETSC_DIR}/${ENV}${PETSC_ARCH}/lib)
 
 # Sources
 file(GLOB OMG_SOURCES src/omg/*.cpp)
