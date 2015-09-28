@@ -448,7 +448,7 @@ namespace ot {
         char child_index;
         unsigned int par_x,par_y,par_z,par_level;
         unsigned int len;
-        std::cout<<"Get Next of TreeNode: "<<(*this)<<std::endl;
+        // std::cout<<"Get Next of TreeNode: "<<(*this)<<std::endl;
         for (i = m.m_uiLevel; i >= 0; --i) {
 
             // special case that next of the root node.We consider it as the first child of the root.
@@ -501,7 +501,7 @@ namespace ot {
         }
 
 
-        std::cout<<"Get Next Returned: "<<m<<std::endl;
+        // std::cout<<"Get Next Returned: "<<m<<std::endl;
         return m;
 
  #else
