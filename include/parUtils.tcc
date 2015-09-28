@@ -14,6 +14,7 @@
 #include <cassert>
 #include <iostream>
 #include <algorithm>
+#include <test/testUtils.h>
 #include "dendro.h"
 #include "ompUtils.h"
 #include "TreeNode.h"
@@ -1961,9 +1962,16 @@ int sampleSort(std::vector<T>& arr, std::vector<T> & SortedElem, MPI_Comm comm){
       assert(!(listA.empty()));
       assert(!(listB.empty()));
 
+      assert(seq::test::isSorted(listA));
+      assert(seq::test::isSorted(listB));
+
+      // max ( min(A,B) )
       _low  = ( (listA[0] > listB[0]) ? listA[0] : listB[0]);
+      // min ( max(A,B) )
       _high = ( (listA[listA.size()-1] < listB[listB.size()-1]) ?
           listA[listA.size()-1] : listB[listB.size()-1]);
+
+      std::cout << rank << "  A: " << listA[0] << std::endl << "  B: " << listB[0] << std::endl << "     low " << _low << std::endl << "      high" << _high << std::endl;
 
       // We will do a full merge first ...
       size_t list_size = listA.size() + listB.size();
@@ -1987,6 +1995,7 @@ int sampleSort(std::vector<T>& arr, std::vector<T> & SortedElem, MPI_Comm comm){
         }
       }
 
+
       //Scratch list is sorted at this point.
       std::cout << rank << YLW " -- [bitonic] [MergeLists]  combined size " << scratch_list.size() << NRM << std::endl;
 
@@ -1994,9 +2003,33 @@ int sampleSort(std::vector<T>& arr, std::vector<T> & SortedElem, MPI_Comm comm){
       listB.clear();
 
       if ( KEEP_WHAT == KEEP_LOW ) {
+        std::cout << rank << MAG << "    == " << scratch_list[0] << NRM << std::endl;
+        for (auto i=1; i<scratch_list.size(); ++i){
+          std::cout << rank << MAG << "    == " << scratch_list[i] << NRM << std::endl;
+
+          if (scratch_list[i] < scratch_list[i-1])
+            std::cout << rank << RED " -- [bitonic] [MergeLists] scratch list is not sorted" NRM << std::endl;
+        }
+
+
+        std::cout << rank << BLU "sl[1] < sl[0] " << (scratch_list[1] < scratch_list[0]) << NRM << std::endl;
+        std::cout << rank << BLU "sl[2] < sl[1] " << (scratch_list[2] < scratch_list[1]) << NRM << std::endl;
+        std::cout << rank << BLU "sl[2] < sl[0] " << (scratch_list[2] < scratch_list[0]) << NRM << std::endl;
+        std::cout << rank << BLU "sl[0] < sl[2] " << (scratch_list[0] < scratch_list[2]) << NRM << std::endl;
+        std::cout << rank << BLU "sl[0] = sl[2] " << (scratch_list[0] == scratch_list[2]) << NRM << std::endl;
+
+
         int ii=0;
 
-        std::cout << "scratch[0] : " << scratch_list[ii] << ", low: " << _low << ", high: " << _high << std::endl;
+        // std::cout << "scratch[0] : " << scratch_list[ii] << ", low: " << _low << ", high: " << _high << std::endl;
+        // std::cout << "sl[i] < low  " << (scratch_list[ii] < _low) << std::endl;
+
+        std::cout << "sl[i] <= high " << scratch_list[ii] << " <= " <<  _high << " --> " << (scratch_list[ii] <= _high) << std::endl;
+        std::cout << "sl[i] > high " << scratch_list[ii] << " > " <<  _high << " --> " << (scratch_list[ii] > _high) << std::endl;
+        // std::cout << "low < high " << (_low < _high) << std::endl;
+        // std::cout << "ii < l_sz/2 " << (ii < list_size/2) << std::endl
+
+
         while ( ( (scratch_list[ii] < _low) ||
               (ii < (list_size/2)) )
             && (scratch_list[ii] <= _high) ) {
