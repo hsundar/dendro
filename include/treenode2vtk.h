@@ -3,6 +3,7 @@
 
 #include "TreeNode.h"
 #include "Point.h"
+#include "nodeAndValues.h"
 
 
 #include <iostream>
@@ -16,8 +17,4 @@
 //std::string treeNodeTovtk(const TreeNode& T,int mpi_rank,int hindex);
 
 void treeNodesTovtk(std::vector<ot::TreeNode>& nodes,int mpi_rank,std::string vtk_file_name,bool hsorted=false);
-
-
-
-
 #endif

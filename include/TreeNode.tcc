@@ -202,6 +202,8 @@ namespace ot {
 #ifdef HILBERT_ORDERING
 #ifdef USE_NCA_PROPERTY
         #pragma message "Hilbert NCA"
+        G_MAX_DEPTH=m_uiMaxDepth;
+        G_dim=m_uiDim;
         return hilbert_order_NCA(p1,p2);
 #else
         #pragma message "Hilbert"
