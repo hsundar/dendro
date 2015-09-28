@@ -92,9 +92,11 @@ int main(int argc, char **argv) {
 
   // treeNodesTovtk(tmpNodes, rank, "vtkTreeNode");
 
+  std::cout << YLW << rank << ": before RemoveDuplicates: " << tmpNodes.size() << " points" NRM << std::endl;
+
   par::removeDuplicates<ot::TreeNode>(tmpNodes, false, MPI_COMM_WORLD);
 
-  // std::cout << YLW << rank << "afterRemoveDuplicates: " << tmpNodes.size() << " points" NRM << std::endl;
+  std::cout << YLW << rank << ": after RemoveDuplicates: " << tmpNodes.size() << " points" NRM << std::endl;
 
   linOct = tmpNodes;
   tmpNodes.clear();

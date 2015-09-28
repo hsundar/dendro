@@ -1304,17 +1304,20 @@ namespace par {
       MPI_Barrier(comm);
 #endif
       PROF_REMDUP_BEGIN
-        int size, rank;
-      MPI_Comm_size(comm,&size);
-      MPI_Comm_rank(comm,&rank);
 
-      std::vector<T> tmpVec;
-      if(!isSorted) {                  
-        //Sort partitions vecT and tmpVec internally.
-        par::sampleSort<T>(vecT, tmpVec, comm);                                    
-      }else {
-        swap(tmpVec, vecT);
-      }
+    int size, rank;
+    MPI_Comm_size(comm,&size);
+    MPI_Comm_rank(comm,&rank);
+
+    std::vector<T> tmpVec;
+    if(!isSorted) {
+      //Sort partitions vecT and tmpVec internally.
+      std::cout << "  rank: " << rank << " before samplesort, size: " << vecT.size() << std::endl;
+      par::sampleSort<T>(vecT, tmpVec, comm);
+      std::cout << "  rank: " << rank << " after samplesort, size: " << tmpVec.size() << std::endl;
+    }else {
+      swap(tmpVec, vecT);
+    }
 
 #ifdef __DEBUG_PAR__
       MPI_Barrier(comm);
@@ -1515,13 +1518,16 @@ int sampleSort(std::vector<T>& arr, std::vector<T> & SortedElem, MPI_Comm comm){
 
       //Re-part arr so that each proc. has atleast p elements.
 
+      if (!rank) std::cout << "[samplesort] repartitioning input" << std::endl;
       par::partitionW<T>(arr, NULL, comm);
 
       nelem = arr.size();
 
-     
+
+      if (!rank) std::cout << RED "[samplesort] initial local sort" NRM << std::endl;
       // std::sort(arr.begin(),arr.end());
       omp_par::merge_sort(arr.begin(),arr.end());
+      if (!rank) std::cout << GRN "[samplesort] initial local sort" NRM << std::endl;
 
       std::vector<T> sendSplits(npes-1);
       splitters.resize(npes);
@@ -1548,18 +1554,22 @@ int sampleSort(std::vector<T>& arr, std::vector<T> & SortedElem, MPI_Comm comm){
 
           temp=ot::TreeNode(1,atoi(results[0].c_str()),atoi(results[1].c_str()),atoi(results[2].c_str()),atoi(results[3].c_str()),3,8);
           treenode_split.push_back(temp);
-          std::cout <<"Rank: "<<rank<<"  "<<sendSplits[i-1]<<std::endl;
+          // std::cout <<"Rank: "<<rank<<"  "<<sendSplits[i-1]<<std::endl;
 
 
 
       }//end for i
 
 
-      treeNodesTovtk(treenode_split,rank,"SplittersbfBiTonicSort");
+      // treeNodesTovtk(treenode_split,rank,"SplittersbfBiTonicSort");
       //std::cout << myrank << ": snedSplit " << sendSplits[0] << "  ||||  " <<  sendSplits[1] << std::endl;
       //NOTE: @hari fails for npes=2
       // sort sendSplits using bitonic ...
-      par::bitonicSort<T>(sendSplits,comm);
+      // if (!rank)
+        std::cout << rank << RED " [samplesort] bitonicsort " NRM << sendSplits.size() << std::endl;
+      par::bitonicSort<T>(sendSplits, comm);
+      // if (!rank)
+        std::cout << rank << GRN " [samplesort] done bitonicsort" NRM << std::endl;
 
 
       //treeNodesTovtk(treenode_spliters,rank,"SplitersafBitTonicSort");
@@ -1711,6 +1721,7 @@ int sampleSort(std::vector<T>& arr, std::vector<T> & SortedElem, MPI_Comm comm){
       rdispls = NULL;
 
       // sort(SortedElem.begin(), SortedElem.end());
+      if (!rank) std::cout << "[samplesort] final local sort" << std::endl;
       omp_par::merge_sort(&SortedElem[0], &SortedElem[nsorted]);
 
       PROF_SORT_END
@@ -1748,7 +1759,13 @@ int sampleSort(std::vector<T>& arr, std::vector<T> & SortedElem, MPI_Comm comm){
       par::Mpi_Sendrecv<T, T>( local_listPtr, send_size, partner,
           1, temp_listPtr, recv_size, partner, 1, comm, &status);
 
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    std::cout << rank << RED " [bitonic] Calling MergeLists: " << local_list.size() << " : " << temp_list.size() << NRM << std::endl;
+
       MergeLists<T>(local_list, temp_list, which_keys);
+
+    std::cout << rank << GRN " [bitonic] after MergeLists: " << local_list.size() << NRM << std::endl;
 
       temp_list.clear();
     } // Merge_split 
@@ -1861,10 +1878,20 @@ int sampleSort(std::vector<T>& arr, std::vector<T> & SortedElem, MPI_Comm comm){
           proc_set_size = proc_set_size*2, 
           and_bit = and_bit << 1) {
 
+        MPI_Barrier(MPI_COMM_WORLD);
+        if (!rank) std::cout << MAG "=====================================" NRM << std::endl;
+        if (!rank) std::cout << "     " << proc_set_size << "       " << std::endl;
+        if (!rank) std::cout << MAG "=====================================" NRM << std::endl;
+        MPI_Barrier(MPI_COMM_WORLD);
+
         if ((rank & and_bit) == 0) {
+          // std::cout << rank << RED " [bitonic] Calling sort_incr : " << proc_set_size <<  NRM " : " << in.size() << std::endl;
           Par_bitonic_sort_incr<T>( in, proc_set_size, comm);
+          // std::cout << rank << GRN " [bitonic] done sort_incr : " << proc_set_size << NRM " : " << in.size() << std::endl;
         } else {
+          // std::cout << rank << RED " [bitonic] Calling sort_decr : " << proc_set_size << NRM " : " << in.size() << std::endl;
           Par_bitonic_sort_decr<T>( in, proc_set_size, comm);
+          // std::cout << rank << GRN " [bitonic] done sort_decr : " << proc_set_size << NRM " : " << in.size() << std::endl;
         }
       }//end for
     }
@@ -1926,6 +1953,11 @@ int sampleSort(std::vector<T>& arr, std::vector<T> & SortedElem, MPI_Comm comm){
 
       T _low, _high;
 
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+      std::cout << rank << RED " ++ [bitonic] [MergeLists]  sizeA: " << listA.size() << ", sizeB: " << listB.size() << NRM << std::endl;
+
       assert(!(listA.empty()));
       assert(!(listB.empty()));
 
@@ -1946,7 +1978,7 @@ int sampleSort(std::vector<T>& arr, std::vector<T> & SortedElem, MPI_Comm comm){
         //so that index2 remains within bounds
         if ( (index1 < listA.size()) && 
             ( (index2 >= listB.size()) ||
-              (listA[index1] <= listB[index2]) ) ) {
+                (listA[index1] <= listB[index2]) ) ) {
           scratch_list[i] = listA[index1];
           index1++;
         } else {
@@ -1956,21 +1988,28 @@ int sampleSort(std::vector<T>& arr, std::vector<T> & SortedElem, MPI_Comm comm){
       }
 
       //Scratch list is sorted at this point.
+      std::cout << rank << YLW " -- [bitonic] [MergeLists]  combined size " << scratch_list.size() << NRM << std::endl;
 
       listA.clear();
       listB.clear();
+
       if ( KEEP_WHAT == KEEP_LOW ) {
         int ii=0;
+
+        std::cout << "scratch[0] : " << scratch_list[ii] << ", low: " << _low << ", high: " << _high << std::endl;
         while ( ( (scratch_list[ii] < _low) ||
               (ii < (list_size/2)) )
             && (scratch_list[ii] <= _high) ) {
           ii++;        
         }
+        std::cout << rank << YLW "   Keep Low : ii " << ii << NRM << std::endl;
         if(ii) {
           listA.insert(listA.end(), scratch_list.begin(),
               (scratch_list.begin() + ii));
         }
       } else {
+        std::cout << rank << YLW "   Keep High" << NRM << std::endl;
+
         int ii = (list_size - 1);
         while ( ( (ii >= (list_size/2)) 
               && (scratch_list[ii] >= _low) )
@@ -1983,7 +2022,8 @@ int sampleSort(std::vector<T>& arr, std::vector<T> & SortedElem, MPI_Comm comm){
         }
       }
       scratch_list.clear();
-    }//end function
+    std::cout << rank << GRN " -- [bitonic] [MergeLists]  sizeA: " << listA.size() << ", sizeB: " << listB.size() << NRM << std::endl;
+  }//end function
 
 }//end namespace
 
