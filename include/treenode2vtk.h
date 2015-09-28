@@ -15,7 +15,7 @@
 // convert one treenode to vtk file compatibel string
 //std::string treeNodeTovtk(const TreeNode& T,int mpi_rank,int hindex);
 
-void treeNodesTovtk(std::vector<ot::TreeNode>& nodes,int mpi_rank,std::string vtk_file_name);
+void treeNodesTovtk(std::vector<ot::TreeNode>& nodes,int mpi_rank,std::string vtk_file_name,bool hsorted=false);
 
 
 
