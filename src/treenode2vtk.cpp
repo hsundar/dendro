@@ -1,6 +1,6 @@
 #include "treenode2vtk.h"
 
-void treeNodesTovtk(std::vector<ot::TreeNode>& nodes,int mpi_rank,std::string vtk_file_name)
+void treeNodesTovtk(std::vector<ot::TreeNode>& nodes,int mpi_rank,std::string vtk_file_name,bool hsorted)
 {
   
   std::sort(nodes.begin(),nodes.end());
@@ -32,7 +32,11 @@ void treeNodesTovtk(std::vector<ot::TreeNode>& nodes,int mpi_rank,std::string vt
   {
     unsigned int len;
     unsigned int xl,yl,zl;
-    int num_feilddata=2;
+    int num_data_field=2;
+    if(hsorted) {
+      num_data_field++;
+      std::sort(nodes.begin(),nodes.end());
+    }
     
     int num_cells_elements=num_cells*unit_points +num_cells;
     
@@ -75,15 +79,34 @@ void treeNodesTovtk(std::vector<ot::TreeNode>& nodes,int mpi_rank,std::string vt
        
     //myfile<<"CELL_DATA "<<num_cells<<std::endl;
     //myfile<<"POINT_DATA "<<(num_cells*unit_points)<<std::endl;
-    myfile<<"FIELD OCTREE_DATA 2"<<std::endl;
+
+
+
+    myfile<<"FIELD OCTREE_DATA "<<num_data_field<<std::endl;
+
     myfile<<"cell_level 1 "<<num_cells<<" int"<<std::endl;
+
     for(int i=0;i<nodes.size();i++)
       myfile<<nodes[i].getLevel()<<" ";
-    
+
+    myfile<<std::endl;
 
     myfile<<"mpi_rank 1 "<<num_cells<<" int"<<std::endl;
     for(int i=0;i<nodes.size();i++)
       myfile<<mpi_rank<<" ";
+
+    myfile<<std::endl;
+
+    if(hsorted)
+    {
+      myfile<<"hilbert_index 1 "<< num_cells <<" int "<<std::endl;
+      for(int i=0;i<nodes.size();i++)
+        myfile<<(i+1)<<" ";
+
+      myfile<<std::endl;
+    }
+
+
     
   }
   
@@ -92,3 +115,5 @@ void treeNodesTovtk(std::vector<ot::TreeNode>& nodes,int mpi_rank,std::string vt
   
   
 }
+
+

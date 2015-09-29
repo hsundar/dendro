@@ -1999,8 +1999,11 @@ int sampleSort(std::vector<T>& arr, std::vector<T> & SortedElem, MPI_Comm comm){
       //Scratch list is sorted at this point.
       std::cout << rank << YLW " -- [bitonic] [MergeLists]  combined size " << scratch_list.size() << NRM << std::endl;
 
+
       listA.clear();
       listB.clear();
+
+
 
       if ( KEEP_WHAT == KEEP_LOW ) {
         std::cout << rank << MAG << "    == " << scratch_list[0] << NRM << std::endl;
@@ -2020,6 +2023,8 @@ int sampleSort(std::vector<T>& arr, std::vector<T> & SortedElem, MPI_Comm comm){
 
 
         int ii=0;
+          if(!rank)
+            std::cout << "scratch[0] : " << scratch_list[ii] << ", low: " << _low << ", high: " << _high << std::endl;
 
         // std::cout << "scratch[0] : " << scratch_list[ii] << ", low: " << _low << ", high: " << _high << std::endl;
         // std::cout << "sl[i] < low  " << (scratch_list[ii] < _low) << std::endl;

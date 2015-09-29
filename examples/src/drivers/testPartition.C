@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
   tmpNodes.clear();
   par::partitionW<ot::TreeNode>(linOct, NULL, MPI_COMM_WORLD);
 
-  treeNodesTovtk(linOct,rank,"par_1");
+  //treeNodesTovtk(linOct,rank,"par_1");
 
   // reduce and only print the total ...
   localSz = linOct.size();
@@ -144,7 +144,7 @@ int main(int argc, char **argv) {
 #endif
   
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  treeNodesTovtk(linOct,rank,"bfBalancing");
+  //treeNodesTovtk(linOct,rank,"bfBalancing");
   
   localTime = endTime - startTime;
   par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);
@@ -159,7 +159,7 @@ int main(int argc, char **argv) {
   }
   pts.clear();
 
-  treeNodesTovtk(linOct, rank, "p2o_output");
+  //treeNodesTovtk(linOct, rank, "p2o_output");
 
   // =========== Balancing ============
   MPI_Barrier(MPI_COMM_WORLD);
@@ -176,7 +176,7 @@ int main(int argc, char **argv) {
   endTime = MPI_Wtime();
   
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  treeNodesTovtk(balOct,rank,"afBalancing");
+  //treeNodesTovtk(balOct,rank,"afBalancing");
   
 #ifdef PETSC_USE_LOG
   PetscLogStagePop();
@@ -193,7 +193,7 @@ int main(int argc, char **argv) {
     std::cout << "bal Time: " << totalTime << std::endl;
   }
 
-  treeNodesTovtk(balOct, rank, "bal_output");
+ // treeNodesTovtk(balOct, rank, "bal_output");
 
 
   //=============================================================
