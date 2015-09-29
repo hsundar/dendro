@@ -839,7 +839,7 @@ namespace ot {
 
     // std::cout << rank << "before sample sort: " << nodes.size() << std::endl;
     std::vector<ot::TreeNode> tmpNodes;
-    treeNodesTovtk(nodes,rank,"bf_SS");
+    //treeNodesTovtk(nodes,rank,"bf_SS");
     par::sampleSort<ot::TreeNode>(nodes, tmpNodes, comm);
     // std::cout << rank << "after sample sort: " << tmpNodes.size() << std::endl;
     // @milinda check if the array is sorted properly
@@ -850,7 +850,7 @@ namespace ot {
 //     nodes[i] = tmpNodes[i];
     nodes = tmpNodes;
     //tmpNodes.clear();
-    treeNodesTovtk(nodes,rank,"af_SS");
+    //treeNodesTovtk(nodes,rank,"af_SS");
     std::vector<ot::TreeNode> leaves;
     std::vector<ot::TreeNode> minsAllBlocks;
 

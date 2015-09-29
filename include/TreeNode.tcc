@@ -24,6 +24,11 @@ namespace ot {
 
         unsigned char childNum;
 #ifdef HILBERT_ORDERING
+        // NOTE: Need to remove these External variables.
+
+//        G_MAX_DEPTH=m_uiMaxDepth;
+//        G_dim=m_uiDim;
+
 
         unsigned int index1=0;
 
@@ -160,7 +165,199 @@ namespace ot {
     }
 #endif
 
-        /* -- original Morton
+       if ((this->m_uiX == other.m_uiX) && (this->m_uiY == other.m_uiY) && (this->m_uiZ == other.m_uiZ)) {
+            return ((this->m_uiLevel & ot::TreeNode::MAX_LEVEL) < (other.m_uiLevel & ot::TreeNode::MAX_LEVEL));
+        } //end if
+
+#ifdef HILBERT_ORDERING
+#ifdef USE_NCA_PROPERTY
+        #pragma message "Hilbert NCA"
+
+        // NOTE: To work the Hilbert Ordering You need the Hilbert Table Initialized.
+        unsigned int x1 = this->getX();
+        unsigned int x2 = other.getX();
+
+        unsigned int y1 = this->getY();
+        unsigned int y2 = other.getY();
+
+        unsigned int z1 = this->getZ();
+        unsigned int z2 = other.getZ();
+
+        //unsigned int maxDepth = G_MAX_DEPTH;
+        unsigned int maxDiff = (unsigned int)(std::max((std::max((x1^x2),(y1^y2))),(z1^z2)));
+        //int dim=G_dim;
+
+        unsigned int maxDiffBinLen = binOp::binLength(maxDiff);
+        //Eliminate the last maxDiffBinLen bits.
+        unsigned int ncaX = ((x1>>maxDiffBinLen)<<maxDiffBinLen);
+        unsigned int ncaY = ((y1>>maxDiffBinLen)<<maxDiffBinLen);
+        unsigned int ncaZ = ((z1>>maxDiffBinLen)<<maxDiffBinLen);
+        unsigned int ncaLev = (m_uiMaxDepth - maxDiffBinLen);
+
+
+        unsigned int xl=0;
+        unsigned int yl=0;
+        unsigned int zl=0;
+
+        unsigned int len=1<<m_uiMaxDepth;
+        int count=0;
+        unsigned int index1=0;
+        unsigned int index2=0;
+        unsigned int num_children=1u<<m_uiDim;
+        int index_temp=0;
+        int current_rot=0;
+        if(m_uiDim==2)
+        {
+
+            current_rot=0;
+            while ((xl!=ncaX || yl!=ncaY || zl!=ncaZ || count!=ncaLev ))
+            {
+                len=len>>1;
+
+                index1 = 0;
+                if ( ncaX >= (len + xl) ) {
+                    index1 += 1;
+                    xl += len;
+                    if (ncaY < (len + yl)) index1 += 2;
+                }
+                if ( ncaY >= (len + yl) ) { index1 += 1; yl += len; }
+
+
+                index_temp=rotations_2d[current_rot].rot_index[index1];
+                current_rot=HILBERT_TABLE[current_rot*4+index_temp];
+                count++;
+
+            }
+
+
+            len=len>>1;
+            Rotation2D temp=rotations_2d[current_rot];
+
+            index1 = 0;
+            if ( x1 >= (len + ncaX) ) {
+                index1 += 1;
+                if (y1 < (len + ncaY)) index1 += 2;
+            }
+            if ( y1 >= (len + ncaY) ) { index1 += 1; }
+
+            index2=0;
+            if ( x2 >= (len + ncaX) ) {
+                index2 += 1;
+                if (y2 < (len + ncaY)) index2 += 2;
+            }
+            if ( y2 >= (len + ncaY) ) { index2 += 1; }
+
+            return temp.rot_index[index1]<temp.rot_index[index2];
+
+        }
+        else if(m_uiDim==3) {
+
+            while ((xl != ncaX || yl != ncaY || zl != ncaZ || count != ncaLev) /*&& len >0*/) {
+
+                len >>= 1;
+
+                index1 = 0;
+                if (ncaZ < (len + zl)) {
+                    if (ncaX >= (len + xl)) {
+                        index1 += 1;
+                        xl += len;
+                        if (ncaY < (len + yl))
+                            index1 += 2;
+                    }
+                    if (ncaY >= (len + yl)) {
+                        index1 += 1;
+                        yl += len;
+                    }
+                } else {
+                    index1 = 4;
+                    zl += len;
+                    if (ncaX < (len + xl)) {
+                        index1 += 1;
+                        if (ncaY < (len + yl))
+                            index1 += 2;
+                    }
+                    else {
+                        xl += len;
+                    }
+                    if (ncaY >= (len + yl)) {
+                        index1 += 1;
+                        yl += len;
+                    }
+                }
+
+                index_temp = rotations_3d[current_rot].rot_index[index1];
+                current_rot = HILBERT_TABLE[current_rot * 8 + index_temp];
+
+                count++;
+
+            }
+            Rotation3D temp = rotations_3d[current_rot];
+
+            len >>= 1;
+
+            index1 = 0;
+            if (z1 < (len + ncaZ)) {
+                if (x1 >= (len + ncaX)) {
+                    index1 += 1;
+                    if (y1 < (len + ncaY))
+                        index1 += 2;
+                }
+                if (y1 >= (len + ncaY)) {
+                    index1 += 1;
+                }
+            } else {
+                index1 = 4;
+                if (x1 < (len + ncaX)) {
+                    index1 += 1;
+                    if (y1 < (len + ncaY))
+                        index1 += 2;
+                }
+
+                if (y1 >= (len + ncaY)) {
+                    index1 += 1;
+                }
+            }
+
+            if (z2 < (len + ncaZ)) {
+                if (x2 >= (len + ncaX)) {
+                    index2 += 1;
+                    if (y2 < (len + ncaY))
+                        index2 += 2;
+                }
+                if (y2 >= (len + ncaY)) {
+                    index2 += 1;
+                }
+            } else {
+                index2 = 4;
+                if (x2 < (len + ncaX)) {
+                    index2 += 1;
+                    if (y2 < (len + ncaY))
+                        index2 += 2;
+                }
+
+                if (y2 >= (len + ncaY)) {
+                    index2 += 1;
+                }
+            }
+
+            return temp.rot_index[index1] < temp.rot_index[index2];
+
+        }
+#else
+        #pragma message "Hilbert"
+        //NOTE: We can remove this code later. // WARNING: External Variable set is mandatory.
+        G_MAX_DEPTH=m_uiMaxDepth;
+        G_dim=m_uiDim;
+	    return hilbert_order(p1,p2);
+#endif
+#else
+        #ifdef USE_NCA_PROPERTY
+
+	        #pragma message "Morton NCA"
+	        return morton_order_NCA(p1,p2);
+        #else
+	        #pragma message "Morton"
+          // -- original Morton
           // first compare the x, y, and z to determine which one dominates ...
           //Ancestor is smaller.
           if ((this->m_uiX == other.m_uiX) && (this->m_uiY == other.m_uiY) && (this->m_uiZ == other.m_uiZ)) {
@@ -180,42 +377,8 @@ namespace ot {
           }
 
           if (maxC == z) {return (m_uiZ < other.m_uiZ); } else if (maxC == y) {return (m_uiY < other.m_uiY); } else {return (m_uiX < other.m_uiX); }
-        -- original Morton */
-//   if(initialize_count==0)
-//   {
-//     initializeHilbetTable(2);
-//     initializeHilbetTable(3);
-//     initialize_count=1;
-//   }
+        -- original Morton
 
-
-        if ((this->m_uiX == other.m_uiX) && (this->m_uiY == other.m_uiY) && (this->m_uiZ == other.m_uiZ)) {
-            return ((this->m_uiLevel & ot::TreeNode::MAX_LEVEL) < (other.m_uiLevel & ot::TreeNode::MAX_LEVEL));
-        } //end if
-
-        const Point p1 = Point(this->m_uiX, this->m_uiY, this->m_uiZ);
-        const Point p2 = Point(other.m_uiX, other.m_uiY, other.m_uiZ);
-
-
-
-
-#ifdef HILBERT_ORDERING
-#ifdef USE_NCA_PROPERTY
-        #pragma message "Hilbert NCA"
-        G_MAX_DEPTH=m_uiMaxDepth;
-        G_dim=m_uiDim;
-        return hilbert_order_NCA(p1,p2);
-#else
-        #pragma message "Hilbert"
-	    return hilbert_order(p1,p2);
-#endif
-#else
-        #ifdef USE_NCA_PROPERTY
-	        #pragma message "Morton NCA"
-	        return morton_order_NCA(p1,p2);
-        #else
-	        #pragma message "Morton"
-	        return morton_order(p1, p2);
     #endif
 #endif
 
