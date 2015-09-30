@@ -171,7 +171,7 @@ namespace ot {
 
 #ifdef HILBERT_ORDERING
 #ifdef USE_NCA_PROPERTY
-        #pragma message "Hilbert NCA"
+        // #pragma message "Hilbert NCA"
 
         // NOTE: To work the Hilbert Ordering You need the Hilbert Table Initialized.
         unsigned int x1 = this->getX();
@@ -351,11 +351,11 @@ namespace ot {
 	    return hilbert_order(p1,p2);
 #endif
 #else
-        #ifdef USE_NCA_PROPERTY
+        //#ifdef USE_NCA_PROPERTY
 
-	        #pragma message "Morton NCA"
-	        return morton_order_NCA(p1,p2);
-        #else
+	      //  #pragma message "Morton NCA"
+	      //  return morton_order_NCA(p1,p2);
+        // #else
 	        #pragma message "Morton"
           // -- original Morton
           // first compare the x, y, and z to determine which one dominates ...
@@ -377,9 +377,9 @@ namespace ot {
           }
 
           if (maxC == z) {return (m_uiZ < other.m_uiZ); } else if (maxC == y) {return (m_uiY < other.m_uiY); } else {return (m_uiX < other.m_uiX); }
-        -- original Morton
+        // -- original Morton
 
-    #endif
+    // #endif
 #endif
 
     } //end function

@@ -8,6 +8,8 @@
 #include "oda.h"
 
 #include <cstdlib>
+#include <execinfo.h>
+#include <unistd.h>
 
 #include "externVars.h"
 #include "dendro.h"
@@ -19,7 +21,24 @@
 #undef MPI_WTIME_IS_GLOBAL
 #endif
 
+
+void handler(int sig) {
+  void *array[10];
+  int size;
+
+  // get void*'s for all entries on the stack
+  size = backtrace(array, 10);
+
+  // print out all the frames to stderr
+  fprintf(stderr, "Error: signal %d:\n", sig);
+  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  exit(1);
+}
+
+
 int main(int argc, char **argv) {
+  signal(SIGSEGV, handler);   // install our handler
+
   int size, rank;
   bool incCorner = 1;
   // char bFile[50];
@@ -27,7 +46,7 @@ int main(int argc, char **argv) {
   bool compressLut = false;
 
   unsigned int ptsLen;
-  unsigned int maxNumPts = 100;
+  unsigned int maxNumPts = 1;
   unsigned int dim = 3;
   unsigned int maxDepth = 8;
   double gSize[3];
@@ -71,7 +90,6 @@ int main(int argc, char **argv) {
     std::cout << GRN " Finished reading  " << argv[1] << NRM << std::endl; // Point size
   }
 
-
   ptsLen = pts.size();
 
   std::vector<ot::TreeNode> tmpNodes;
@@ -92,14 +110,12 @@ int main(int argc, char **argv) {
 
   // treeNodesTovtk(tmpNodes, rank, "vtkTreeNode");
 
-  std::cout << YLW << rank << ": before RemoveDuplicates: " << tmpNodes.size() << " points" NRM << std::endl;
-
+  // std::cout << rank << "removeDuplicates" << std::endl;
   par::removeDuplicates<ot::TreeNode>(tmpNodes, false, MPI_COMM_WORLD);
-
-  std::cout << YLW << rank << ": after RemoveDuplicates: " << tmpNodes.size() << " points" NRM << std::endl;
 
   linOct = tmpNodes;
   tmpNodes.clear();
+  // std::cout << rank << "partition" << std::endl;
   par::partitionW<ot::TreeNode>(linOct, NULL, MPI_COMM_WORLD);
 
   //treeNodesTovtk(linOct,rank,"par_1");
@@ -107,9 +123,6 @@ int main(int argc, char **argv) {
   // reduce and only print the total ...
   localSz = linOct.size();
   par::Mpi_Reduce<DendroIntL>(&localSz, &totalSz, 1, MPI_SUM, 0, MPI_COMM_WORLD);
-  if (rank == 0) {
-    std::cout << GRN " After partitionW: Total number of pts= " << totalSz << NRM << std::endl;
-  }
 
   pts.resize(3 * (linOct.size()));
   ptsLen = (3 * (linOct.size()));
