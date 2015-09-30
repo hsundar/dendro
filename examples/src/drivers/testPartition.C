@@ -32,7 +32,9 @@ int main(int argc, char **argv) {
   unsigned int maxDepth = 8;
   double gSize[3];
   //initializeHilbetTable(2);
-  initializeHilbetTable(3);
+  G_MAX_DEPTH=maxDepth;
+  G_dim=dim;
+  initializeHilbetTable(dim);
 
   double localTime, totalTime;
   double startTime, endTime;
