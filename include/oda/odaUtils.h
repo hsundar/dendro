@@ -373,7 +373,7 @@ namespace ot {
   }\
 }
 
-#include "odaUtils.txx"
+#include "odaUtils.tcc"
 
 #endif /*ODAUTILS_H_*/
 

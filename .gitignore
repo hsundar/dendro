@@ -1,2 +1,6 @@
 *.[oa]
 *~
+bin/*
+dendro.vp*
+build/*
+.idea/*

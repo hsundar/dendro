@@ -157,7 +157,7 @@ namespace ot {
           unsigned char **	m_ucpLut;
       };
 
-#include "feMatrix.txx"
+#include "feMatrix.tcc"
 
   } // end namespace fem
 } // end namespace ot

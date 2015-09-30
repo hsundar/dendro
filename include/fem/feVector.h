@@ -124,7 +124,7 @@ namespace ot {
           unsigned char **	m_ucpLut;
       };
 
-#include "feVector.txx"
+#include "feVector.tcc"
 
   } // end namespace fem
 } // end namespace ot

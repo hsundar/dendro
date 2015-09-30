@@ -102,7 +102,7 @@ namespace ot {
   }//end namespace
 }//end namespace
 
-#include "testUtils.txx"
+#include "testUtils.tcc"
 
 #endif
 

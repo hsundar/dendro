@@ -9,25 +9,31 @@ float uniform();
 double gaussian(double mean = 0.5, double std_dev = 0.1);
 
 int main(int argc, char**argv) {
+ if (argc < 4) {
+   std::cerr << "Usage: " << argv[0] << " numPts mean outfile dimention" << std::endl;
+   return 1;
+ }
+ 
   unsigned int numPts = atoi(argv[1]);
   double mean = atof(argv[2]);
-
+  unsigned int dim=atoi(argv[4]);
+  
   std::cout<<"Generating "<<numPts<<" points with a Normal"<<
     " distribution with mean = "<<mean<<std::endl;
 
   std::cout<<"Writing output to file: "<<argv[3]<<std::endl;
 
-  double* xyz = new double[3*numPts];
+  double* xyz = new double[dim*numPts];
 
   srand(0);
-  for(unsigned int i = 0; i < (3*numPts); i++) {
-    xyz[i] = gaussian(mean, 1.0);
+  for(unsigned int i = 0; i < (dim*numPts); i++) {
+    xyz[i] = gaussian(mean, 0.2);
   }
 
   FILE* outfile;
   outfile = fopen(argv[3],"wb");
   fwrite(&numPts, sizeof(unsigned int), 1, outfile);
-  fwrite(xyz, sizeof(double), (3*numPts), outfile);
+  fwrite(xyz, sizeof(double), (dim*numPts), outfile);
   fclose(outfile);
 
   delete [] xyz;
