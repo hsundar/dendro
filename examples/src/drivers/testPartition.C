@@ -159,7 +159,7 @@ int main(int argc, char **argv) {
 #endif
   
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  //treeNodesTovtk(linOct,rank,"bfBalancing");
+  treeNodesTovtk(linOct,rank,"bfBalancing");
   
   localTime = endTime - startTime;
   par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);

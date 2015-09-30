@@ -60,7 +60,7 @@ namespace ot {
             }
 
             if(real){
-                char rot_id=calculateTreeNodeRotation();
+                char rot_id=parent.calculateTreeNodeRotation();
                 return rotations_2d[rot_id].rot_index[index1];
             }
             else
@@ -90,7 +90,7 @@ namespace ot {
                 }
             }
             if(real){
-                char rot_id=calculateTreeNodeRotation();
+                char rot_id=parent.calculateTreeNodeRotation();
                 return rotations_3d[rot_id].rot_index[index1];
             }
             else
@@ -559,9 +559,9 @@ namespace ot {
             TreeNode dld;
 
             char rot_id=calculateTreeNodeRotation();
-            std::cout<<"rot_id:"<<(int)rot_id<<std::endl;
+            //std::cout<<"rot_id:"<<(int)rot_id<<std::endl;
             index1=rotations_3d[(int)rot_id].rot_perm[7];
-            std::cout <<"last octant index:"<<index1<< std::endl;
+            //std::cout <<"last octant index:"<<index1<< std::endl;
             if(index1==0)
             {
                 dld=TreeNode(1, minX(), minY(), minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
@@ -623,8 +623,9 @@ namespace ot {
                 break;
             }
 
+            //Note: This line can't be correct !!!!!!
+            child_index=m.getChildNumber(true);
 
-            child_index=getChildNumber(true);
             parent=m.getParent();
             rotation_id=parent.calculateTreeNodeRotation();
 
@@ -641,27 +642,40 @@ namespace ot {
                 if(next_index==0)
                 {
                     m=TreeNode(1,par_x,par_y,par_z,(par_level+1),3,m_uiMaxDepth);
+                    break;
                 }else if(next_index==1)
                 {
                     m=TreeNode(1,par_x,(par_y+len),par_z,(par_level+1),3,m_uiMaxDepth);
+                    break;
                 }else if(next_index==2)
                 {
                     m=TreeNode(1,(par_x+len),(par_y+len),par_z,(par_level+1),3,m_uiMaxDepth);
+                    break;
                 }else if(next_index==3)
                 {
                     m=TreeNode(1,(par_x+len),par_y,par_z,(par_level+1),3,m_uiMaxDepth);
+                    break;
                 }else if(next_index==4)
                 {
                     m=TreeNode(1,(par_x+len),par_y,(par_z+len),(par_level+1),3,m_uiMaxDepth);
+                    break;
                 }else if(next_index==5)
                 {
                     m=TreeNode(1,(par_x+len),(par_y+len),(par_z+len),(par_level+1),3,m_uiMaxDepth);
+                    break;
                 }else if(next_index==6) {
+                    m=TreeNode(1,par_x,(par_y+len),(par_z+len),(par_level+1),3,m_uiMaxDepth);
+                    break;
+                }else if(next_index==7) {
                     m=TreeNode(1,par_x,par_y,(par_z+len),(par_level+1),3,m_uiMaxDepth);
+                    break;
                 }
 
-                break;
 
+
+            }else {
+                //std::cout<<GRN <<"getNext() parent next needed"<<std::endl;
+                m=parent;
             }
         }
 

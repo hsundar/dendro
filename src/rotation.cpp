@@ -76,9 +76,9 @@ void initializeHilbetTable(int dim)
     
     // NOTE: Assuming the rotations vector is sorted. 
     generateRotationPermutations<Rotation3D>(dim,rotations_3d);
-     for(int i=0;i<rotations_3d.size();i++){
-       std::cout<<"Rotation:"<<rotations_3d[i].rot_perm_str()<<"\t Rotation_index:"<<rotations_3d[i].rot_index_str()<<std::endl;
-     }
+//     for(int i=0;i<rotations_3d.size();i++){
+//       std::cout<<"Rotation:"<<rotations_3d[i].rot_perm_str()<<"\t Rotation_index:"<<rotations_3d[i].rot_index_str()<<std::endl;
+//     }
   
 
     HILBERT_TABLE=new char[rotations_3d.size()*num_children];
@@ -107,7 +107,7 @@ void initializeHilbetTable(int dim)
 	}else
 	{
 	  HILBERT_TABLE[i*num_children+j]=index;
-	  std::cout<<"HILBERT_TABLE["<<(i*num_children+j)<<"]="<<(int)HILBERT_TABLE[i*num_children+j]<<";"<<std::endl;
+	  //std::cout<<"HILBERT_TABLE["<<(i*num_children+j)<<"]="<<(int)HILBERT_TABLE[i*num_children+j]<<";"<<std::endl;
 	}
 	
       }
