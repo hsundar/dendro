@@ -683,7 +683,7 @@ char TreeNode::calculateTreeNodeRotation() const
 
     }
 
-    //rotation_id=current_rot;
+    rotation_id=current_rot;
     
 
   } else if (m_uiDim == 3) {
@@ -723,7 +723,7 @@ char TreeNode::calculateTreeNodeRotation() const
       count++;
 
     }
-    //rotation_id=current_rot;
+    rotation_id=current_rot;
     
 }
 return rotation_id;
