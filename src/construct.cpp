@@ -579,6 +579,7 @@ namespace ot {
       //Add missing corners to complete the region.
       //Add the first corner leaf on the first processor.
       if (new_rank == 0) {
+        // @milinda is this correct?
         ot::TreeNode minCorner(0, 0, 0, maxDepth, dim, maxDepth);
 #ifdef __DEBUG_OCT__
         assert(areComparable(out[0], minCorner));
@@ -594,8 +595,9 @@ namespace ot {
 
       //Add the last corner leaf on the last processor.
       if (new_rank == (new_size - 1)) {
-        ot::TreeNode maxCorner(((1u << maxDepth) - 1),
-                               ((1u << maxDepth) - 1), ((1u << maxDepth) - 1), maxDepth, dim, maxDepth);
+        // @author hari sundar: only works for Morton, so changed to root.getDLD()
+        // ot::TreeNode maxCorner(((1u << maxDepth) - 1), ((1u << maxDepth) - 1), ((1u << maxDepth) - 1), maxDepth, dim, maxDepth);
+        ot::TreeNode maxCorner = root.getDLD();
 #ifdef __DEBUG_OCT__
         assert(areComparable(out[out.size() - 1], maxCorner));
 #endif
@@ -852,7 +854,7 @@ namespace ot {
     std::vector<ot::TreeNode> leaves;
     std::vector<ot::TreeNode> minsAllBlocks;
 
-    if (!rank) std::cout << RED " Before BlkPart: " NRM << std::endl;
+    // if (!rank) std::cout << RED " Before BlkPart: " NRM << std::endl;
 
     //assert(par::test::isUniqueAndSorted(nodes, comm));
     // if (nodes.size() > (1 << dim) ) {
@@ -863,7 +865,7 @@ namespace ot {
     // leaves.push_back(root);
     // }
     //leaves will be sorted.
-    if (!rank) std::cout << "after BlkPart: " << nodes.size() << std::endl;
+    // if (!rank) std::cout << "after BlkPart: " << nodes.size() << std::endl;
 
     /*
     par::sampleSort<ot::TreeNode>(leaves, tmpNodes, comm);
@@ -926,8 +928,8 @@ namespace ot {
     //Sort nodes (pts.) and partition them.
     omp_par::merge_sort(nodes.begin(), nodes.end());
 
-    std::cout << CYN " - After mergesort, is sorted and unique: " NRM << seq::test::isUniqueAndSorted(nodes) <<
-    std::endl;
+    // std::cout << CYN " - After mergesort, is sorted and unique: " NRM << seq::test::isUniqueAndSorted(nodes) <<
+    // std::endl;
 
     std::vector<TreeNode> leaves;
     leaves.push_back(root);
@@ -964,26 +966,28 @@ namespace ot {
     TreeNode last_node = leaves[init_size - 1].getDLD();
     TreeNode next_node = curr_node.getNext();
 
-    std::cout << "   - curr_node: " << curr_node << std::endl;
-    std::cout << "   - next_node: " << next_node << std::endl;
+    // std::cout << "   - curr_node: " << curr_node << std::endl;
+    // std::cout << "   - next_node: " << next_node << std::endl;
 
     unsigned long curr_pt = 0;
     unsigned long next_pt = curr_pt + maxNumPts;
 
+    /*
     std::cout << std::endl;
     std::cout << "next < n0  " <<  (next_node < nodes[0]) << std::endl;
     std::cout << "next < n1  " <<  (next_node < nodes[1]) << std::endl;
     std::cout << std::endl;
+    */
 
     // loop over pt indices until all points have been considered
     while (next_pt < num_pts) {
-      std::cout << "> while loop 1: " << next_pt << "/" << num_pts << std::endl;
+      // std::cout << "> while loop 1: " << next_pt << "/" << num_pts << std::endl;
       while (next_node > nodes[next_pt] && curr_node.getLevel() < maxDepth) {
-        std::cout << "  > while loop 1.1" << std::endl;
+        // std::cout << "  > while loop 1.1" << std::endl;
         curr_node = curr_node.getFirstChild();
         next_node = curr_node.getNext();
-        std::cout << "\tnext: " << next_node << std::endl;
-        std::cout << "  < while loop 1.1" << std::endl;
+        // std::cout << "\tnext: " << next_node << std::endl;
+        // std::cout << "  < while loop 1.1" << std::endl;
       }
 
       unsigned int inc;
@@ -1003,10 +1007,10 @@ namespace ot {
       }
 
 
-      std::cout << YLW "   \t- first: " << nodes[curr_pt] << " last: " << nodes[next_pt] << NRM << std::endl;
-      std::cout << YLW "   \t\t- searching for: " << next_node << NRM << std::endl;
+      // std::cout << YLW "   \t- first: " << nodes[curr_pt] << " last: " << nodes[next_pt] << NRM << std::endl;
+      // std::cout << YLW "   \t\t- searching for: " << next_node << NRM << std::endl;
       unsigned long found_pt = std::lower_bound(&nodes[curr_pt], &nodes[next_pt], next_node, std::less<TreeNode>()) - &nodes[curr_pt];
-      std::cout << RED "   \t\t- found next_pt: " NRM << found_pt << std::endl;
+      // std::cout << RED "   \t\t- found next_pt: " NRM << found_pt << std::endl;
       next_pt = curr_pt + found_pt;
 
       // assert(found_pt);
@@ -1017,12 +1021,12 @@ namespace ot {
 
       // std::cout << "   - pushing to leaves " << leaves_lst.size() << std::endl;
       leaves_lst.push_back(curr_node);
-      std::cout << GRN "   - pushed to leaves " GRN << curr_node << std::endl;
+      // std::cout << GRN "   - pushed to leaves " GRN << curr_node << std::endl;
 
       curr_node = next_node;
       // std::cout << "   - computing next_node for " << curr_node << std::endl;
       next_node = curr_node.getNext();
-      std::cout << YLW "          - computed next_node: " NRM << next_node << std::endl;
+      // std::cout << YLW "          - computed next_node: " NRM << next_node << std::endl;
 
       // std::cout << "< while loop 1" << std::endl;
     }
@@ -1060,7 +1064,7 @@ namespace ot {
 
     PROF_COMPLETE_REGION_BEGIN
 
-    std::cout << "entering " << __func__ << std::endl;
+    // std::cout << "entering " << __func__ << std::endl;
 
     unsigned int dim = first.getDim();
     unsigned int maxDepth = first.getMaxDepth();
@@ -1083,7 +1087,7 @@ namespace ot {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    std::cout << "Rank:" << rank << " NCA:" << nca << std::endl;
+    // std::cout << "Rank:" << rank << " NCA:" << nca << std::endl;
     //
     //min.printTreeNode();
     //max.printTreeNode();
@@ -1122,7 +1126,7 @@ namespace ot {
       TreeNode currentNode = min;
       while (currentNode > nca) {
         TreeNode parentOfCurrent = currentNode.getParent();
-        if (!rank) std::cout << "Rank:" << rank << " Parent Node:" << parentOfCurrent << std::endl;
+        // if (!rank) std::cout << "Rank:" << rank << " Parent Node:" << parentOfCurrent << std::endl;
         std::vector<ot::TreeNode> myBros;
         parentOfCurrent.addChildren(myBros);
         for (unsigned int i = 0; i < myBros.size(); i++) {
@@ -1132,11 +1136,11 @@ namespace ot {
           if ( (myBros[i] > min) && (myBros[i] < max) && (!(myBros[i].isAncestor(max))) ) {
             //Bottom-up here
 
-            if (!rank) std::cout << rank << " adding to new nodes" << myBros[i] << std::endl;
+            // if (!rank) std::cout << rank << " adding to new nodes" << myBros[i] << std::endl;
             newNodes.push_back(myBros[i]);
           } else if (myBros[i].isAncestor(max)) {
 
-            if (!rank) std::cout << rank << " Found ancesstor of max:" << myBros[i] << std::endl;
+            // if (!rank) std::cout << rank << " Found ancesstor of max:" << myBros[i] << std::endl;
             //Top-down now
             //nca will be the parentOfCurrent
             //If myBros[i] is an acestor of max then
@@ -1156,12 +1160,12 @@ namespace ot {
                 if ((tmpChildList[j] < max) &&
                     (!(tmpChildList[j].isAncestor(max)))) {
                   newNodes.push_back(tmpChildList[j]);
-                  if (!rank) std::cout << "Adding child " << j << " to newnode " << tmpChildList[j] << std::endl;
+                  // if (!rank) std::cout << "Adding child " << j << " to newnode " << tmpChildList[j] << std::endl;
 
                 } else if (tmpChildList[j].isAncestor(max)) {
                   tmpAncestor = tmpChildList[j];
                   repeatLoop = true;
-                  if (!rank) std::cout << rank << " Repeating Loop " << tmpAncestor.getLevel() << std::endl;
+                  // if (!rank) std::cout << rank << " Repeating Loop " << tmpAncestor.getLevel() << std::endl;
 
                   break;
                 } else {
@@ -1175,13 +1179,15 @@ namespace ot {
 // 		  status=(tmpChildList[j]<max);
 //                   std::cout << " tmp < max " << status << std::endl;
 //                 }
-                  std::cout << "  - Invalid Case" << std::endl;
 
-                  std::cout << "   - tmp:" << tmpChildList[j] << std::endl;
-                  std::cout << "   - max:" << max << std::endl;
-                  TreeNode dld = tmpChildList[j].getDLD();
-                  std::cout << "   - DLD of the tmpChild:" << dld << std::endl;
+                  if (tmpChildList[j] != max) {
+                    std::cout << "  - Invalid Case" << std::endl;
 
+                    std::cout << "   - tmp:" << tmpChildList[j] << std::endl;
+                    std::cout << "   - max:" << max << std::endl;
+                    TreeNode dld = tmpChildList[j].getDLD();
+                    std::cout << "   - DLD of the tmpChild:" << dld << std::endl;
+                  }
                   // std::cout << (tmpChildList[j] < max) << std::endl;
                   // std::cout << (max < dld) << std::endl;
 
@@ -1204,7 +1210,7 @@ namespace ot {
       newNodes.push_back(max);
     }
 
-    std::cout << "leaving " << __func__ << std::endl;
+    // std::cout << "leaving " << __func__ << std::endl;
     PROF_COMPLETE_REGION_END
   } //end function
 

@@ -48,7 +48,7 @@ namespace ot {
     //The output will be sorted, unique and linear
     appendCompleteRegion(nodes[0], nodes[nodes.size()-1], localCoarse, true, true);
     
-    std::cout << rank << ": in BlkPart_1 after appendCompleteRegion" << std::endl;
+    // std::cout << rank << ": in BlkPart_1 after appendCompleteRegion" << std::endl;
     
     // 2. Get local Blocks. These will be input to completeOctree that will
     // produce globalCoarse.
@@ -564,7 +564,8 @@ namespace ot {
     MPI_Comm_size(comm,&npes);
 
     par::partitionW<ot::TreeNode>(nodes, NULL,comm);
-    std::cout << rank << ": " << __func__ << ":Block Part Node Size:" <<nodes.size()<< std::endl;
+
+    //std::cout << rank << ": " << __func__ << ":Block Part Node Size:" <<nodes.size()<< std::endl;
     assert(nodes.size() > (1 << dim) ); 
 
 #ifdef __BLOCK_PART_EQUALS_MORTON_PART__
@@ -633,6 +634,7 @@ namespace ot {
     localCoarse.clear();
 
     for (unsigned int i = 0; i < localBlocks.size(); i++) {
+      // std::cout << rank << ": block[" << i << "] = " << localBlocks[i].getWeight() << std::endl;
       localBlocks[i].setWeight(1);
     }
 
@@ -703,6 +705,7 @@ namespace ot {
     // communicate ...
     ot::TreeNode sendMinMax[2];
 
+    assert(par::test::isSorted(nodes, comm));
     if (!nodes.empty()) {
       sendMinMax[0] =  nodes[0];
       sendMinMax[1] =  nodes[nodes.size()-1];
@@ -711,6 +714,7 @@ namespace ot {
       sendMinMax[1] = rootNode;
     }
 
+    // std::cout << rank << ": min= " << sendMinMax[0] << ", max= " << sendMinMax[1] << std::endl;
     par::Mpi_Allgather<ot::TreeNode>(sendMinMax, &(*_mins_maxs.begin()), 2, comm);
 
     std::vector<std::vector<TreeNode> > sendNodes(npes);
@@ -850,8 +854,7 @@ namespace ot {
 #ifdef __DEBUG_OCT__
       assert(areComparable(recvK[nextNode], nodes[nextPt]));
 #endif
-      if ((recvK[nextNode].isAncestor(nodes[nextPt])) ||
-          (recvK[nextNode] == nodes[nextPt])) {
+      if ((recvK[nextNode].isAncestor(nodes[nextPt])) || (recvK[nextNode] == nodes[nextPt])) {
         wts[nextNode]++;
         nextPt++;
       } else {
@@ -903,7 +906,18 @@ namespace ot {
       wts = NULL;
     }
 
+    int q=0;
+    for (auto x: globalCoarse) {
+      std::cout << rank << ": C[" << q++ << "] " << x << ", wt = " << x.getWeight() << std::endl;
+    }
+
     par::partitionW<ot::TreeNode>(globalCoarse,getNodeWeight,comm);
+
+    std::cout << RED " After Partition" NRM << std::endl;
+    q=0;
+    for (auto x: globalCoarse) {
+      std::cout << rank << ": C[" << q++ << "] " << x << ", wt = " << x.getWeight() << std::endl;
+    }
 
     //Reset weights
     for (unsigned int i=0;i<globalCoarse.size(); i++) {
@@ -919,6 +933,7 @@ namespace ot {
 
     ot::TreeNode *sendMin = NULL;
     if (!globalCoarse.empty()) {
+      // @milinda This is the bug ... this is not correct for Hilbert ...
       sendMin = (ot::TreeNode *)&(*(globalCoarse.begin()));
     } else {
       sendMin = &(rootNode);
@@ -939,7 +954,7 @@ namespace ot {
       }
     }//end for j
 
-    // correct dist ...
+    //! correct dist ...
     if (npes>1) {
       if (vtkDist[npes-1] == vtkDist[npes-2]) {
         vtkDist[npes-1] = rootNode;

@@ -259,6 +259,7 @@ int main(int argc, char **argv) {
   PetscLogStagePop();
 #endif
 
+  // par::partitionW<ot::TreeNode>(linOct, NULL, MPI_COMM_WORLD);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   treeNodesTovtk(linOct, rank, "bfBalancing");
 

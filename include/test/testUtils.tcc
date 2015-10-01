@@ -68,7 +68,7 @@ namespace par {
 
     template <typename T>
       bool isSorted(const std::vector<T > &nodes, MPI_Comm comm) {
-        bool localPassed = par::test::isSorted<T>(nodes);
+        bool localPassed = seq::test::isSorted<T>(nodes);
         bool allLocalsPassed;
 
         par::Mpi_Allreduce<bool>(&localPassed, &allLocalsPassed, 1,
@@ -78,7 +78,7 @@ namespace par {
           bool failedParCheck = false;
 
           MPI_Comm new_comm;
-          par::splitComm2way(nodes.empty(), new_comm, comm);
+          par::splitComm2way(nodes.empty(), &new_comm, comm);
 
           if(!nodes.empty()) {
             int rank;

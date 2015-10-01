@@ -148,7 +148,10 @@ namespace ot {
 #endif
     PROF_BAL_BPART1_BEGIN
 
-      blockPartStage1(in, blocks, dim, maxDepth, comm);            
+      blockPartStage1(in, blocks, dim, maxDepth, comm);
+
+    treeNodesTovtk(blocks, rank, "blocks_Stage_1", true);
+    treeNodesTovtk(in, rank, "in_Stage_1", true);
 
     PROF_BAL_BPART1_END
 
@@ -158,11 +161,13 @@ namespace ot {
 
     PROF_BAL_BPART2_BEGIN
 
-      blockPartStage2(in, blocks, minsAllBlocks, dim, maxDepth, comm);
+    blockPartStage2(in, blocks, minsAllBlocks, dim, maxDepth, comm);
 
     PROF_BAL_BPART2_END
 
-      //blocks will be sorted.
+    std::cout << rank << ": Done with block Part" << std::endl;
+    assert(par::test::isSorted(blocks, comm));
+    //blocks will be sorted.
 
       assert(!blocks.empty());
     TreeNode myFirstBlock = blocks[0];
@@ -241,8 +246,15 @@ namespace ot {
     std::vector<ot::TreeNode> allBoundaryLeaves;
     std::vector<unsigned int> maxBlockBndVec;
 
+    treeNodesTovtk(in, rank, "inp_bal_blk", true);
+    treeNodesTovtk(blocks, rank, "blocks_bal_blk", true);
+
+    std::cout << rank << ": sizes " << blocks.size() << ", " << in.size() << std::endl;
+
     balanceBlocks(in, blocks, out, allBoundaryLeaves, incCorner, &maxBlockBndVec);
     in.clear();
+
+    std::cout << rank << ": done with balance blocks" << std::endl;
 
 #ifdef __USE_AGV_FOR_BAL__
     std::vector<TreeNode> myNhBlocks;
@@ -380,10 +392,13 @@ namespace ot {
     myNhBlocks.clear();
 #else
     //Intra-processor Balance
+    std::cout << rank << ": calling ripple locally" << std::endl;
     ripple(allBoundaryLeaves, incCorner);
 #endif
 
+    std::cout << rank << ": done with ripple" << std::endl;
     mergeComboBalAndPickBoundary(out, allBoundaryLeaves, myFirstBlock, myLastBlock);
+    std::cout << rank << ": done with mergeCombo" << std::endl;
 
 #ifdef __MEASURE_BAL_COMM__
     MPI_Barrier(comm);
@@ -400,7 +415,8 @@ namespace ot {
 #endif
 
     //There is no need to sort, the lists are already sorted.
-
+    assert(par::test::isSorted(out, comm));
+    assert(par::test::isSorted(allBoundaryLeaves, comm));
     //////////////////////////////////////////////////////////////////////////////////////////////////
     //Preparation for inter-processor balance....
     //First Stage of Communication...
@@ -436,7 +452,7 @@ namespace ot {
     // Now do an All2All to get numKeysRecv
     PROF_BAL_COMM_BEGIN
 
-      par::Mpi_Alltoall<int>(sendCnt, recvCnt, 1, comm);
+    par::Mpi_Alltoall<int>(sendCnt, recvCnt, 1, comm);
 
     PROF_BAL_COMM_END
 
@@ -1808,11 +1824,11 @@ int parallelRippleType2(std::vector<TreeNode> & nodes,
   for (unsigned int lev = globalMaxLev; lev > 2; lev--)
   {
 #ifdef __DEBUG_OCT__
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
     if(!rank) {
       std::cout<<"Lev: "<<lev<<std::endl;
     }
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
 #endif
     if(checkBailOut) {
       unsigned int minLev = maxDepth;
@@ -1826,18 +1842,18 @@ int parallelRippleType2(std::vector<TreeNode> & nodes,
       par::Mpi_Allreduce<unsigned int>(&minLev, &globalMinLev, 1, MPI_MIN, comm);
 
       if (globalMinLev >= (lev-1)) {
-        //Difference between min and 
+        //Difference between min and
         //max levels is less than 2 .
         break;
       }
     }//end if check to bail out
 
 #ifdef __DEBUG_OCT__
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
     if(!rank) {
       std::cout<<"Passed Step 1."<<std::endl;
     }
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
 #endif
 
     std::vector<TreeNode> wList;
@@ -1853,26 +1869,26 @@ int parallelRippleType2(std::vector<TreeNode> & nodes,
     wList.resize(wLen);
 
 #ifdef __DEBUG_OCT__
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
     if(!rank) {
       std::cout<<"Passed Step 2."<<std::endl;
     }
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
 #endif
 
     std::vector<std::vector<TreeNode> >tList(wLen);
     for (unsigned int i=0; i < wLen; i++) {
-      tList[i] = wList[i].getSearchKeys(incCorners);        
+      tList[i] = wList[i].getSearchKeys(incCorners);
     }//end for i
 
     wList.clear();
 
 #ifdef __DEBUG_OCT__
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
     if(!rank) {
       std::cout<<"Passed Step 3."<<std::endl;
     }
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
 #endif
 
     std::vector<TreeNode> allKeys;
@@ -1882,30 +1898,30 @@ int parallelRippleType2(std::vector<TreeNode> & nodes,
           allKeys.push_back(tList[i][j]);
         }
       }
-    }    
+    }
     tList.clear();
 
 #ifdef __DEBUG_OCT__
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
     if(!rank) {
       std::cout<<"Passed Step 4."<<std::endl;
     }
     std::cout<<rank<<": allKeys.size(): "
       <<allKeys.size()<<std::endl;
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
 #endif
 
     //
-    //Parallel searches and subsequent processing      
+    //Parallel searches and subsequent processing
     //1. Compute the ranges controlled by each processor
-    //2. Compare the keys with the ranges and 
+    //2. Compare the keys with the ranges and
     //send the keys to the appropriate processors.
     //3. Perform local searches using the keys
-    //recieved. 
+    //recieved.
     //4. Compute the balancing descendants for the results
     //and create the 'seedList' vector. Note,
     //we process one level at a time. So all the keys
-    //were generated by octants at the same level. The 
+    //were generated by octants at the same level. The
     //corresponding balancing descendants are simply the
     //ancestors of the keys at one level lower than this
     //level.
@@ -1917,7 +1933,7 @@ int parallelRippleType2(std::vector<TreeNode> & nodes,
     //First Get the mins from each processor.
 
     // allocate memory for the mins array
-    std::vector<ot::TreeNode> mins (npes); 
+    std::vector<ot::TreeNode> mins (npes);
 
     ot::TreeNode sendMin;
     if(!nodes.empty()) {
@@ -1926,14 +1942,14 @@ int parallelRippleType2(std::vector<TreeNode> & nodes,
       sendMin = root;
     }
 
-    par::Mpi_Allgather<ot::TreeNode>(&sendMin, &(*mins.begin()), 1, comm);    
+    par::Mpi_Allgather<ot::TreeNode>(&sendMin, &(*mins.begin()), 1, comm);
 
 #ifdef __DEBUG_OCT__
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
     if(!rank) {
       std::cout<<"Passed Step 5."<<std::endl;
     }
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
 #endif
 
     //Now determine the processors which own these keys.
@@ -1941,13 +1957,13 @@ int parallelRippleType2(std::vector<TreeNode> & nodes,
     unsigned int *partKeys = NULL;
 
     if(keyLen) {
-      partKeys = new unsigned int[keyLen];    
+      partKeys = new unsigned int[keyLen];
     }
 
     for (unsigned int i=0; i<keyLen; i++) {
       unsigned int idx;
-      //maxLB returns the last index in a 
-      //sorted array such that a[ind] <= key 
+      //maxLB returns the last index in a
+      //sorted array such that a[ind] <= key
       //and  a[index +1] > key
       bool found = seq::maxLowerBound<TreeNode >(mins,
           allKeys[i], idx, NULL, NULL);
@@ -1962,15 +1978,15 @@ int parallelRippleType2(std::vector<TreeNode> & nodes,
     mins.clear();
 
 #ifdef __DEBUG_OCT__
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
     if(!rank) {
       std::cout<<"Passed Step 6."<<std::endl;
     }
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
 #endif
 
     int *numKeysSend = new int[npes];
-    int *numKeysRecv = new int[npes];    
+    int *numKeysRecv = new int[npes];
 
     for (int i=0; i<npes; i++) {
       numKeysSend[i] = 0;
@@ -1982,7 +1998,7 @@ int parallelRippleType2(std::vector<TreeNode> & nodes,
 
     for (unsigned int i=0; i<keyLen; i++) {
       numKeysSend[partKeys[i]]++;
-      sendKtmp[partKeys[i]].push_back(i);      
+      sendKtmp[partKeys[i]].push_back(i);
     }
 
     // Now do an All2All to get numKeysRecv
@@ -1999,7 +2015,7 @@ int parallelRippleType2(std::vector<TreeNode> & nodes,
     // compute offsets ...
 
     for (int i = 1; i < npes; i++) {
-      sendOffsets[i] = sendOffsets[i-1] + 
+      sendOffsets[i] = sendOffsets[i-1] +
         numKeysSend[i-1];
       recvOffsets[i] = recvOffsets[i-1] +
         numKeysRecv[i-1];
@@ -2034,7 +2050,7 @@ int parallelRippleType2(std::vector<TreeNode> & nodes,
     if(!recvK.empty()) {
       recvKptr = &(*(recvK.begin()));
     }
-    par::Mpi_Alltoallv_sparse<ot::TreeNode>(sendKptr, numKeysSend, sendOffsets,        
+    par::Mpi_Alltoallv_sparse<ot::TreeNode>(sendKptr, numKeysSend, sendOffsets,
         recvKptr, numKeysRecv,recvOffsets, comm);
 
     sendK.clear();
@@ -2054,19 +2070,19 @@ int parallelRippleType2(std::vector<TreeNode> & nodes,
     keyLen = recvK.size();
 
 #ifdef __DEBUG_OCT__
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
     if(!rank) {
       std::cout<<"Passed Step 7."<<std::endl;
     }
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
 #endif
 
-    //Local searches and creating seedList      
+    //Local searches and creating seedList
 
     std::vector<std::vector<TreeNode> > seedList(nodes.size());
     for(unsigned int i=0; i < keyLen; i++) {
       unsigned int idx;
-      //assumes nodes is sorted and unique.          
+      //assumes nodes is sorted and unique.
       bool flag = seq::maxLowerBound<TreeNode>(nodes, recvK[i], idx,NULL,NULL);
       if (flag) {
 #ifdef __DEBUG_OCT__
@@ -2074,33 +2090,33 @@ int parallelRippleType2(std::vector<TreeNode> & nodes,
 #endif
         if (nodes[idx].isAncestor(recvK[i])) {
           if (lev > (nodes[idx].getLevel() + 1)) {
-            seedList[idx].push_back(recvK[i].getAncestor(lev-1));                
+            seedList[idx].push_back(recvK[i].getAncestor(lev-1));
           }
         }//end if correct result
-      }//end if flag        
+      }//end if flag
     }//end for i
 
     recvK.clear();
 
 #ifdef __DEBUG_OCT__
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
     if(!rank) {
       std::cout<<"Passed Step 8."<<std::endl;
     }
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
 #endif
 
     //Include the new octants in the octree
     //while preserving linearity and sorted order
 
-    //Seedlist may have duplicates. Seedlist 
+    //Seedlist may have duplicates. Seedlist
     // may not be sorted.
 
     std::vector<TreeNode> tmpList;
     std::vector<std::vector<TreeNode> >allInternalLeaves(nodes.size());
     unsigned int tmpSz = 0;
-    for (unsigned int i=0;i<nodes.size();i++) {	
-      seq::makeVectorUnique<TreeNode>(seedList[i],false);	
+    for (unsigned int i=0;i<nodes.size();i++) {
+      seq::makeVectorUnique<TreeNode>(seedList[i],false);
       if (!seedList[i].empty()) {
         nodes[i].completeSubtree(seedList[i], allInternalLeaves[i]);
       }
@@ -2112,11 +2128,11 @@ int parallelRippleType2(std::vector<TreeNode> & nodes,
     }//end for i
 
 #ifdef __DEBUG_OCT__
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
     if(!rank) {
       std::cout<<"Passed Step 9."<<std::endl;
     }
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
 #endif
 
     seedList.clear();
@@ -2137,11 +2153,11 @@ int parallelRippleType2(std::vector<TreeNode> & nodes,
     tmpList.clear();
 
 #ifdef __DEBUG_OCT__
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
     if(!rank) {
       std::cout<<"Passed Step 10."<<std::endl;
     }
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
 #endif
 
     if(rePart) {
@@ -2149,11 +2165,11 @@ int parallelRippleType2(std::vector<TreeNode> & nodes,
     }
 
 #ifdef __DEBUG_OCT__
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
     if(!rank) {
       std::cout<<"Passed Step 11."<<std::endl;
     }
-    MPI_Barrier(comm);	
+    MPI_Barrier(comm);
 #endif
 
   }//end for lev
