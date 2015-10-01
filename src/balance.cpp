@@ -36,6 +36,8 @@ namespace ot {
 #endif
     PROF_BAL_BEGIN
 
+    std::cout << "Entering " << __func__ << std::endl;
+
       int rank, size;
     MPI_Comm_size(comm,&size);
     out.clear();
@@ -777,6 +779,8 @@ namespace ot {
 
     TreeNode nca = getNCA(in[0],in[in.size()-1]);
     nca.addChildren(blocks);
+
+
 
     assert(maxNum > 0);
 

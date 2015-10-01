@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <execinfo.h>
 #include <unistd.h>
+#include <cxxabi.h>
 
 #include "externVars.h"
 #include "dendro.h"
@@ -22,22 +23,119 @@
 #endif
 
 
-void handler(int sig) {
-  void *array[10];
-  int size;
+/** Print a demangled stack backtrace of the caller function to FILE* out. */
+void handler (int sig) {
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-  // get void*'s for all entries on the stack
-  size = backtrace(array, 10);
+  // char fname[256];
+  // sprintf(fname, "trace%.2d", rank);
+  // FILE *out = fopen(fname, "w");
+  unsigned int max_frames = 63;
 
-  // print out all the frames to stderr
-  fprintf(stderr, "Error: signal %d:\n", sig);
-  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  // if (!rank) {
+    printf("%s---------------------------------%s\n", RED, NRM);
+    printf("%sError:%s signal %d:\n", RED, NRM, sig);
+    printf("%s---------------------------------%s\n", RED, NRM);
+    printf("\n%s======= stack trace =======%s\n", GRN, NRM);
+  // }
+
+  // fprintf(out, "======= stack trace =======\n");
+
+  // storage array for stack trace address data
+  void *addrlist[max_frames + 1];
+
+  // retrieve current stack addresses
+  int addrlen = backtrace(addrlist, sizeof(addrlist) / sizeof(void *));
+
+  if (addrlen == 0) {
+    // if (!rank)
+    fprintf(stderr, "%s  <empty, possibly corrupt>%s\n",RED, NRM);
+
+    // fprintf(out, "    <empty, possibly corrupt>\n");
+    return;
+  }
+
+  // resolve addresses into strings containing "filename(function+address)",
+  // this array must be free()-ed
+  char **symbollist = backtrace_symbols(addrlist, addrlen);
+
+  // allocate string which will be filled with the demangled function name
+  size_t funcnamesize = 256;
+  char *funcname = (char *) malloc(funcnamesize);
+
+  // iterate over the returned symbol lines. skip the first, it is the
+  // address of this function.
+  for (int i = 1; i < addrlen; i++) {
+    char *begin_name = 0, *begin_offset = 0, *end_offset = 0;
+
+    // find parentheses and +address offset surrounding the mangled name:
+    // ./module(function+0x15c) [0x8048a6d]
+    for (char *p = symbollist[i]; *p; ++p) {
+      if (*p == '(')
+        begin_name = p;
+      else if (*p == '+')
+        begin_offset = p;
+      else if (*p == ')' && begin_offset) {
+        end_offset = p;
+        break;
+      }
+    }
+
+    if (begin_name && begin_offset && end_offset
+        && begin_name < begin_offset) {
+      *begin_name++ = '\0';
+      *begin_offset++ = '\0';
+      *end_offset = '\0';
+
+      // mangled name is now in [begin_name, begin_offset) and caller
+      // offset in [begin_offset, end_offset). now apply
+      // __cxa_demangle():
+
+      int status;
+      char *ret = abi::__cxa_demangle(begin_name,
+                                      funcname, &funcnamesize, &status);
+      if (status == 0) {
+        funcname = ret; // use possibly realloc()-ed string
+        // if (!rank)
+        printf("%s[%.2d]%s%s : %s%s%s : \n",RED,rank,YLW, symbollist[i], MAG, funcname,NRM);
+
+        // fprintf(out, "%s : %s : ", symbollist[i], funcname);
+      }
+      else {
+        // demangling failed. Output function name as a C function with
+        // no arguments.
+        // if (!rank)
+        printf("%s[%.2d]%s%s : %s%s()%s : \n", RED,rank, YLW, symbollist[i], GRN,begin_name, NRM);
+
+        // fprintf(out, "%s : %s() : ", symbollist[i], begin_name);
+      }
+      size_t p = 0;
+      char syscom[256];
+      while(symbollist[i][p] != '(' && symbollist[i][p] != ' ' && symbollist[i][p] != 0)
+        ++p;
+
+      sprintf(syscom,"addr2line %p -e %.*s", addrlist[i], p, symbollist[i]);
+      //last parameter is the file name of the symbol
+      system(syscom);
+    }
+    else {
+      // couldn't parse the line? print the whole line.
+      // if (!rank)
+      printf("%sCouldn't Parse:%s  %s\n", RED, NRM, symbollist[i]);
+
+      // fprintf(out, "  %s\n", symbollist[i]);
+    }
+  }
+
+  free(funcname);
+  free(symbollist);
+  // fclose(out);
+
   exit(1);
 }
 
-
 int main(int argc, char **argv) {
-  signal(SIGSEGV, handler);   // install our handler
 
   int size, rank;
   bool incCorner = 1;
@@ -51,8 +149,8 @@ int main(int argc, char **argv) {
   unsigned int maxDepth = 8;
   double gSize[3];
   //initializeHilbetTable(2);
-  G_MAX_DEPTH=maxDepth;
-  G_dim=dim;
+  G_MAX_DEPTH = maxDepth;
+  G_dim = dim;
   initializeHilbetTable(dim);
 
   double localTime, totalTime;
@@ -69,6 +167,9 @@ int main(int argc, char **argv) {
   PetscInitialize(&argc, &argv, "options.hs", NULL);
   ot::RegisterEvents();
   ot::DA_Initialize(MPI_COMM_WORLD);
+
+  signal(SIGSEGV, handler);   // install our handler
+  signal(SIGTERM, handler);   // install our handler
 
 #ifdef PETSC_USE_LOG
   int stages[3];
@@ -154,13 +255,13 @@ int main(int argc, char **argv) {
   ot::points2Octree(pts, gSize, linOct, dim, maxDepth, maxNumPts, MPI_COMM_WORLD);
   endTime = MPI_Wtime();
 
-  #ifdef PETSC_USE_LOG
+#ifdef PETSC_USE_LOG
   PetscLogStagePop();
 #endif
-  
+
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  treeNodesTovtk(linOct,rank,"bfBalancing");
-  
+  treeNodesTovtk(linOct, rank, "bfBalancing");
+
   localTime = endTime - startTime;
   par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);
   if (!rank) {
@@ -189,10 +290,10 @@ int main(int argc, char **argv) {
   startTime = MPI_Wtime();
   ot::balanceOctree(linOct, balOct, dim, maxDepth, incCorner, MPI_COMM_WORLD, NULL, NULL);
   endTime = MPI_Wtime();
-  
+
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   //treeNodesTovtk(balOct,rank,"afBalancing");
-  
+
 #ifdef PETSC_USE_LOG
   PetscLogStagePop();
 #endif
@@ -208,7 +309,7 @@ int main(int argc, char **argv) {
     std::cout << "bal Time: " << totalTime << std::endl;
   }
 
- // treeNodesTovtk(balOct, rank, "bal_output");
+  // treeNodesTovtk(balOct, rank, "bal_output");
 
 
   //=============================================================
