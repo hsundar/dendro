@@ -353,6 +353,31 @@ namespace ot {
         return dfd;
     } //end function
 
+    inline TreeNode TreeNode::getCFD() const {
+     TreeNode cfd=*(this);
+    #ifdef HILBERT_ORDERING
+        unsigned int index1=0;
+        unsigned int len =(m_uiMaxDepth-m_uiLevel); // no len -1 here because we want to get the first point of the given octant not the child.
+        unsigned int num_children=1u<<m_uiDim; // This is basically the hilbert table offset
+        unsigned int rot_offset=num_children<<1;
+        unsigned int cfd_x,cfd_y,cfd_z;
+        char fchild=calculateTreeNodeRotation();
+        index1=(rotations[rot_offset*fchild+num_children+0]-'0');
+
+        cfd_x=m_uiX +(( (( (fchild&4u)>>2u )&(!((fchild&2u)>>1u)))+( ((fchild&2u)>>1u) & (!((fchild&4u)>>2u))))<<len);
+        cfd_y=m_uiY +((( (fchild&1u) & ( !((fchild&2u)>>1u)  ))+( ((fchild&2u)>>1u) & (!(fchild&1u)  )))<<len);
+        cfd_z=m_uiZ +(((fchild&4u)>>2u)<<len);
+
+        cfd=TreeNode(1,cfd_x,cfd_y,cfd_z,m_uiLevel,m_uiDim,m_uiMaxDepth);
+        return cfd;
+    #else
+      return cfd;
+    #endif
+
+
+
+    }
+
     inline TreeNode TreeNode::getDLD() const {
 #ifdef HILBERT_ORDERING
         //TreeNode dld(1, minX() , minY(), maxZ() - 1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
