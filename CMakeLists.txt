@@ -93,12 +93,12 @@ file(GLOB DENDRO_TEMPLATES include/*.tcc)
 set(DENDRO_LIBS dendroMG dendroDA dendroTest dendro)
 
 add_library(dendroMG ${OMG_SOURCES})
-add_library(dendroDA ${ODA_SOURCES} ${ODA_PRIVATE_SOURCES})
+add_library(dendroDA ${ODA_SOURCES} ${ODA_PRIVATE_SOURCES} include/hcurvedata.h)
 add_library(dendroTest src/test/testUtils.C)
 
 add_library(dendro ${DENDRO_SOURCES} 
                    ${DENDRO_HEADERS}
-                   ${DENDRO_TEMPLATES})
+                   ${DENDRO_TEMPLATES} include/hcurvedata.h src/hcurvedata.cpp)
 
 ## executables 
 
@@ -149,13 +149,13 @@ target_link_libraries(testConBalAndCoarsen dendro petsc ${MPI_LIBRARIES} m)
 ##    Dendro DA APPS
 ##---------------------------------------------------------------------------------------
 if(BUILD_DA_EXAMPLES)
-    add_executable(testPartition examples/src/drivers/testPartition.C)
+    add_executable(testPartition examples/src/drivers/testPartition.C include/hcurvedata.h src/hcurvedata.cpp )
     target_link_libraries(testPartition dendroDA dendro petsc ${MPI_LIBRARIES} m)
 
     add_executable(tstMatVec examples/src/drivers/tstMatVec.C examples/src/backend/odaJac.C examples/src/backend/handleType2Stencils.C)
     target_link_libraries(tstMatVec dendroDA dendro petsc ${MPI_LIBRARIES} m)
 
-    add_executable(buildDA examples/src/drivers/buildDA.C)
+    add_executable(buildDA examples/src/drivers/buildDA.C include/hcurvedata.h)
     target_link_libraries(buildDA dendroDA dendro petsc ${MPI_LIBRARIES} m)
 
     add_executable(buildRgDA examples/src/drivers/buildRgDA.C)

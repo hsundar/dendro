@@ -85,5 +85,8 @@ namespace binOp {
     return  (v >> 1);
   }
 
+
+
+
 }//end namespace
 

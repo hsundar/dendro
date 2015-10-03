@@ -4,7 +4,7 @@
 #include "TreeNode.h"
 #include "Point.h"
 #include "nodeAndValues.h"
-
+#include <algorithm>
 
 #include <iostream>
 #include <fstream>

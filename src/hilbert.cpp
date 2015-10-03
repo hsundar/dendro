@@ -415,255 +415,75 @@ bool hilbert_order(const Point & p1,const Point& p2)
 
 bool hilbert_order_NCA(const Point& p1,const Point& p2)
 {
-  
+
+
+  //NOTE: This code is directly implemented in the treenode < operator rather than calling as a function. This is here for the reference only.
+  // WARNING: if you use this function you need to initialize the extern variables G_MAX_DEPTH and G_dim.
+
   unsigned int x1 = p1.xint();
   unsigned int x2 = p2.xint();
-  
+
   unsigned int y1 = p1.yint();
   unsigned int y2 = p2.yint();
-  
+
   unsigned int z1 = p1.zint();
   unsigned int z2 = p2.zint();
-    
+
   if(x1==x2 && y1==y2 && z1==z2)
   {
-	return false;
+    return false;
   }
- 
+
   unsigned int maxDepth = G_MAX_DEPTH;
   unsigned int maxDiff = (unsigned int)(std::max((std::max((x1^x2),(y1^y2))),(z1^z2)));
   int dim=G_dim;
-  
+
   unsigned int maxDiffBinLen = binOp::binLength(maxDiff);
   //Eliminate the last maxDiffBinLen bits.
   unsigned int ncaX = ((x1>>maxDiffBinLen)<<maxDiffBinLen);
   unsigned int ncaY = ((y1>>maxDiffBinLen)<<maxDiffBinLen);
   unsigned int ncaZ = ((z1>>maxDiffBinLen)<<maxDiffBinLen);
   unsigned int ncaLev = (maxDepth - maxDiffBinLen);
-  
-  //std:cout<<"nca_x:"<<ncaX<<" nca_y:"<<ncaY<<" nca_z:"<<ncaZ<<"NCA Level:"<<ncaLev<<std::endl;
-  
-  unsigned int xl=0;
-  unsigned int yl=0;
-  unsigned int zl=0;
-  
-  unsigned int len=1<<G_MAX_DEPTH;
-  int count=0;
+
+
+
   unsigned int index1=0;
   unsigned int index2=0;
-  
-  //Rotation2D temp_2d;
-  //Rotation3D temp_3d;
-  int index_temp=0;
-  
-  if(G_dim==2)
-  {
-     char rotation[4]={0,1,2,3};
-     char rot_index[4]={0,1,2,3};
-     int current_rot=0;
-     /*NOTE: This is a test code which eliminates the brancing. 
-     */
-     unsigned int m_x=0,m_y=0;
-     unsigned int m;
-     unsigned int x_m=1,y_m=1;
-    /* 
-     for(int i=1;i<=G_MAX_DEPTH;i++)
-     { 
-       m=1u<<(G_MAX_DEPTH-i);
-       m_x=m_x+(2*x_m-1)*m;
-       m_y=m_y+(2*y_m-1)*m;
-       
-       x_m=(ncaX& m_x)>>(G_MAX_DEPTH-i);
-       y_m=(ncaY& m_y)>>(G_MAX_DEPTH-i);
-       
-       index1=x_m+y_m+2*x_m*(1-y_m);
-       
-       index_temp=rotations_2d[current_rot].rot_index[index1];
-       current_rot=HILBERT_2D_TABLE[current_rot][index_temp];
-       
-       if((ncaX==(ncaX& m_x)) & (ncaY==(ncaY& m_x)) & (count==ncaLev))
-	 break;
-	 
-       count++;
-     }
-     */
-     
-     
-      while ((xl!=ncaX || yl!=ncaY || zl!=ncaZ || count!=ncaLev ))
-      {
-	    len=len>>1;
-	  
-	    index1 = 0;
-	    if ( ncaX >= (len + xl) ) {
-	      index1 += 1;
-	      xl += len;
-	      if (ncaY < (len + yl)) index1 += 2;
-	    }
-	    if ( ncaY >= (len + yl) ) { index1 += 1; yl += len; }
-	  
-	  //rotate(index1,rotation,rot_index,dim);
-	  
-	  //rotate_table_based(index1,current_rot,dim);
-	  //temp_2d=rotations_2d[current_rot];
-	  index_temp=rotations_2d[current_rot].rot_index[index1];
-	  current_rot=HILBERT_TABLE[current_rot*4+index_temp];
-	  count++;
-	  
-      }
-      
-      len=len>>1;
-      //Rotation2D temp=Rotation2D(rotation,rot_index);
-      Rotation2D temp=rotations_2d[current_rot];
-      
-      if((x1-ncaX)<len && (y1-ncaY)<len)
-      { // index 0
-        index1= temp.rot_index[0];
+  unsigned int num_children=1u<<dim; // This is basically the hilbert table offset
+  unsigned int rot_offset=num_children<<1;
+  char index_temp=0;
+  int current_rot=0;
 
-      }else if((x1-ncaX)<len && (y1-ncaY)>=len)
-      { // index 1
-	index1=temp.rot_index[1];
-      }else if((x1-ncaX)>=len && (y1-ncaY)>=len)
-      { // index 2
-	index1=temp.rot_index[2];
-      }else if ((x1-ncaX)>=len && (y1-ncaY)<len)
-      { // index 3
-	index1=temp.rot_index[3];
-	
-      }
-      
-      
-      if((x2-ncaX)<len && (y2-ncaY)<len)
-      { // index 0
-	index2=temp.rot_index[0];
-	
-      }else if((x2-ncaX)<len && (y2-ncaY)>=len)
-      { // index 1
-	index2=temp.rot_index[1];
-	
-      }else if((x2-ncaX)>=len && (y2-ncaY)>=len)
-      { // index 2
-	index2=temp.rot_index[2];
-      }else if ((x2-ncaX)>=len && (y2-ncaY)<len)
-      { // index 3
-	index2=temp.rot_index[3];
-	
-      }
-    
-    
-  }
-  else if(G_dim==3)
-  {
-      char rotation[8]={0,1,2,3,4,5,6,7}; // Initial rotation
-      char rot_index[8]={0,1,2,3,4,5,6,7}; // Initial rotation indices 
-      int current_rot=0;
-      while ((xl!=ncaX || yl!=ncaY || zl!=ncaZ || count!=ncaLev ) /*&& len >0*/)
-      {
+  //unsigned int b_x,b_y,b_z;
+  //unsigned int a,b,c;
+  unsigned int mid_bit=G_MAX_DEPTH;
 
-	len >>=1;
-	
-	index1 = 0;
-	if ( ncaZ < (len + zl) ) {
-	    if ( ncaX >= (len + xl) ) {
-	      index1 += 1;
-	      xl += len;
-	      if (ncaY < (len + yl)) 
-		index1 += 2;
-	    }
-	    if ( ncaY >= (len + yl) ) { 
-	      index1 += 1; 
-	      yl += len; 
-	    }
-	} else {
-	    index1 = 4;
-	    zl += len;
-	    if ( ncaX < (len + xl) ){ 
-	      index1 += 1;
-	      if (ncaY < (len + yl)) 
-		index1 += 2;
-	    }
-	    else {
-	      xl += len;
-	    }
-	    if ( ncaY >= (len + yl) ) { 
-	      index1 += 1; 
-	      yl += len; 
-	    }
-      }
-      
-      //rotate(index1,rotation,rot_index,dim);
-      //rotate_table_based(index1,current_rot,dim);
-      
-      //temp_3d=rotations_3d[current_rot];
-      index_temp=rotations_3d[current_rot].rot_index[index1];
-      current_rot=HILBERT_TABLE[current_rot*8+index_temp];
-      
-      count++;
-	
-      }
-      Rotation3D temp=rotations_3d[current_rot];      
-      //Rotation3D temp=Rotation3D(rotation,rot_index);
-      
-      len >>=1;
-        
-       if((x1-ncaX)<len && (y1-ncaY)<len && (z1-ncaZ)<len)
-	{ 
-	  index1=temp.rot_index[0];
-	}else if ((x1-ncaX)<len && (y1-ncaY)>=len && (z1-ncaZ)<len)
-	{ 
-	  index1=temp.rot_index[1]; 
-	}else if((x1-ncaX)>=len && (y1-ncaY)>=len && (z1-ncaZ)<len)
-	{
-	  index1=temp.rot_index[2];
-	}else if((x1-ncaX)>=len && (y1-ncaY)<len && (z1-ncaZ)<len)
-	{ 
-	  index1=temp.rot_index[3];
-	}else if ((x1-ncaX)>=len && (y1-ncaY)<len && (z1-ncaZ)>=len)
-	{
-	  index1=temp.rot_index[4];
-	}else if((x1-ncaX)>=len && (y1-ncaY)>=len && (z1-ncaZ)>=len)
-	{ 
-	  index1=temp.rot_index[5];
-	}else if((x1-ncaX)<len && (y1-ncaY)>=len && (z1-ncaZ)>=len)
-	{ 
-	  index1=temp.rot_index[6];
-	}else if((x1-ncaX)<len && (y1-ncaY)<len && (z1-ncaZ)>=len)
-	{
-	  index1=temp.rot_index[7];
-	}
-	
-	
-	if((x2-ncaX)<len && (y2-ncaY)<len && (z2-ncaZ)<len)
-	{ 
-	  index2=temp.rot_index[0];
-	}else if ((x2-ncaX)<len && (y2-ncaY)>=len && (z2-ncaZ)<len)
-	{ 
-	  index2=temp.rot_index[1];
-	}else if((x2-ncaX)>=len && (y2-ncaY)>=len && (z2-ncaZ)<len)
-	{
-	  index2=temp.rot_index[2];
-	}else if((x2-ncaX)>=len && (y2-ncaY)<len && (z2-ncaZ)<len)
-	{
-	  index2=temp.rot_index[3];
-	}else if ((x2-ncaX)>=len && (y2-ncaY)<len && (z2-ncaZ)>=len)
-	{
-	  index2=temp.rot_index[4];
-	}else if((x2-ncaX)>=len && (y2-ncaY)>=len && (z2-ncaZ)>=len)
-	{ 
-	  index2=temp.rot_index[5];
-	}else if((x2-ncaX)<len && (y2-ncaY)>=len && (z2-ncaZ)>=len)
-	{ 
-	  index2=temp.rot_index[6];
-	}else if((x2-ncaX)<len && (y2-ncaY)<len && (z2-ncaZ)>=len)
-	{
-	  index2=temp.rot_index[7];
-	}
-	
-	
-    
+  for(int i=0; i<ncaLev;i++)
+  {
+    mid_bit=G_MAX_DEPTH-i-1;
+//	   b_x=((ncaX&(1<<mid_bit))>>mid_bit);
+//	   b_y=((ncaY&(1<<mid_bit))>>mid_bit);
+//	   b_z=((ncaZ&(1<<mid_bit))>>mid_bit);
+    //index1=(b_z<<2) + ((b_x^b_z)<<1) + (b_x^b_y^b_z);
+
+    index1= (((ncaZ&(1<<mid_bit))>>mid_bit)<<2)|( (((ncaX&(1<<mid_bit))>>mid_bit)^((ncaZ&(1<<mid_bit))>>mid_bit)) <<1)|(((ncaX&(1<<mid_bit))>>mid_bit)^((ncaY&(1<<mid_bit))>>mid_bit)^((ncaZ&(1<<mid_bit))>>mid_bit));
+
+
+    index_temp=rotations[rot_offset*current_rot+num_children+index1]-'0';
+    current_rot=HILBERT_TABLE[current_rot*num_children+index_temp];
+
   }
-  
-  return index1<index2; 
-  
+
+  mid_bit--;
+  index1= (((z1&(1<<mid_bit))>>mid_bit)<<2)|( (((x1&(1<<mid_bit))>>mid_bit)^((z1&(1<<mid_bit))>>mid_bit)) <<1)|(((x1&(1<<mid_bit))>>mid_bit)^((y1&(1<<mid_bit))>>mid_bit)^((z1&(1<<mid_bit))>>mid_bit));
+  index2= (((z2&(1<<mid_bit))>>mid_bit)<<2)|( (((x2&(1<<mid_bit))>>mid_bit)^((z2&(1<<mid_bit))>>mid_bit)) <<1)|(((x2&(1<<mid_bit))>>mid_bit)^((y2&(1<<mid_bit))>>mid_bit)^((z2&(1<<mid_bit))>>mid_bit));
+
+
+
+  return rotations[rot_offset*current_rot+num_children+index1] < rotations[rot_offset*current_rot+num_children+index2];
+
+
+
 }
 
 // #endif

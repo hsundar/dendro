@@ -24,78 +24,24 @@ namespace ot {
 
         unsigned char childNum;
 #ifdef HILBERT_ORDERING
-        // NOTE: Need to remove these External variables.
-
-//        G_MAX_DEPTH=m_uiMaxDepth;
-//        G_dim=m_uiDim;
-
-
         unsigned int index1=0;
 
-        unsigned int len=1u<<(m_uiMaxDepth-getLevel());
-        //unsigned int mask_par=1u<<(m_uiMaxDepth-getLevel())<<1u;
-
         TreeNode parent=getParent();
-        unsigned int x_par,y_par,z_par;
-        x_par=parent.m_uiX;
-        y_par=parent.m_uiY;
-        z_par=parent.m_uiZ;
+        unsigned int num_children=1u<<m_uiDim; // This is basically the hilbert table offset
+        unsigned int rot_offset=num_children<<1;
 
+        unsigned mid_bit=m_uiMaxDepth-parent.m_uiLevel-1; // @hari this is always positive correct ?
+        index1= (((m_uiZ&(1<<mid_bit))>>mid_bit)<<2)|( (((m_uiX&(1<<mid_bit))>>mid_bit)^((m_uiZ&(1<<mid_bit))>>mid_bit)) <<1)|(((m_uiX&(1<<mid_bit))>>mid_bit)^((m_uiY&(1<<mid_bit))>>mid_bit)^((m_uiZ&(1<<mid_bit))>>mid_bit));
 
-        if(m_uiDim==2)
-        {
-            index1 = 0;
-            if ( m_uiX >= (len + x_par) ) {
-                index1 += 1;
-                if (m_uiY < (len + y_par)){
-                    index1 += 2;
-                }
-
-            }
-
-            if ( m_uiY >= (len + y_par) )
-            {
-                index1 += 1;
-
-            }
-
-            if(real){
-                char rot_id=parent.calculateTreeNodeRotation();
-                return rotations_2d[rot_id].rot_index[index1];
-            }
-            else
-                return index1;
-
-        }else if(m_uiDim==3)
-        {
-            index1 = 0;
-            if ( m_uiZ < (len + z_par) ) {
-                if ( m_uiX >= (len + x_par) ) {
-                    index1 += 1;
-                    if (m_uiY < (len + y_par))
-                        index1 += 2;
-                }
-                if ( m_uiY >= (len + y_par) ) {
-                    index1 += 1;
-                }
-            } else {
-                index1 = 4;
-                if ( m_uiX < (len + x_par) ){
-                    index1 += 1;
-                    if (m_uiY < (len + y_par))
-                        index1 += 2;
-                }
-                if ( m_uiY >= (len + y_par) ) {
-                    index1 += 1;
-                }
-            }
-            if(real){
-                char rot_id=parent.calculateTreeNodeRotation();
-                return rotations_3d[rot_id].rot_index[index1];
-            }
-            else
-                return index1;
+        if(real){
+            char rot_id=parent.calculateTreeNodeRotation();
+            return (rotations[rot_offset*rot_id+num_children+index1]-'0');
         }
+        else
+            return index1;
+
+
+
 
 
 #else
@@ -172,177 +118,75 @@ namespace ot {
 #ifdef HILBERT_ORDERING
 #ifdef USE_NCA_PROPERTY
         // #pragma message "Hilbert NCA"
-
+        // If you need to initilize the Hilbert table and the rotations for 2D you need to define DENDRO_DIM2
+        // Default initialization for 3D case.
         // NOTE: To work the Hilbert Ordering You need the Hilbert Table Initialized.
-        unsigned int x1 = this->getX();
+
+        unsigned int x1 = m_uiX;
         unsigned int x2 = other.getX();
 
-        unsigned int y1 = this->getY();
+        unsigned int y1 = m_uiY;
         unsigned int y2 = other.getY();
 
-        unsigned int z1 = this->getZ();
+        unsigned int z1 = m_uiZ;
         unsigned int z2 = other.getZ();
+// we don't need this check becasue we perform this ealier.
+//        if(x1==x2 && y1==y2 && z1==z2)
+//        {
+//            return false;
+//        }
 
-        //unsigned int maxDepth = G_MAX_DEPTH;
+        unsigned int maxDepth = m_uiMaxDepth;
         unsigned int maxDiff = (unsigned int)(std::max((std::max((x1^x2),(y1^y2))),(z1^z2)));
-        //int dim=G_dim;
+        int dim=m_uiDim;
 
         unsigned int maxDiffBinLen = binOp::binLength(maxDiff);
         //Eliminate the last maxDiffBinLen bits.
         unsigned int ncaX = ((x1>>maxDiffBinLen)<<maxDiffBinLen);
         unsigned int ncaY = ((y1>>maxDiffBinLen)<<maxDiffBinLen);
         unsigned int ncaZ = ((z1>>maxDiffBinLen)<<maxDiffBinLen);
-        unsigned int ncaLev = (m_uiMaxDepth - maxDiffBinLen);
+        unsigned int ncaLev = (maxDepth - maxDiffBinLen);
 
 
-        unsigned int xl=0;
-        unsigned int yl=0;
-        unsigned int zl=0;
 
-        unsigned int len=1<<m_uiMaxDepth;
-        int count=0;
         unsigned int index1=0;
         unsigned int index2=0;
-        unsigned int num_children=1u<<m_uiDim;
-        int index_temp=0;
+        unsigned int num_children=1u<<dim; // This is basically the hilbert table offset
+        unsigned int rot_offset=num_children<<1;
+        char index_temp=0;
         int current_rot=0;
-        if(m_uiDim==2)
+
+        //unsigned int b_x,b_y,b_z;
+        //unsigned int a,b,c;
+        unsigned int mid_bit=m_uiMaxDepth;
+
+        for(int i=0; i<ncaLev;i++)
         {
+            mid_bit=G_MAX_DEPTH-i-1;
 
-            current_rot=0;
-            while ((xl!=ncaX || yl!=ncaY || zl!=ncaZ || count!=ncaLev ))
-            {
-                len=len>>1;
+            //b_x=((ncaX&(1<<mid_bit))>>mid_bit);
+            //b_y=((ncaY&(1<<mid_bit))>>mid_bit);
+            //b_z=((ncaZ&(1<<mid_bit))>>mid_bit);
 
-                index1 = 0;
-                if ( ncaX >= (len + xl) ) {
-                    index1 += 1;
-                    xl += len;
-                    if (ncaY < (len + yl)) index1 += 2;
-                }
-                if ( ncaY >= (len + yl) ) { index1 += 1; yl += len; }
-
-
-                index_temp=rotations_2d[current_rot].rot_index[index1];
-                current_rot=HILBERT_TABLE[current_rot*4+index_temp];
-                count++;
-
-            }
-
-
-            len=len>>1;
-            Rotation2D temp=rotations_2d[current_rot];
-
-            index1 = 0;
-            if ( x1 >= (len + ncaX) ) {
-                index1 += 1;
-                if (y1 < (len + ncaY)) index1 += 2;
-            }
-            if ( y1 >= (len + ncaY) ) { index1 += 1; }
-
-            index2=0;
-            if ( x2 >= (len + ncaX) ) {
-                index2 += 1;
-                if (y2 < (len + ncaY)) index2 += 2;
-            }
-            if ( y2 >= (len + ncaY) ) { index2 += 1; }
-
-            return temp.rot_index[index1]<temp.rot_index[index2];
+            // index1=(b_z<<2) + ((b_x^b_z)<<1) + (b_x^b_y^b_z);
+            index1= (((ncaZ&(1<<mid_bit))>>mid_bit)<<2)|( (((ncaX&(1<<mid_bit))>>mid_bit)^((ncaZ&(1<<mid_bit))>>mid_bit)) <<1)|(((ncaX&(1<<mid_bit))>>mid_bit)^((ncaY&(1<<mid_bit))>>mid_bit)^((ncaZ&(1<<mid_bit))>>mid_bit));
+            index_temp=rotations[rot_offset*current_rot+num_children+index1]-'0';
+            current_rot=HILBERT_TABLE[current_rot*num_children+index_temp];
 
         }
-        else if(m_uiDim==3) {
 
-            while ((xl != ncaX || yl != ncaY || zl != ncaZ || count != ncaLev) /*&& len >0*/) {
+        mid_bit--;
+        index1= (((z1&(1<<mid_bit))>>mid_bit)<<2)|( (((x1&(1<<mid_bit))>>mid_bit)^((z1&(1<<mid_bit))>>mid_bit)) <<1)|(((x1&(1<<mid_bit))>>mid_bit)^((y1&(1<<mid_bit))>>mid_bit)^((z1&(1<<mid_bit))>>mid_bit));
+        index2= (((z2&(1<<mid_bit))>>mid_bit)<<2)|( (((x2&(1<<mid_bit))>>mid_bit)^((z2&(1<<mid_bit))>>mid_bit)) <<1)|(((x2&(1<<mid_bit))>>mid_bit)^((y2&(1<<mid_bit))>>mid_bit)^((z2&(1<<mid_bit))>>mid_bit));
 
-                len >>= 1;
 
-                index1 = 0;
-                if (ncaZ < (len + zl)) {
-                    if (ncaX >= (len + xl)) {
-                        index1 += 1;
-                        xl += len;
-                        if (ncaY < (len + yl))
-                            index1 += 2;
-                    }
-                    if (ncaY >= (len + yl)) {
-                        index1 += 1;
-                        yl += len;
-                    }
-                } else {
-                    index1 = 4;
-                    zl += len;
-                    if (ncaX < (len + xl)) {
-                        index1 += 1;
-                        if (ncaY < (len + yl))
-                            index1 += 2;
-                    }
-                    else {
-                        xl += len;
-                    }
-                    if (ncaY >= (len + yl)) {
-                        index1 += 1;
-                        yl += len;
-                    }
-                }
+        return rotations[rot_offset*current_rot+num_children+index1] < rotations[rot_offset*current_rot+num_children+index2];
 
-                index_temp = rotations_3d[current_rot].rot_index[index1];
-                current_rot = HILBERT_TABLE[current_rot * 8 + index_temp];
 
-                count++;
 
-            }
-            Rotation3D temp = rotations_3d[current_rot];
 
-            len >>= 1;
 
-            index1 = 0;
-            if (z1 < (len + ncaZ)) {
-                if (x1 >= (len + ncaX)) {
-                    index1 += 1;
-                    if (y1 < (len + ncaY))
-                        index1 += 2;
-                }
-                if (y1 >= (len + ncaY)) {
-                    index1 += 1;
-                }
-            } else {
-                index1 = 4;
-                if (x1 < (len + ncaX)) {
-                    index1 += 1;
-                    if (y1 < (len + ncaY))
-                        index1 += 2;
-                }
 
-                if (y1 >= (len + ncaY)) {
-                    index1 += 1;
-                }
-            }
-
-            if (z2 < (len + ncaZ)) {
-                if (x2 >= (len + ncaX)) {
-                    index2 += 1;
-                    if (y2 < (len + ncaY))
-                        index2 += 2;
-                }
-                if (y2 >= (len + ncaY)) {
-                    index2 += 1;
-                }
-            } else {
-                index2 = 4;
-                if (x2 < (len + ncaX)) {
-                    index2 += 1;
-                    if (y2 < (len + ncaY))
-                        index2 += 2;
-                }
-
-                if (y2 >= (len + ncaY)) {
-                    index2 += 1;
-                }
-            }
-
-            return temp.rot_index[index1] < temp.rot_index[index2];
-
-        }
 #else
         #pragma message "Hilbert"
         //NOTE: We can remove this code later. // WARNING: External Variable set is mandatory.
@@ -516,81 +360,81 @@ namespace ot {
         //This is just a basic implementation to get the rotation pattern inside an octant just to see the Dendro code is working with Hilbert curve.
         // Just Iterate through root to the node figuring the rotation pattern.
 
-        unsigned int xl = 0;
-        unsigned int yl = 0;
-        unsigned int zl = 0;
-
-        unsigned int len = 1 << this->m_uiMaxDepth;
-        int count = 0;
         unsigned int index1 = 0;
-        unsigned int index2 = 0;
+        unsigned int dld_x,dld_y,dld_z;
+        unsigned int len = m_uiMaxDepth-m_uiLevel;
+        unsigned int last_child_index=(1<<m_uiDim)-1;
+        unsigned int num_children=1u<<m_uiDim; // This is basically the hilbert table offset
+        unsigned int rot_offset=num_children<<1;
+        TreeNode dld;
 
-        unsigned int ncaX,ncaY,ncaZ,ncaLev; // considering the current node as the NCA.
-        ncaX=this->m_uiX;
-        ncaY=this->m_uiY;
-        ncaZ=this->m_uiZ;
-        ncaLev=this->m_uiLevel;
+        char rot_id=calculateTreeNodeRotation();
+        index1=(rotations[rot_offset*rot_id+num_children+last_child_index]-'0');
+
+        dld_x=m_uiX + (( (( (index1&4u)>>2u )&(!((index1&2u)>>1u)))+( ((index1&2u)>>1u) & (!((index1&4u)>>2u))))<<len) -( (( (index1&4u)>>2u )&(!((index1&2u)>>1u)))+( ((index1&2u)>>1u) & (!((index1&4u)>>2u))));
+        dld_y=m_uiY + ((( (index1&1u) & ( !((index1&2u)>>1u)  ))+( ((index1&2u)>>1u) & (!(index1&1u)  )))<<len) -(( (index1&1u) & ( !((index1&2u)>>1u)  ))+( ((index1&2u)>>1u) & (!(index1&1u)  )));
+        dld_z=m_uiZ + (((index1&4u)>>2u)<<len) -((index1&4u)>>2u);
+
+        dld=TreeNode (1, dld_x, dld_y, dld_z, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
 
 
-        if (m_uiDim == 2) {
+// todo: Remove these branching code
+//        if (m_uiDim == 2) {
+//
+//
+//
+//            TreeNode dld;
+//            if(index1==0)
+//            {
+//                dld=TreeNode (1, minX(), minY(), minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+//            }else if(index1==1)
+//            {
+//                dld=TreeNode (1, minX(), maxY()-1, minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+//            }else if(index1==2)
+//            {
+//                dld=TreeNode(1, maxX()-1, maxY()-1, minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+//            }else if(index1==3)
+//            {
+//                dld=TreeNode(1, maxX()-1, minY(), minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+//            }
+//
+//            return dld;
+//
+//        } else if (m_uiDim == 3) {
+//
+//            TreeNode dld;
+//
+//             if(index1==0)
+//            {
+//                dld=TreeNode(1, minX(), minY(), minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+//            }else if(index1==1)
+//            {
+//                dld=TreeNode(1, minX(), maxY()-1, minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+//            }else if(index1==2)
+//            {
+//                dld=TreeNode(1, maxX()-1, maxY()-1, minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+//            }else if(index1==3)
+//            {
+//                dld=TreeNode(1, maxX()-1, minY(), minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+//            }else if(index1==4)
+//            {
+//                dld=TreeNode(1, maxX()-1, minY(), maxZ()-1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+//            }else if(index1==5)
+//            {
+//                dld=TreeNode(1, maxX()-1, maxY()-1, maxZ()-1,m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+//            }else if(index1==6)
+//            {
+//                dld=TreeNode(1, minX(), maxY()-1, maxZ()-1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+//            }else if(index1==7)
+//            {
+//                dld=TreeNode(1, minX(), minY(), maxZ()-1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+//            }
+//
+//            return dld;
+//
+//        }
 
-
-            char rot_id=calculateTreeNodeRotation();
-            index1=rotations_2d[rot_id].rot_perm[3];
-            TreeNode dld;
-            if(index1==0)
-            {
-                dld=TreeNode (1, minX(), minY(), minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-            }else if(index1==1)
-            {
-                dld=TreeNode (1, minX(), maxY()-1, minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-            }else if(index1==2)
-            {
-                dld=TreeNode(1, maxX()-1, maxY()-1, minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-            }else if(index1==3)
-            {
-                dld=TreeNode(1, maxX()-1, minY(), minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-            }
-
-            return dld;
-
-        } else if (m_uiDim == 3) {
-
-            TreeNode dld;
-
-            char rot_id=calculateTreeNodeRotation();
-            //std::cout<<"rot_id:"<<(int)rot_id<<std::endl;
-            index1=rotations_3d[(int)rot_id].rot_perm[7];
-            //std::cout <<"last octant index:"<<index1<< std::endl;
-            if(index1==0)
-            {
-                dld=TreeNode(1, minX(), minY(), minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-            }else if(index1==1)
-            {
-                dld=TreeNode(1, minX(), maxY()-1, minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-            }else if(index1==2)
-            {
-                dld=TreeNode(1, maxX()-1, maxY()-1, minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-            }else if(index1==3)
-            {
-                dld=TreeNode(1, maxX()-1, minY(), minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-            }else if(index1==4)
-            {
-                dld=TreeNode(1, maxX()-1, minY(), maxZ()-1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-            }else if(index1==5)
-            {
-                dld=TreeNode(1, maxX()-1, maxY()-1, maxZ()-1,m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-            }else if(index1==6)
-            {
-                dld=TreeNode(1, minX(), maxY()-1, maxZ()-1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-            }else if(index1==7)
-            {
-                dld=TreeNode(1, minX(), minY(), maxZ()-1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-            }
-
-            return dld;
-
-        }
+        return dld;
 
 #else
         TreeNode dld(1, maxX() - 1, maxY() - 1, maxZ() - 1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
@@ -599,88 +443,103 @@ namespace ot {
         //return dld;
     } //end function
 
-
     inline TreeNode TreeNode::getNext() const {
 
 #ifdef HILBERT_ORDERING
-        //NOTE: 3D implementation only.
+
         TreeNode m = *this;
+        //std::cout<< GRN <<"Requested Node Next: "<<m<<std::endl;
         unsigned int mask = (1u << (m_uiMaxDepth - getLevel()));
         int i;
         TreeNode parent;
+        unsigned int next_limit=(1<<m_uiDim)-1;
         char rotation_id;
         char next_index;
         char child_index;
         unsigned int par_x,par_y,par_z,par_level;
         unsigned int len;
+        unsigned int num_children=1u<<m_uiDim; // This is basically the hilbert table offset
+        unsigned int rot_offset=num_children<<1;
+
+
         // std::cout<<"Get Next of TreeNode: "<<(*this)<<std::endl;
         for (i = m.m_uiLevel; i >= 0; --i) {
 
             // special case that next of the root node.We consider it as the first child of the root.
             if(i==0)
             {
-                m=TreeNode(1,0,0,0,1,3,m_uiMaxDepth); // the first child of the root;
+                m=TreeNode(1,0,0,0,1,m_uiDim,m_uiMaxDepth); // the first child of the root;
                 break;
             }
 
-            //Note: This line can't be correct !!!!!!
             child_index=m.getChildNumber(true);
-
             parent=m.getParent();
             rotation_id=parent.calculateTreeNodeRotation();
-
             par_x=parent.getX();
             par_y=parent.getY();
             par_z=parent.getZ();
             par_level=parent.getLevel();
-            len=1<<(parent.m_uiMaxDepth-parent.getLevel()-1);
-            if(child_index<7)
+
+            len=(parent.m_uiMaxDepth-parent.getLevel()-1);
+
+            if(child_index<next_limit)
             {
                 // next octant is in the same level;
-                next_index=rotations_3d[rotation_id].rot_perm[child_index+1];
 
-                if(next_index==0)
-                {
-                    m=TreeNode(1,par_x,par_y,par_z,(par_level+1),3,m_uiMaxDepth);
-                    break;
-                }else if(next_index==1)
-                {
-                    m=TreeNode(1,par_x,(par_y+len),par_z,(par_level+1),3,m_uiMaxDepth);
-                    break;
-                }else if(next_index==2)
-                {
-                    m=TreeNode(1,(par_x+len),(par_y+len),par_z,(par_level+1),3,m_uiMaxDepth);
-                    break;
-                }else if(next_index==3)
-                {
-                    m=TreeNode(1,(par_x+len),par_y,par_z,(par_level+1),3,m_uiMaxDepth);
-                    break;
-                }else if(next_index==4)
-                {
-                    m=TreeNode(1,(par_x+len),par_y,(par_z+len),(par_level+1),3,m_uiMaxDepth);
-                    break;
-                }else if(next_index==5)
-                {
-                    m=TreeNode(1,(par_x+len),(par_y+len),(par_z+len),(par_level+1),3,m_uiMaxDepth);
-                    break;
-                }else if(next_index==6) {
-                    m=TreeNode(1,par_x,(par_y+len),(par_z+len),(par_level+1),3,m_uiMaxDepth);
-                    break;
-                }else if(next_index==7) {
-                    m=TreeNode(1,par_x,par_y,(par_z+len),(par_level+1),3,m_uiMaxDepth);
-                    break;
-                }
+                next_index= rotations[rot_offset*rotation_id+num_children+child_index+1]-'0'; //rotations[rotation_id].rot_perm[child_index+1];
+
+                // Note: Just calculation of x,y,x of a child octant for a given octant based on the child index. This is done to eliminate the branching.
+
+                par_x=par_x +(( (( (next_index&4u)>>2u )&(!((next_index&2u)>>1u)))+( ((next_index&2u)>>1u) & (!((next_index&4u)>>2u))))<<len);
+                par_y=par_y +((( (next_index&1u) & ( !((next_index&2u)>>1u)  ))+( ((next_index&2u)>>1u) & (!(next_index&1u)  )))<<len);
+                par_z=par_z +(((next_index&4u)>>2u)<<len);
+
+                // Tree node with updated coordinates.
+                m=TreeNode(1,par_x,par_y,par_z,(par_level+1),m_uiDim,m_uiMaxDepth);
+                 break;
+
+//                if(next_index==0)
+//                {
+//                    m=TreeNode(1,par_x,par_y,par_z,(par_level+1),3,m_uiMaxDepth);
+//                    break;
+//                }else if(next_index==1)
+//                {
+//                    m=TreeNode(1,par_x,(par_y+len),par_z,(par_level+1),3,m_uiMaxDepth);
+//                    break;
+//                }else if(next_index==2)
+//                {
+//                    m=TreeNode(1,(par_x+len),(par_y+len),par_z,(par_level+1),3,m_uiMaxDepth);
+//                    break;
+//                }else if(next_index==3)
+//                {
+//                    m=TreeNode(1,(par_x+len),par_y,par_z,(par_level+1),3,m_uiMaxDepth);
+//                    break;
+//                }else if(next_index==4)
+//                {
+//                    m=TreeNode(1,(par_x+len),par_y,(par_z+len),(par_level+1),3,m_uiMaxDepth);
+//                    break;
+//                }else if(next_index==5)
+//                {
+//                    m=TreeNode(1,(par_x+len),(par_y+len),(par_z+len),(par_level+1),3,m_uiMaxDepth);
+//                    break;
+//                }else if(next_index==6) {
+//                    m=TreeNode(1,par_x,(par_y+len),(par_z+len),(par_level+1),3,m_uiMaxDepth);
+//                    break;
+//                }else if(next_index==7) {
+//                    m=TreeNode(1,par_x,par_y,(par_z+len),(par_level+1),3,m_uiMaxDepth);
+//                    break;
+//                }
+
 
 
 
             }else {
-                //std::cout<<GRN <<"getNext() parent next needed"<<std::endl;
                 m=parent;
             }
         }
 
 
-        // std::cout<<"Get Next Returned: "<<m<<std::endl;
+         //std::cout<<"Get Next Returned: "<<m<<std::endl;
         return m;
 
  #else
@@ -706,67 +565,78 @@ namespace ot {
 #ifdef HILBERT_ORDERING
 
         TreeNode m=*this;
-        unsigned int len=1<<((m.m_uiMaxDepth-m.m_uiLevel)-1);
-        //len=len/2;
-
-        if(m_uiDim==2)
-        {
-            char rot_id=calculateTreeNodeRotation();
-            char fchild=rotations_2d[rot_id].rot_perm[0];
-
-            if(fchild==0)
-            {
-
-                m.m_uiLevel++;
-            }else if (fchild==1)
-            {
-                m=TreeNode(1,m_uiX,(m_uiY+len),m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
-            }else if (fchild==2)
-            {
-                m=TreeNode(1,(m_uiX+len),(m_uiY+len),m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
-            }else if (fchild==3)
-            {
-                m=TreeNode(1,(m_uiX+len),m_uiY,m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
-            }
+        unsigned int len=((m.m_uiMaxDepth-m.m_uiLevel)-1);
+        unsigned int xf,yf,zf;
+        unsigned int num_children=1u<<m_uiDim; // This is basically the hilbert table offset
+        unsigned int rot_offset=num_children<<1;
 
 
+        char rot_id=calculateTreeNodeRotation();
+        unsigned int fchild=(unsigned int)(rotations[rot_offset*rot_id+num_children+0]-'0'); //rotations[rot_id].rot_perm[0];
 
-        }else if(m_uiDim==3)
-        {
-            char rot_id=calculateTreeNodeRotation();
+         xf=m_uiX +(( (( (fchild&4u)>>2u )&(!((fchild&2u)>>1u)))+( ((fchild&2u)>>1u) & (!((fchild&4u)>>2u))))<<len);
+         yf=m_uiY +((( (fchild&1u) & ( !((fchild&2u)>>1u)  ))+( ((fchild&2u)>>1u) & (!(fchild&1u)  )))<<len);
+         zf=m_uiZ +(((fchild&4u)>>2u)<<len);
 
-            char fchild=rotations_3d[rot_id].rot_perm[0];
+        m=TreeNode(1,xf,yf,zf,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
 
-            if(fchild==0)
-            {
-                m.m_uiLevel++;
-            }else if (fchild==1)
-            {
-                m=TreeNode(1,m_uiX,(m_uiY+len),m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+//        if(m_uiDim==2)
+//        {
+//
+//            if(fchild==0)
+//            {
+//
+//                m.m_uiLevel++;
+//            }else if (fchild==1)
+//            {
+//                m=TreeNode(1,m_uiX,(m_uiY+len),m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+//            }else if (fchild==2)
+//            {
+//                m=TreeNode(1,(m_uiX+len),(m_uiY+len),m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+//            }else if (fchild==3)
+//            {
+//                m=TreeNode(1,(m_uiX+len),m_uiY,m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+//            }
+//
+//
+//
+//        }else if(m_uiDim==3)
+//        {
+//
+//
+//
+//            if(fchild==0)
+//            {
+//                m.m_uiLevel++;
+//            }else if (fchild==1)
+//            {
+//                m=TreeNode(1,m_uiX,(m_uiY+len),m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+//
+//            }else if (fchild==2)
+//            {
+//                m=TreeNode(1,(m_uiX+len),(m_uiY+len),m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+//
+//            }else if (fchild==3)
+//            {
+//                m=TreeNode(1,(m_uiX+len),m_uiY,m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+//            }else if(fchild==4)
+//            {
+//                m=TreeNode(1,(m_uiX+len),m_uiY,(m_uiZ+len),(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+//            }else if(fchild==5)
+//            {
+//                m=TreeNode(1,(m_uiX+len),(m_uiY+len),(m_uiZ+len),(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+//            }else if (fchild==6)
+//            {
+//                m=TreeNode(1,m_uiX,(m_uiY+len),(m_uiZ+len),(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+//            }else if (fchild==7)
+//            {
+//                m=TreeNode(1,m_uiX,m_uiY,(m_uiZ+len),(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+//            }
+//
+//
+//        }
 
-            }else if (fchild==2)
-            {
-                m=TreeNode(1,(m_uiX+len),(m_uiY+len),m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
 
-            }else if (fchild==3)
-            {
-                m=TreeNode(1,(m_uiX+len),m_uiY,m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
-            }else if(fchild==4)
-            {
-                m=TreeNode(1,(m_uiX+len),m_uiY,(m_uiZ+len),(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
-            }else if(fchild==5)
-            {
-                m=TreeNode(1,(m_uiX+len),(m_uiY+len),(m_uiZ+len),(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
-            }else if (fchild==6)
-            {
-                m=TreeNode(1,m_uiX,(m_uiY+len),(m_uiZ+len),(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
-            }else if (fchild==7)
-            {
-                m=TreeNode(1,m_uiX,m_uiY,(m_uiZ+len),(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
-            }
-
-
-        }
 
         return m;
 

@@ -637,7 +637,7 @@ std::ostream& operator<<(std::ostream& os, TreeNode const& other) {
  * ===========Hilbert Ordering Implementations==========
  * ====================START============================
  */
-
+inline
 char TreeNode::calculateTreeNodeRotation() const
 {
   
@@ -650,7 +650,7 @@ char TreeNode::calculateTreeNodeRotation() const
   unsigned int index1 = 0;
   unsigned int index2 = 0;
   
-  char rotation_id;
+  //char rotation_id;
   
   unsigned int ncaX,ncaY,ncaZ,ncaLev; // considering the current node as the NCA. 
   ncaX=this->m_uiX;
@@ -659,75 +659,102 @@ char TreeNode::calculateTreeNodeRotation() const
   ncaLev=this->m_uiLevel;
   int index_temp;
   int num_children=1u<<m_uiDim;
-  if (m_uiDim == 2) {
-     //rotation=new int[4]{0,1,2,3};
-     //rot_index=new int[4]{0,1,2,3};
-     char current_rot=0;
-          
-    while ((xl != ncaX || yl != ncaY || zl != ncaZ || count != ncaLev)) {
-      
-      len >>=1;
-      index1 = 0;
-      if (ncaX >= (len + xl)) {
-        index1 += 1;
-        xl += len;
-        if (ncaY < (len + yl)) index1 += 2;
-      }
-      if (ncaY >= (len + yl)) {index1 += 1; yl += len; }
+  int rot_offset=num_children<<1;
 
-      //rotate(index1, rotation, rot_index, 2);
-      index_temp=rotations_2d[current_rot].rot_index[index1];
-      current_rot=HILBERT_TABLE[current_rot*num_children+index_temp];
-      
-      count++;
 
-    }
+  char current_rot=0;
 
-    rotation_id=current_rot;
-    
+  //unsigned int b_x,b_y,b_z;
+  //unsigned int a,b,c;
+  unsigned int mid_bit=m_uiMaxDepth;
 
-  } else if (m_uiDim == 3) {
-    char current_rot=0;
-    while ((xl != ncaX || yl != ncaY || zl != ncaZ || count != ncaLev)/*&& len >0*/) {
+  for(int i=0; i<ncaLev;i++)
+  {
+    mid_bit=G_MAX_DEPTH-i-1;
 
-      len >>= 1;
+    //b_x=((ncaX&(1<<mid_bit))>>mid_bit);
+    //b_y=((ncaY&(1<<mid_bit))>>mid_bit);
+    //b_z=((ncaZ&(1<<mid_bit))>>mid_bit);
 
-      index1 = 0;
-      if (ncaZ < (len + zl)) {
-        if (ncaX >= (len + xl)) {
-          index1 += 1;
-          xl += len;
-          if (ncaY < (len + yl)) index1 += 2;
-        }
-        if (ncaY >= (len + yl)) {
-          index1 += 1;
-          yl += len;
-        }
-      } else {
-        index1 = 4;
-        zl += len;
-        if (ncaX < (len + xl)) {
-          index1 += 1;
-          if (ncaY < (len + yl)) index1 += 2;
-        } else {
-          xl += len;
-        }
-        if (ncaY >= (len + yl)) {
-          index1 += 1;
-          yl += len;
-        }
-      }
+    // index1=(b_z<<2) + ((b_x^b_z)<<1) + (b_x^b_y^b_z);
+    index1= (((ncaZ&(1<<mid_bit))>>mid_bit)<<2)|( (((ncaX&(1<<mid_bit))>>mid_bit)^((ncaZ&(1<<mid_bit))>>mid_bit)) <<1)|(((ncaX&(1<<mid_bit))>>mid_bit)^((ncaY&(1<<mid_bit))>>mid_bit)^((ncaZ&(1<<mid_bit))>>mid_bit));
+    index_temp=rotations[rot_offset*current_rot+num_children+index1]-'0';
+    current_rot=HILBERT_TABLE[current_rot*num_children+index_temp];
 
-      index_temp=rotations_3d[current_rot].rot_index[index1];
-      current_rot=HILBERT_TABLE[current_rot*num_children+index_temp];
-      count++;
+  }
 
-    }
-    rotation_id=current_rot;
-    
-}
-return rotation_id;
-//std::cout<<"Tree Node Rotation Calculation Completed"<<std::endl;
+return current_rot;
+
+//
+//  if (m_uiDim == 2) {
+//     //rotation=new int[4]{0,1,2,3};
+//     //rot_index=new int[4]{0,1,2,3};
+//     char current_rot=0;
+//
+//    while ((xl != ncaX || yl != ncaY || zl != ncaZ || count != ncaLev)) {
+//
+//      len >>=1;
+//      index1 = 0;
+//      if (ncaX >= (len + xl)) {
+//        index1 += 1;
+//        xl += len;
+//        if (ncaY < (len + yl)) index1 += 2;
+//      }
+//      if (ncaY >= (len + yl)) {index1 += 1; yl += len; }
+//
+//      //rotate(index1, rotation, rot_index, 2);
+//      index_temp=rotations[current_rot].rot_index[index1];
+//      current_rot=HILBERT_TABLE[current_rot*num_children+index_temp];
+//
+//      count++;
+//
+//    }
+//
+//    rotation_id=current_rot;
+//
+//
+//  } else if (m_uiDim == 3) {
+//    char current_rot=0;
+//    while ((xl != ncaX || yl != ncaY || zl != ncaZ || count != ncaLev)/*&& len >0*/) {
+//
+//      len >>= 1;
+//
+//      index1 = 0;
+//      if (ncaZ < (len + zl)) {
+//        if (ncaX >= (len + xl)) {
+//          index1 += 1;
+//          xl += len;
+//          if (ncaY < (len + yl)) index1 += 2;
+//        }
+//        if (ncaY >= (len + yl)) {
+//          index1 += 1;
+//          yl += len;
+//        }
+//      } else {
+//        index1 = 4;
+//        zl += len;
+//        if (ncaX < (len + xl)) {
+//          index1 += 1;
+//          if (ncaY < (len + yl)) index1 += 2;
+//        } else {
+//          xl += len;
+//        }
+//        if (ncaY >= (len + yl)) {
+//          index1 += 1;
+//          yl += len;
+//        }
+//      }
+//
+//      index_temp=rotations[current_rot].rot_index[index1];
+//      current_rot=HILBERT_TABLE[current_rot*num_children+index_temp];
+//      count++;
+//
+//    }
+//    rotation_id=current_rot;
+//
+//}
+//return rotation_id;
+////std::cout<<"Tree Node Rotation Calculation Completed"<<std::endl;
 
 }
 

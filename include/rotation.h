@@ -6,7 +6,8 @@
  * Contains the code to gernerate the Hilbert Table
  * Later we can hardcorde the table to the dendro header file. 
  * 
- */
+ *//*
+
 
 
 #ifndef ROTATION_H
@@ -18,14 +19,16 @@
 #include <algorithm>
 
 
-extern char *HILBERT_TABLE;
+//extern char *HILBERT_TABLE;
 
 
+*/
 /*
  *
  * Rotations for 2D and 3D case. 
  *
- */
+ *//*
+
 
 struct Rotation2D
 {
@@ -155,8 +158,8 @@ struct Rotation3D
   
 };
 
-extern std::vector<Rotation2D> rotations_2d;
-extern std::vector<Rotation3D> rotations_3d;
+
+//extern std::vector<Rotation3D> rotations;  // 2D and 3D rotation permutations merged to a single vector;
 
 template<typename T>
 void insert_unique(T& item,std::vector<T>& unique_rot_patterns,std::vector<T>& rot_patterns)
@@ -182,8 +185,8 @@ void generateRotationPermutations(int dim,std::vector<T>& rotation_table)
   {
      int rot_count=0;
      T rot[4];
-     char rot_current[4]={0,1,2,3};
-     char rot_index[4]={0,1,2,3};
+     char rot_current[8]={0,1,2,3,0,0,0,0};
+     char rot_index[8]={0,1,2,3,0,0,0,0};
      
      T default_rotation(rot_current,rot_index);
      //Rotation2D current_rot;
@@ -246,4 +249,4 @@ void initializeHilbetTable(int dim);
 
 void rotate_table_based(int index,int& current_rot,int dim);
 
-#endif
+#endif*/

@@ -151,7 +151,8 @@ int main(int argc, char **argv) {
   //initializeHilbetTable(2);
   G_MAX_DEPTH = maxDepth;
   G_dim = dim;
-  initializeHilbetTable(dim);
+
+  _InitializeHcurve();
 
   double localTime, totalTime;
   double startTime, endTime;

@@ -57,6 +57,7 @@ namespace binOp{
     */
   int getPrevHighestPowerOfTwo(unsigned int n);
 
+
 }//end namespace
 
 #endif
