@@ -260,6 +260,12 @@ int main(int argc, char **argv) {
   PetscLogStagePop();
 #endif
 
+  if (!rank) {
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+    std::cout << RED " Ended Points to Octree" NRM << std::endl;
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+  }
+
   // par::partitionW<ot::TreeNode>(linOct, NULL, MPI_COMM_WORLD);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   treeNodesTovtk(linOct, rank, "bfBalancing");

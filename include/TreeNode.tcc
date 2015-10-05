@@ -40,7 +40,73 @@ namespace ot {
         else
             return index1;
 
-
+//        unsigned int index1=0;
+//
+//        unsigned int len=1u<<(m_uiMaxDepth-getLevel());
+//        //unsigned int mask_par=1u<<(m_uiMaxDepth-getLevel())<<1u;
+//        unsigned int num_children=1u<<m_uiDim; // This is basically the hilbert table offset
+//        unsigned int rot_offset=num_children<<1;
+//        TreeNode parent=getParent();
+//        unsigned int x_par,y_par,z_par;
+//        x_par=parent.m_uiX;
+//        y_par=parent.m_uiY;
+//        z_par=parent.m_uiZ;
+//
+//
+//        if(m_uiDim==2)
+//        {
+//            index1 = 0;
+//            if ( m_uiX >= (len + x_par) ) {
+//                index1 += 1;
+//                if (m_uiY < (len + y_par)){
+//                    index1 += 2;
+//                }
+//
+//            }
+//
+//            if ( m_uiY >= (len + y_par) )
+//            {
+//                index1 += 1;
+//
+//            }
+//
+//            if(real){
+//                char rot_id=parent.calculateTreeNodeRotation();
+//                return (rotations[rot_id*rot_offset+num_children+index1]-'0');
+//            }
+//            else
+//                return index1;
+//
+//        }else if(m_uiDim==3)
+//        {
+//            index1 = 0;
+//            if ( m_uiZ < (len + z_par) ) {
+//                if ( m_uiX >= (len + x_par) ) {
+//                    index1 += 1;
+//                    if (m_uiY < (len + y_par))
+//                        index1 += 2;
+//                }
+//                if ( m_uiY >= (len + y_par) ) {
+//                    index1 += 1;
+//                }
+//            } else {
+//                index1 = 4;
+//                if ( m_uiX < (len + x_par) ){
+//                    index1 += 1;
+//                    if (m_uiY < (len + y_par))
+//                        index1 += 2;
+//                }
+//                if ( m_uiY >= (len + y_par) ) {
+//                    index1 += 1;
+//                }
+//            }
+//            if(real){
+//                char rot_id=parent.calculateTreeNodeRotation();
+//                return (rotations[rot_id*rot_offset+num_children+index1]-'0');
+//            }
+//            else
+//                return index1;
+//        }
 
 
 
@@ -162,7 +228,7 @@ namespace ot {
 
         for(int i=0; i<ncaLev;i++)
         {
-            mid_bit=G_MAX_DEPTH-i-1;
+            mid_bit=m_uiMaxDepth-i-1;
 
             //b_x=((ncaX&(1<<mid_bit))>>mid_bit);
             //b_y=((ncaY&(1<<mid_bit))>>mid_bit);
@@ -362,7 +428,7 @@ namespace ot {
         unsigned int rot_offset=num_children<<1;
         unsigned int cfd_x,cfd_y,cfd_z;
         char fchild=calculateTreeNodeRotation();
-        index1=(rotations[rot_offset*fchild+num_children+0]-'0');
+        index1=(rotations[rot_offset*fchild+0]-'0');
 
         cfd_x=m_uiX +(( (( (fchild&4u)>>2u )&(!((fchild&2u)>>1u)))+( ((fchild&2u)>>1u) & (!((fchild&4u)>>2u))))<<len);
         cfd_y=m_uiY +((( (fchild&1u) & ( !((fchild&2u)>>1u)  ))+( ((fchild&2u)>>1u) & (!(fchild&1u)  )))<<len);
@@ -394,7 +460,7 @@ namespace ot {
         TreeNode dld;
 
         char rot_id=calculateTreeNodeRotation();
-        index1=(rotations[rot_offset*rot_id+num_children+last_child_index]-'0');
+        index1=(rotations[rot_offset*rot_id+last_child_index]-'0');
 
         dld_x=m_uiX + (( (( (index1&4u)>>2u )&(!((index1&2u)>>1u)))+( ((index1&2u)>>1u) & (!((index1&4u)>>2u))))<<len) -( (( (index1&4u)>>2u )&(!((index1&2u)>>1u)))+( ((index1&2u)>>1u) & (!((index1&4u)>>2u))));
         dld_y=m_uiY + ((( (index1&1u) & ( !((index1&2u)>>1u)  ))+( ((index1&2u)>>1u) & (!(index1&1u)  )))<<len) -(( (index1&1u) & ( !((index1&2u)>>1u)  ))+( ((index1&2u)>>1u) & (!(index1&1u)  )));
@@ -511,7 +577,7 @@ namespace ot {
             {
                 // next octant is in the same level;
 
-                next_index= rotations[rot_offset*rotation_id+num_children+child_index+1]-'0'; //rotations[rotation_id].rot_perm[child_index+1];
+                next_index= rotations[rot_offset*rotation_id+child_index+1]-'0'; //rotations[rotation_id].rot_perm[child_index+1];
 
                 // Note: Just calculation of x,y,x of a child octant for a given octant based on the child index. This is done to eliminate the branching.
 
@@ -597,7 +663,7 @@ namespace ot {
 
 
         char rot_id=calculateTreeNodeRotation();
-        unsigned int fchild=(unsigned int)(rotations[rot_offset*rot_id+num_children+0]-'0'); //rotations[rot_id].rot_perm[0];
+        unsigned int fchild=(unsigned int)(rotations[rot_offset*rot_id+0]-'0'); //rotations[rot_id].rot_perm[0];
 
          xf=m_uiX +(( (( (fchild&4u)>>2u )&(!((fchild&2u)>>1u)))+( ((fchild&2u)>>1u) & (!((fchild&4u)>>2u))))<<len);
          yf=m_uiY +((( (fchild&1u) & ( !((fchild&2u)>>1u)  ))+( ((fchild&2u)>>1u) & (!(fchild&1u)  )))<<len);

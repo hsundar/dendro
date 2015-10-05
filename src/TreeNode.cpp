@@ -657,7 +657,7 @@ char TreeNode::calculateTreeNodeRotation() const
   ncaY=this->m_uiY;
   ncaZ=this->m_uiZ;
   ncaLev=this->m_uiLevel;
-  int index_temp;
+  int index_temp=0;
   int num_children=1u<<m_uiDim;
   int rot_offset=num_children<<1;
 
@@ -670,7 +670,7 @@ char TreeNode::calculateTreeNodeRotation() const
 
   for(int i=0; i<ncaLev;i++)
   {
-    mid_bit=G_MAX_DEPTH-i-1;
+    mid_bit=m_uiMaxDepth-i-1;
 
     //b_x=((ncaX&(1<<mid_bit))>>mid_bit);
     //b_y=((ncaY&(1<<mid_bit))>>mid_bit);
