@@ -906,19 +906,20 @@ namespace ot {
       wts = NULL;
     }
 
+    /*
     int q=0;
     for (auto x: globalCoarse) {
       std::cout << rank << ": C[" << q++ << "] " << x << ", wt = " << x.getWeight() << std::endl;
     }
-
+    */
     par::partitionW<ot::TreeNode>(globalCoarse,getNodeWeight,comm);
-
+    /*
     std::cout << RED " After Partition" NRM << std::endl;
     q=0;
     for (auto x: globalCoarse) {
       std::cout << rank << ": C[" << q++ << "] " << x << ", wt = " << x.getWeight() << std::endl;
     }
-
+    */
     //Reset weights
     for (unsigned int i=0;i<globalCoarse.size(); i++) {
       globalCoarse[i].setWeight(1);
@@ -931,15 +932,15 @@ namespace ot {
 
     std::vector<TreeNode> vtkDist(npes);
 
-    ot::TreeNode *sendMin = NULL;
+    // ot::TreeNode *sendMin = NULL;
+    ot::TreeNode sendMin;
     if (!globalCoarse.empty()) {
-      // @milinda This is the bug ... this is not correct for Hilbert ...
-      sendMin = (ot::TreeNode *)&(*(globalCoarse.begin()));
+      sendMin = globalCoarse.begin()->getCFD();
     } else {
-      sendMin = &(rootNode);
+      sendMin = rootNode;
     }
 
-    par::Mpi_Allgather<ot::TreeNode>(sendMin, &(* vtkDist.begin()), 1, comm);
+    par::Mpi_Allgather<ot::TreeNode>(&sendMin, &(* vtkDist.begin()), 1, comm);
 
     minsAllBlocks.clear();
     for(int j = 0; j < npes; j++) {

@@ -493,8 +493,10 @@ namespace ot {
             // special case that next of the root node.We consider it as the first child of the root.
             if(i==0)
             {
-                m=TreeNode(1,0,0,0,1,m_uiDim,m_uiMaxDepth); // the first child of the root;
-                break;
+              // assert(0);
+              m=TreeNode(1,0,0,0,1,m_uiDim,m_uiMaxDepth); // the first child of the root;
+              // m = TreeNode(1,0,(1<<m_uiMaxDepth),0,0,m_uiDim,m_uiMaxDepth); // the first child of the root;
+              break;
             }
 
             child_index=m.getChildNumber(true);
@@ -672,6 +674,10 @@ namespace ot {
   return m;
 #endif
     }
+
+  inline bool TreeNode::isRoot() const {
+    return (this->m_uiLevel == 0);
+  }
 
     inline bool TreeNode::isAncestor(TreeNode const &other) const {
 #ifdef __DEBUG_TN__

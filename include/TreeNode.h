@@ -279,6 +279,9 @@ namespace ot {
       int orFlag(unsigned int w);
       //@}
 
+      bool isRoot() const;
+
+
       /**
         @author Rahul Sampath
         @brief Checks if this octant is an ancestor of the input

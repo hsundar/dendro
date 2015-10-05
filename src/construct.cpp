@@ -934,6 +934,7 @@ namespace ot {
     std::vector<TreeNode> leaves;
     leaves.push_back(root);
 
+    treeNodesTovtk(nodes, 0, "input_p2o");
     p2oLocal(nodes, leaves, maxNumPts, dim, maxDepth);
 
     PROF_P2O_SEQ_END
@@ -949,7 +950,7 @@ namespace ot {
                unsigned int maxNumPts, unsigned int dim, unsigned int maxDepth) {
     PROF_P2O_LOCAL_BEGIN;
 
-    // std::cout << RED " - entering p2o_local=====" << NRM << std::endl;
+    std::cout << RED " - entering p2o_local=====" << NRM << std::endl;
 
     // int rank;
     // MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -962,20 +963,21 @@ namespace ot {
     unsigned long init_size = leaves.size();
     unsigned long num_pts = nodes.size();
 
-    TreeNode curr_node = leaves[0];
+    TreeNode curr_node = leaves[0].getCFD();
+    if ( curr_node.isRoot() ) curr_node = curr_node.getFirstChild();
     TreeNode last_node = leaves[init_size - 1].getDLD();
     TreeNode next_node = curr_node.getNext();
 
-    // std::cout << "   - curr_node: " << curr_node << std::endl;
-    // std::cout << "   - next_node: " << next_node << std::endl;
+    std::cout << "   - curr_node: " << curr_node << std::endl;
+    std::cout << "   - next_node: " << next_node << std::endl;
 
     unsigned long curr_pt = 0;
     unsigned long next_pt = curr_pt + maxNumPts;
 
     /*
     std::cout << std::endl;
+    std::cout << "next > n0  " <<  (next_node > nodes[0]) << std::endl;
     std::cout << "next < n0  " <<  (next_node < nodes[0]) << std::endl;
-    std::cout << "next < n1  " <<  (next_node < nodes[1]) << std::endl;
     std::cout << std::endl;
     */
 
@@ -983,9 +985,10 @@ namespace ot {
     while (next_pt < num_pts) {
       // std::cout << "> while loop 1: " << next_pt << "/" << num_pts << std::endl;
       while (next_node > nodes[next_pt] && curr_node.getLevel() < maxDepth) {
-        // std::cout << "  > while loop 1.1" << std::endl;
+         // std::cout << "  > while loop 1.1" << std::endl;
         curr_node = curr_node.getFirstChild();
         next_node = curr_node.getNext();
+        // std::cout << "\tcurr: " << curr_node << std::endl;
         // std::cout << "\tnext: " << next_node << std::endl;
         // std::cout << "  < while loop 1.1" << std::endl;
       }
@@ -1034,7 +1037,7 @@ namespace ot {
 
     while (curr_node < last_node) {
       // std::cout << "while loop 2" << std::endl;
-      while (curr_node.getDLD() > last_node && curr_node.getLevel() < maxDepth) curr_node = curr_node.getFirstChild();
+      while (curr_node.getDLD() > last_node.getCFD() && curr_node.getLevel() < maxDepth) curr_node = curr_node.getFirstChild();
       leaves_lst.push_back(curr_node);
       if (curr_node.getDLD() == last_node) break;
       curr_node = curr_node.getNext();
@@ -1050,6 +1053,7 @@ namespace ot {
     }
     leaves_lst.clear();
 
+    std::cout << leaves[0] << std::endl;
     // std::cout << GRN " - Leaving p2o_local" NRM << std::endl;
     PROF_P2O_LOCAL_END
   } //*/
