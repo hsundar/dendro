@@ -430,9 +430,9 @@ namespace ot {
         char fchild=calculateTreeNodeRotation();
         index1=(rotations[rot_offset*fchild+0]-'0');
 
-        cfd_x=m_uiX +(( (( (fchild&4u)>>2u )&(!((fchild&2u)>>1u)))+( ((fchild&2u)>>1u) & (!((fchild&4u)>>2u))))<<len);
-        cfd_y=m_uiY +((( (fchild&1u) & ( !((fchild&2u)>>1u)  ))+( ((fchild&2u)>>1u) & (!(fchild&1u)  )))<<len);
-        cfd_z=m_uiZ +(((fchild&4u)>>2u)<<len);
+        cfd_x=m_uiX +(( (( (index1&4u)>>2u )&(!((index1&2u)>>1u)))+( ((index1&2u)>>1u) & (!((index1&4u)>>2u))))<<len);
+        cfd_y=m_uiY +((( (index1&1u) & ( !((index1&2u)>>1u)  ))+( ((index1&2u)>>1u) & (!(index1&1u)  )))<<len);
+        cfd_z=m_uiZ +(((index1&4u)>>2u)<<len);
 
         cfd=TreeNode(1,cfd_x,cfd_y,cfd_z,m_uiLevel,m_uiDim,m_uiMaxDepth);
         return cfd;
@@ -559,7 +559,7 @@ namespace ot {
             // special case that next of the root node.We consider it as the first child of the root.
             if(i==0)
             {
-              // assert(0);
+              assert(0);
               m=TreeNode(1,0,0,0,1,m_uiDim,m_uiMaxDepth); // the first child of the root;
               // m = TreeNode(1,0,(1<<m_uiMaxDepth),0,0,m_uiDim,m_uiMaxDepth); // the first child of the root;
               break;

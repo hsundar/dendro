@@ -964,6 +964,7 @@ namespace ot {
     unsigned long num_pts = nodes.size();
 
     TreeNode curr_node = leaves[0].getCFD();
+    // make sure this is correct in all cases.
     if ( curr_node.isRoot() ) curr_node = curr_node.getFirstChild();
     TreeNode last_node = leaves[init_size - 1].getDLD();
     TreeNode next_node = curr_node.getNext();
@@ -983,7 +984,7 @@ namespace ot {
 
     // loop over pt indices until all points have been considered
     while (next_pt < num_pts) {
-      // std::cout << "> while loop 1: " << next_pt << "/" << num_pts << std::endl;
+      std::cout << "> while loop 1: " << next_pt << "/" << num_pts << std::endl;
       while (next_node > nodes[next_pt] && curr_node.getLevel() < maxDepth) {
          // std::cout << "  > while loop 1.1" << std::endl;
         curr_node = curr_node.getFirstChild();
@@ -1024,7 +1025,7 @@ namespace ot {
 
       // std::cout << "   - pushing to leaves " << leaves_lst.size() << std::endl;
       leaves_lst.push_back(curr_node);
-      // std::cout << GRN "   - pushed to leaves " GRN << curr_node << std::endl;
+      std::cout << GRN "   - pushed to leaves " GRN << curr_node << std::endl;
 
       curr_node = next_node;
       // std::cout << "   - computing next_node for " << curr_node << std::endl;
@@ -1037,7 +1038,7 @@ namespace ot {
 
     while (curr_node < last_node) {
       // std::cout << "while loop 2" << std::endl;
-      while (curr_node.getDLD() > last_node.getCFD() && curr_node.getLevel() < maxDepth) curr_node = curr_node.getFirstChild();
+      while (curr_node.getDLD() > last_node && curr_node.getLevel() < maxDepth) curr_node = curr_node.getFirstChild();
       leaves_lst.push_back(curr_node);
       if (curr_node.getDLD() == last_node) break;
       curr_node = curr_node.getNext();
