@@ -212,7 +212,7 @@ int main(int argc, char **argv) {
   }
   pts.clear();
 
-  // treeNodesTovtk(tmpNodes, rank, "vtkTreeNode");
+  // treeNodesTovtk(tmpNodes, rank, "input_points");
 
   // std::cout << rank << "removeDuplicates" << std::endl;
   par::removeDuplicates<ot::TreeNode>(tmpNodes, false, MPI_COMM_WORLD);
@@ -222,7 +222,8 @@ int main(int argc, char **argv) {
   // std::cout << rank << "partition" << std::endl;
   par::partitionW<ot::TreeNode>(linOct, NULL, MPI_COMM_WORLD);
 
-  //treeNodesTovtk(linOct,rank,"par_1");
+  // treeNodesTovtk(linOct,rank,"par_1");
+  treeNodesTovtk(linOct, rank, "input_points");
 
   // reduce and only print the total ...
   localSz = linOct.size();
@@ -295,6 +296,8 @@ int main(int argc, char **argv) {
 #ifdef PETSC_USE_LOG
   PetscLogStagePush(stages[1]);
 #endif
+
+  std::cout << "input[0] is " << linOct[0] << std::endl;
   startTime = MPI_Wtime();
   ot::balanceOctree(linOct, balOct, dim, maxDepth, incCorner, MPI_COMM_WORLD, NULL, NULL);
   endTime = MPI_Wtime();
@@ -317,10 +320,15 @@ int main(int argc, char **argv) {
     std::cout << "bal Time: " << totalTime << std::endl;
   }
 
-  // treeNodesTovtk(balOct, rank, "bal_output");
+  treeNodesTovtk(balOct, rank, "bal_output");
 
 
-  //=============================================================
+  //==================ODA Meshing=================================
+  if (!rank) {
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+    std::cout << RED " Starting ODA Meshing" NRM << std::endl;
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+  }
   //ODA ...
   MPI_Barrier(MPI_COMM_WORLD);
 #ifdef PETSC_USE_LOG
