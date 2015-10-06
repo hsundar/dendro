@@ -962,7 +962,7 @@ namespace ot {
     unsigned long init_size = leaves.size();
     unsigned long num_pts = nodes.size();
 
-    TreeNode curr_node = leaves[0];
+    TreeNode curr_node = leaves[0].getCFD();
     TreeNode last_node = leaves[init_size - 1].getDLD();
     TreeNode next_node = curr_node.getNext();
 
