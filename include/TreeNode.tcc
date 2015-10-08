@@ -551,7 +551,8 @@ namespace ot {
         unsigned int len;
         unsigned int num_children=1u<<m_uiDim; // This is basically the hilbert table offset
         unsigned int rot_offset=num_children<<1;
-
+        int rank=0;
+        MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
         // std::cout<<"Get Next of TreeNode: "<<(*this)<<std::endl;
         for (i = m.m_uiLevel; i >= 0; --i) {
@@ -559,9 +560,11 @@ namespace ot {
             // special case that next of the root node.We consider it as the first child of the root.
             if(i==0)
             {
-              assert(0);
-              m=TreeNode(1,0,0,0,1,m_uiDim,m_uiMaxDepth); // the first child of the root;
-              // m = TreeNode(1,0,(1<<m_uiMaxDepth),0,0,m_uiDim,m_uiMaxDepth); // the first child of the root;
+                std::cout<<"Root achieved:"<<rank<<std::endl;
+                std::cout<<"While getting the next node of: "<<*this<<std::endl;
+                assert(m.isRoot());
+                unsigned int len=1u<<m.getMaxDepth();
+                m=TreeNode(1,0,0,len,1,m_uiDim,m_uiMaxDepth+1);
               break;
             }
 
@@ -658,20 +661,28 @@ namespace ot {
 #ifdef HILBERT_ORDERING
 
         TreeNode m=*this;
-        unsigned int len=((m.m_uiMaxDepth-m.m_uiLevel)-1);
+        unsigned int len1=((m.m_uiMaxDepth-m.m_uiLevel)-1);
+        unsigned int len=1<<((m.m_uiMaxDepth-m.m_uiLevel)-1);
         unsigned int xf,yf,zf;
         unsigned int num_children=1u<<m_uiDim; // This is basically the hilbert table offset
         unsigned int rot_offset=num_children<<1;
 
+        //std::cout<<"Get First Child Called for:"<<*this<<std::endl;
+        int rot_id=this->calculateTreeNodeRotation();
+        unsigned int fchild;
+        fchild = rotations[rot_offset*rot_id+0]-'0'; //rotations[rot_id].rot_perm[0];
+        //std::cout<<"rotation:"<<rotations[rot_offset*rot_id+0]<<rotations[rot_offset*rot_id+1]<<rotations[rot_offset*rot_id+2]<<rotations[rot_offset*rot_id+3]<<rotations[rot_offset*rot_id+4]<<rotations[rot_offset*rot_id+5]<<rotations[rot_offset*rot_id+6]<<rotations[rot_offset*rot_id+7]<<std::endl;
+        //std::cout<<"node:"<<*this<<std::endl;
 
-        char rot_id=calculateTreeNodeRotation();
-        unsigned int fchild=(unsigned int)(rotations[rot_offset*rot_id+0]-'0'); //rotations[rot_id].rot_perm[0];
+         xf=m_uiX +(( (( (fchild&4u)>>2u )&(!((fchild&2u)>>1u)))+( ((fchild&2u)>>1u) & (!((fchild&4u)>>2u))))<<len1);
+         yf=m_uiY +((( (fchild&1u) & ( !((fchild&2u)>>1u)  ))+( ((fchild&2u)>>1u) & (!(fchild&1u)  )))<<len1);
+         zf=m_uiZ +(((fchild&4u)>>2u)<<len1);
 
-         xf=m_uiX +(( (( (fchild&4u)>>2u )&(!((fchild&2u)>>1u)))+( ((fchild&2u)>>1u) & (!((fchild&4u)>>2u))))<<len);
-         yf=m_uiY +((( (fchild&1u) & ( !((fchild&2u)>>1u)  ))+( ((fchild&2u)>>1u) & (!(fchild&1u)  )))<<len);
-         zf=m_uiZ +(((fchild&4u)>>2u)<<len);
+         m=TreeNode(1,xf,yf,zf,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+//         std::cout<<"First Child:"<<m<<std::endl;
+//         std::cout<<"fchild:"<<fchild<<std::endl;
 
-        m=TreeNode(1,xf,yf,zf,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+        //m=m.getCFD();
 
 //        if(m_uiDim==2)
 //        {
@@ -729,7 +740,9 @@ namespace ot {
 //
 //        }
 
-
+        //assert(m==m1);
+//        if(m1!=m)
+//            std::cout<<"m1:"<<m1<<"\t m:"<<m<<std::endl;
 
         return m;
 

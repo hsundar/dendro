@@ -67,6 +67,7 @@ void treeNodesTovtk(std::vector<ot::TreeNode> &nodes, int mpi_rank, std::string 
     int num_cells_elements = num_cells * unit_points + num_cells;
 
     for (int i = 0; i < nodes.size(); i++) {
+      //std::cout<<nodes[i]<<std::endl;
       len = 1 << (nodes[i].getMaxDepth() - nodes[i].getLevel());
       xl = nodes[i].getX();
       yl = nodes[i].getY();
