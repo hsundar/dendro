@@ -968,34 +968,34 @@ namespace ot {
 
       unsigned int curr_pt = 0;
       unsigned int next_pt = curr_pt + maxNumPts;
-      int wl2=0;
-      //std::cout << rank << ": " << __func__ << ": start while loop 1" << std::endl;
-      std::string vtk_file_name="wl";
 
+
+      //Note: for debug purposes
+//      std::cout<<"While Loop Begining."<<std::endl;
+//      std::cout<<YLW<<"current node:\t"<<curr_node<<NRM<<std::endl;
+//      std::cout<<YLW<<"next_node:\t"<<next_node<<NRM<<std::endl;
+//      std::cout<<YLW<<"current point:\t"<<nodes[curr_pt]<<NRM<<std::endl;
+//      std::cout<<YLW<<"next_point:\t"<<nodes[next_pt]<<NRM<<std::endl;
 
 
 
       while (next_pt < num_pts) {
 
-        if(wl2==25)
-          wl2=25;
-        std::cout<<"While Loop Begining."<<std::endl;
-        std::cout<<YLW<<"current node:\t"<<curr_node<<NRM<<std::endl;
-        std::cout<<YLW<<"next_node:\t"<<next_node<<NRM<<std::endl;
-        std::cout<<YLW<<"current point:\t"<<nodes[curr_pt]<<NRM<<std::endl;
-        std::cout<<YLW<<"next_point:\t"<<nodes[next_pt]<<NRM<<std::endl;
-
         while (next_node > nodes[next_pt] && curr_node.getLevel() < maxDepth) {
-          curr_node = curr_node.getFirstChild();
-          next_node = curr_node.getNext();
-          std::cout<<RED<<"current node:\t"<<curr_node<<NRM<<std::endl;
-          std::cout<<RED<<"next_node:\t"<<next_node<<NRM<<std::endl;
-          std::cout<<RED<<"current point:\t"<<nodes[curr_pt]<<NRM<<std::endl;
-          std::cout<<RED<<"next_point:\t"<<nodes[next_pt]<<NRM<<std::endl;
+          //@hari: We need sure to make that our logic is correct
+          //@hari: Whether it is curr_node.isAncestor(nodes[next_pt]) or combination of both. or these are equal since the nodes are sorted.
+          if(curr_node.isAncestor(nodes[curr_pt]) ) {
+            curr_node = curr_node.getFirstChild();
+            next_node = curr_node.getNext();
+          }else {
+              break;
+//            curr_node = next_node;
+//            next_node=curr_node.getNext();
+          }
 
         }
 
-       // std::cout << rank << ": " << __func__ << ": end while loop 1.1" << std::endl;
+
         unsigned int inc = maxNumPts;
         while (next_node > nodes[next_pt]) {
           // We have more than maxNumPts points per octant because the node can
@@ -1003,56 +1003,28 @@ namespace ot {
           inc = inc << 1;
           next_pt += inc;
           if (next_pt > num_pts) {
-            next_pt = num_pts;
+            next_pt = num_pts-1;
             break;
           }
-
-          std::cout<<BLU<<"current node:\t"<<curr_node<<NRM<<std::endl;
-          std::cout<<BLU<<"next_node:\t"<<next_node<<NRM<<std::endl;
-          std::cout<<BLU<<"current point:\t"<<nodes[curr_pt]<<NRM<<std::endl;
-          std::cout<<BLU<<"next_point:\t"<<nodes[next_pt]<<NRM<<std::endl;
-
         }
 
-        //std::cout << rank << ": " << __func__ << ": end while loop 1.2" << std::endl;
-        //std::cout<<"currnet_pt"<<curr_pt<<"\t"next
-        std::cout<<GRN<<"current node:\t"<<curr_node<<NRM<<std::endl;
-        std::cout<<GRN<<"next_node:\t"<<next_node<<NRM<<std::endl;
-        std::cout<<GRN<<"current point:\t"<<nodes[curr_pt]<<NRM<<std::endl;
-        std::cout<<GRN<<"next_point:\t"<<nodes[next_pt]<<NRM<<std::endl;
+//        bool state_in_between=((nodes[curr_pt]<next_node) & (next_node<nodes[next_pt]));
+//        std::cout<<RED<<"In between current point and next point:"<<state_in_between<<std::endl;
 
-        //assert(nodes[curr_pt]<nodes[next_pt]);
-        //assert(nodes[curr_pt]<next_node);
-        assert(next_node<nodes[next_pt]);
-        bool state_in_between=((nodes[curr_pt]<next_node) & (next_node<nodes[next_pt]));
-        std::cout<<RED<<"In between current point and next point:"<<state_in_between<<std::endl;
-
-
-
-        int found_pt=(std::lower_bound(&nodes[curr_pt], &nodes[next_pt], next_node, std::less<TreeNode>()) - &nodes[curr_pt]);
-        std::cout<<GRN<<"found_node:\t"<<found_pt<<NRM<<std::endl;
+        int found_pt=0;
+        found_pt=(std::lower_bound(&nodes[curr_pt], &nodes[next_pt], next_node, std::less<TreeNode>()) - &nodes[curr_pt]);
         next_pt = curr_pt + found_pt;
         leaves_lst.push_back(curr_node);
 
         curr_node = next_node;
         next_node = curr_node.getNext();
+
         if (next_pt > curr_pt) curr_pt = next_pt;
         next_pt = curr_pt + maxNumPts;
 
-        vtk_file_name="wl";
-        std::ostringstream convert;
-        convert << vtk_file_name << "_" << wl2;
-        vtk_file_name = convert.str();
-        convert.flush();
-        for (std::list<TreeNode>::iterator it = leaves_lst.begin(); it != leaves_lst.end(); it++)
-           leaves_lst_v.push_back(*it);
-
-        treeNodesTovtk(leaves_lst_v,rank,vtk_file_name,true);
-        wl2++;
 
       }
 
-      //std::cout << rank << ": " << __func__ << ": end while loop 1" << std::endl;
 
       while (curr_node < last_node) {
         while (curr_node.getDLD() > last_node && curr_node.getLevel() < maxDepth) curr_node = curr_node.getFirstChild();
@@ -1061,7 +1033,6 @@ namespace ot {
         curr_node = curr_node.getNext();
       }
 
-      //std::cout << rank << ": " << __func__ << ": end while loop 2" << std::endl;
 
       nodes.resize(leaves_lst.size());
       unsigned int i = 0;

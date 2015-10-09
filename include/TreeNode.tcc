@@ -40,76 +40,6 @@ namespace ot {
         else
             return index1;
 
-//        unsigned int index1=0;
-//
-//        unsigned int len=1u<<(m_uiMaxDepth-getLevel());
-//        //unsigned int mask_par=1u<<(m_uiMaxDepth-getLevel())<<1u;
-//        unsigned int num_children=1u<<m_uiDim; // This is basically the hilbert table offset
-//        unsigned int rot_offset=num_children<<1;
-//        TreeNode parent=getParent();
-//        unsigned int x_par,y_par,z_par;
-//        x_par=parent.m_uiX;
-//        y_par=parent.m_uiY;
-//        z_par=parent.m_uiZ;
-//
-//
-//        if(m_uiDim==2)
-//        {
-//            index1 = 0;
-//            if ( m_uiX >= (len + x_par) ) {
-//                index1 += 1;
-//                if (m_uiY < (len + y_par)){
-//                    index1 += 2;
-//                }
-//
-//            }
-//
-//            if ( m_uiY >= (len + y_par) )
-//            {
-//                index1 += 1;
-//
-//            }
-//
-//            if(real){
-//                char rot_id=parent.calculateTreeNodeRotation();
-//                return (rotations[rot_id*rot_offset+num_children+index1]-'0');
-//            }
-//            else
-//                return index1;
-//
-//        }else if(m_uiDim==3)
-//        {
-//            index1 = 0;
-//            if ( m_uiZ < (len + z_par) ) {
-//                if ( m_uiX >= (len + x_par) ) {
-//                    index1 += 1;
-//                    if (m_uiY < (len + y_par))
-//                        index1 += 2;
-//                }
-//                if ( m_uiY >= (len + y_par) ) {
-//                    index1 += 1;
-//                }
-//            } else {
-//                index1 = 4;
-//                if ( m_uiX < (len + x_par) ){
-//                    index1 += 1;
-//                    if (m_uiY < (len + y_par))
-//                        index1 += 2;
-//                }
-//                if ( m_uiY >= (len + y_par) ) {
-//                    index1 += 1;
-//                }
-//            }
-//            if(real){
-//                char rot_id=parent.calculateTreeNodeRotation();
-//                return (rotations[rot_id*rot_offset+num_children+index1]-'0');
-//            }
-//            else
-//                return index1;
-//        }
-
-
-
 #else
 
         unsigned int len = (1u << (m_uiMaxDepth - getLevel()));
@@ -560,8 +490,8 @@ namespace ot {
             // special case that next of the root node.We consider it as the first child of the root.
             if(i==0)
             {
-                std::cout<<"Root achieved:"<<rank<<std::endl;
-                std::cout<<"While getting the next node of: "<<*this<<std::endl;
+                //std::cout<<"Root achieved:"<<rank<<std::endl;
+                //std::cout<<"While getting the next node of: "<<*this<<std::endl;
                 assert(m.isRoot());
                 unsigned int len=1u<<m.getMaxDepth();
                 m=TreeNode(1,0,0,len,1,m_uiDim,m_uiMaxDepth+1);
@@ -593,41 +523,6 @@ namespace ot {
                 // Tree node with updated coordinates.
                 m=TreeNode(1,par_x,par_y,par_z,(par_level+1),m_uiDim,m_uiMaxDepth);
                  break;
-
-//                if(next_index==0)
-//                {
-//                    m=TreeNode(1,par_x,par_y,par_z,(par_level+1),3,m_uiMaxDepth);
-//                    break;
-//                }else if(next_index==1)
-//                {
-//                    m=TreeNode(1,par_x,(par_y+len),par_z,(par_level+1),3,m_uiMaxDepth);
-//                    break;
-//                }else if(next_index==2)
-//                {
-//                    m=TreeNode(1,(par_x+len),(par_y+len),par_z,(par_level+1),3,m_uiMaxDepth);
-//                    break;
-//                }else if(next_index==3)
-//                {
-//                    m=TreeNode(1,(par_x+len),par_y,par_z,(par_level+1),3,m_uiMaxDepth);
-//                    break;
-//                }else if(next_index==4)
-//                {
-//                    m=TreeNode(1,(par_x+len),par_y,(par_z+len),(par_level+1),3,m_uiMaxDepth);
-//                    break;
-//                }else if(next_index==5)
-//                {
-//                    m=TreeNode(1,(par_x+len),(par_y+len),(par_z+len),(par_level+1),3,m_uiMaxDepth);
-//                    break;
-//                }else if(next_index==6) {
-//                    m=TreeNode(1,par_x,(par_y+len),(par_z+len),(par_level+1),3,m_uiMaxDepth);
-//                    break;
-//                }else if(next_index==7) {
-//                    m=TreeNode(1,par_x,par_y,(par_z+len),(par_level+1),3,m_uiMaxDepth);
-//                    break;
-//                }
-
-
-
 
             }else {
                 m=parent;
@@ -662,7 +557,7 @@ namespace ot {
 
         TreeNode m=*this;
         unsigned int len1=((m.m_uiMaxDepth-m.m_uiLevel)-1);
-        unsigned int len=1<<((m.m_uiMaxDepth-m.m_uiLevel)-1);
+        //unsigned int len=1<<((m.m_uiMaxDepth-m.m_uiLevel)-1);
         unsigned int xf,yf,zf;
         unsigned int num_children=1u<<m_uiDim; // This is basically the hilbert table offset
         unsigned int rot_offset=num_children<<1;
@@ -679,70 +574,6 @@ namespace ot {
          zf=m_uiZ +(((fchild&4u)>>2u)<<len1);
 
          m=TreeNode(1,xf,yf,zf,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
-//         std::cout<<"First Child:"<<m<<std::endl;
-//         std::cout<<"fchild:"<<fchild<<std::endl;
-
-        //m=m.getCFD();
-
-//        if(m_uiDim==2)
-//        {
-//
-//            if(fchild==0)
-//            {
-//
-//                m.m_uiLevel++;
-//            }else if (fchild==1)
-//            {
-//                m=TreeNode(1,m_uiX,(m_uiY+len),m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
-//            }else if (fchild==2)
-//            {
-//                m=TreeNode(1,(m_uiX+len),(m_uiY+len),m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
-//            }else if (fchild==3)
-//            {
-//                m=TreeNode(1,(m_uiX+len),m_uiY,m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
-//            }
-//
-//
-//
-//        }else if(m_uiDim==3)
-//        {
-//
-//
-//
-//            if(fchild==0)
-//            {
-//                m.m_uiLevel++;
-//            }else if (fchild==1)
-//            {
-//                m=TreeNode(1,m_uiX,(m_uiY+len),m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
-//
-//            }else if (fchild==2)
-//            {
-//                m=TreeNode(1,(m_uiX+len),(m_uiY+len),m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
-//
-//            }else if (fchild==3)
-//            {
-//                m=TreeNode(1,(m_uiX+len),m_uiY,m_uiZ,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
-//            }else if(fchild==4)
-//            {
-//                m=TreeNode(1,(m_uiX+len),m_uiY,(m_uiZ+len),(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
-//            }else if(fchild==5)
-//            {
-//                m=TreeNode(1,(m_uiX+len),(m_uiY+len),(m_uiZ+len),(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
-//            }else if (fchild==6)
-//            {
-//                m=TreeNode(1,m_uiX,(m_uiY+len),(m_uiZ+len),(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
-//            }else if (fchild==7)
-//            {
-//                m=TreeNode(1,m_uiX,m_uiY,(m_uiZ+len),(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
-//            }
-//
-//
-//        }
-
-        //assert(m==m1);
-//        if(m1!=m)
-//            std::cout<<"m1:"<<m1<<"\t m:"<<m<<std::endl;
 
         return m;
 
