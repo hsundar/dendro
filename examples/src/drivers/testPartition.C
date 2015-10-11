@@ -17,10 +17,110 @@
 #include "rotation.h"
 #include "treenode2vtk.h"
 
+
 //Don't want time to be synchronized. Need to check load imbalance.
 #ifdef MPI_WTIME_IS_GLOBAL
 #undef MPI_WTIME_IS_GLOBAL
 #endif
+
+
+
+
+//@author: Milinda Fernando.
+// This function is to calculate the boundary faces
+// Assume that the given octree vector is sorted.
+int calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q) {
+
+  ot::TreeNode first=mesh[0];
+  ot::TreeNode last=mesh[mesh.size()-1];
+  ot::TreeNode R (first.getDim(), first.getMaxDepth());
+
+
+  int com_size=q;
+  int mesh_nodes=mesh.size();
+  assert(mesh_nodes>q);
+  int local_mesh_size=mesh_nodes/q;
+  int boundary_faces[q];
+
+
+
+  int found_pt;
+  int num_boundary_faces=0;
+
+  ot::TreeNode top;
+  ot::TreeNode bottom;
+  ot::TreeNode left;
+  ot::TreeNode right;
+  ot::TreeNode front;
+  ot::TreeNode back;
+  int temp=0;
+  int begin=0;
+  int end=0;
+  int total_boundary_faces=0;
+
+  for (int j=0;j<q;j++){
+
+     boundary_faces[j]=0;
+     begin=j*local_mesh_size;
+
+     temp=begin;
+     end=begin + local_mesh_size;
+
+     if(end+local_mesh_size>mesh_nodes)
+       end=mesh_nodes;
+
+
+     num_boundary_faces=0;
+
+      while(temp<end)//for(int i=0;i<mesh.size();i++)
+      {
+
+      top=mesh[temp].getTop();
+      bottom=mesh[temp].getBottom();
+      left=mesh[temp].getLeft();
+      right=mesh[temp].getRight();
+      front=mesh[temp].getFront();
+      back=mesh[temp].getBack();
+
+      if(!(std::lower_bound(&mesh[begin], &mesh[end-1], top, std::less<ot::TreeNode>()) - &mesh[begin]))
+        num_boundary_faces++;
+      if(!(std::lower_bound(&mesh[begin], &mesh[end-1], bottom, std::less<ot::TreeNode>()) - &mesh[begin]))
+        num_boundary_faces++;
+      if(!(std::lower_bound(&mesh[begin], &mesh[end-1], left, std::less<ot::TreeNode>()) - &mesh[begin]))
+        num_boundary_faces++;
+
+      if(!(std::lower_bound(&mesh[begin], &mesh[end-1], right, std::less<ot::TreeNode>()) - &mesh[begin]))
+        num_boundary_faces++;
+      if(!(std::lower_bound(&mesh[begin], &mesh[end-1], front, std::less<ot::TreeNode>()) - &mesh[begin]))
+        num_boundary_faces++;
+      if(!(std::lower_bound(&mesh[begin], &mesh[end-1], back, std::less<ot::TreeNode>()) - &mesh[begin]))
+        num_boundary_faces++;
+
+
+      //std::cout<<"Number of Boundary Faces: "<<i<<"\t"<<num_boundary_faces<<std::endl;
+      temp++;
+      if(temp%local_mesh_size==0)
+      {
+        break;
+      }
+
+    }
+    boundary_faces[j]=num_boundary_faces;
+    total_boundary_faces=total_boundary_faces+num_boundary_faces;
+    //std::cout<<"q:"<<j<<"\t "<<"number of boundary faces:"<<boundary_faces[j]<<std::endl;
+
+  }
+
+
+  //MPI_Reduce(boundary_faces,&total_boundary_faces,q, MPI_INT,MPI_SUM,0, MPI_COMM_WORLD);
+  return total_boundary_faces;
+
+
+}
+
+
+
+
 
 
 /** Print a demangled stack backtrace of the caller function to FILE* out. */
@@ -270,6 +370,23 @@ int main(int argc, char **argv) {
   // par::partitionW<ot::TreeNode>(linOct, NULL, MPI_COMM_WORLD);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   treeNodesTovtk(linOct, rank, "bfBalancing");
+
+  DendroIntL num_surface=calculateBoundaryFaces(linOct,1);
+  //if (!rank) {
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+    std::cout << RED " Number of Boundary Faces: Rank:" <<rank<<"\t"<<num_surface<<NRM << std::endl;
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+  //}
+  DendroIntL total_boundary_faces=0;
+  par::Mpi_Reduce<DendroIntL>(&num_surface,&total_boundary_faces,1, MPI_SUM, 0, MPI_COMM_WORLD);
+
+
+  if (!rank) {
+  double surf_volume_r=total_boundary_faces/(double)totalSz;
+  std::cout << BLU << "===============================================" << NRM << std::endl;
+  std::cout << RED " Surface to Volume ratio:" <<total_boundary_faces<<"/"<<totalSz<<"="<<surf_volume_r<<NRM << std::endl;
+  std::cout << BLU << "===============================================" << NRM << std::endl;
+  }
 
   localTime = endTime - startTime;
   par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);

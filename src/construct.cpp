@@ -860,18 +860,7 @@ namespace ot {
     // if (nodes.size() > (1 << dim) ) {
     blockPartStage1_p2o(nodes, leaves, dim, maxDepth, comm);
     blockPartStage2_p2o(nodes, leaves, minsAllBlocks, dim, maxDepth, comm);
-    // } else {
-    // @hari 8/18/15 - Check if this is correct.
-    // leaves.push_back(root);
-    // }
-    //leaves will be sorted.
-    // if (!rank) std::cout << "after BlkPart: " << nodes.size() << std::endl;
 
-    /*
-    par::sampleSort<ot::TreeNode>(leaves, tmpNodes, comm);
-    leaves = tmpNodes;
-    tmpNodes.clear();
-    */
 
     assert(par::test::isUniqueAndSorted(leaves, comm));
 
@@ -942,81 +931,7 @@ namespace ot {
   } //end function
 
 
-/*
 
-    */
-/*
-     * @author: Milinda Fernando
-     * @date: 10/09/2015
-     * *//*
-
-
- int p2oLocal_Hilbert(std::vector<TreeNode> &nodes, std::vector<TreeNode> &leaves,
-                      unsigned int maxNumPts, unsigned int dim, unsigned int maxDepth){
-
-      PROF_P2O_LOCAL_BEGIN;
-
-      std::cout << "entering p2o_local_hilbert=====" << std::endl;
-
-
-      int rank;
-      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-      std::list<TreeNode> leaves_lst;
-
-      unsigned int init_size = leaves.size();
-      unsigned int num_pts = nodes.size();
-
-      TreeNode curr_node = leaves[0];
-      TreeNode last_node = leaves[init_size - 1].getDLD();
-      TreeNode next_node = curr_node.getNext();
-
-      unsigned int curr_pt = 0;
-      unsigned int next_pt = curr_pt + maxNumPts;
-
-      while(next_pt<num_pts)
-      { // main loop to iterate through thre points
-
-        while(curr_node.isAncestor(nodes[next_pt-1]) & curr_node.isAncestor(nodes[next_pt]) & curr_node.getLevel()<maxDepth)
-        {
-
-          curr_node=curr_node.getFirstChild();
-          next_node=curr_node.getNext();
-
-        }
-        leaves_lst.push_back(curr_node);
-
-
-
-        curr_node=next_node;
-        next_node=curr_node.getNext();
-
-
-      }
-
-      while (curr_node < last_node) {
-        while (curr_node.getDLD() > last_node && curr_node.getLevel() < maxDepth) curr_node = curr_node.getFirstChild();
-        leaves_lst.push_back(curr_node);
-        if (curr_node.getDLD() == last_node) break;
-        curr_node = curr_node.getNext();
-      }
-
-
-      nodes.resize(leaves_lst.size());
-      unsigned int i = 0;
-      for (std::list<TreeNode>::iterator it = leaves_lst.begin(); it != leaves_lst.end(); it++) {
-        nodes[i] = (*it);
-        i++;
-      }
-      leaves_lst.clear();
-
-
-
-
-
-    }
-
-*/
 
 /**
  * @author Dhairya Malhotra, dhairya.malhotra88@gmail.com
