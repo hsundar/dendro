@@ -469,8 +469,8 @@ bool hilbert_order_NCA(const Point& p1,const Point& p2)
     index1= (((ncaZ&(1<<mid_bit))>>mid_bit)<<2)|( (((ncaX&(1<<mid_bit))>>mid_bit)^((ncaZ&(1<<mid_bit))>>mid_bit)) <<1)|(((ncaX&(1<<mid_bit))>>mid_bit)^((ncaY&(1<<mid_bit))>>mid_bit)^((ncaZ&(1<<mid_bit))>>mid_bit));
 
 
-    index_temp=rotations[rot_offset*current_rot+num_children+index1]-'0';
-    current_rot=HILBERT_TABLE[current_rot*num_children+index_temp];
+    //index_temp=rotations[rot_offset*current_rot+num_children+index1]-'0';
+    current_rot=HILBERT_TABLE[current_rot*num_children+index1];
 
   }
 
