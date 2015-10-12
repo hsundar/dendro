@@ -82,22 +82,67 @@ int calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q) {
       front=mesh[temp].getFront();
       back=mesh[temp].getBack();
 
-      if(!(std::lower_bound(&mesh[begin], &mesh[end-1], top, std::less<ot::TreeNode>()) - &mesh[begin]))
-        num_boundary_faces++;
-      if(!(std::lower_bound(&mesh[begin], &mesh[end-1], bottom, std::less<ot::TreeNode>()) - &mesh[begin]))
-        num_boundary_faces++;
-      if(!(std::lower_bound(&mesh[begin], &mesh[end-1], left, std::less<ot::TreeNode>()) - &mesh[begin]))
-        num_boundary_faces++;
+      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], top, std::less<ot::TreeNode>()) - &mesh[begin]);
+       // std::cout<<"top:"<<found_pt<<std::endl;
+      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top))))
+      {
+//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
+//          std::cout<<"end condition"<<std::endl;
 
-      if(!(std::lower_bound(&mesh[begin], &mesh[end-1], right, std::less<ot::TreeNode>()) - &mesh[begin]))
         num_boundary_faces++;
-      if(!(std::lower_bound(&mesh[begin], &mesh[end-1], front, std::less<ot::TreeNode>()) - &mesh[begin]))
-        num_boundary_faces++;
-      if(!(std::lower_bound(&mesh[begin], &mesh[end-1], back, std::less<ot::TreeNode>()) - &mesh[begin]))
-        num_boundary_faces++;
+      }
+
+      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], bottom, std::less<ot::TreeNode>()) - &mesh[begin]);
+        //std::cout<<"bottom:"<<found_pt<<std::endl;
+      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(bottom))))
+      {
+//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
+//          std::cout<<"end condition"<<std::endl;
 
 
-      //std::cout<<"Number of Boundary Faces: "<<i<<"\t"<<num_boundary_faces<<std::endl;
+        num_boundary_faces++;
+      }
+
+      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], left, std::less<ot::TreeNode>()) - &mesh[begin]);
+        //std::cout<<"left:"<<found_pt<<std::endl;
+      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(left))))
+      {
+//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
+//          std::cout<<"end condition"<<std::endl;
+
+        num_boundary_faces++;
+      }
+
+      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], right, std::less<ot::TreeNode>()) - &mesh[begin]);
+        //std::cout<<"right:"<<found_pt<<std::endl;
+      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(right))))
+      {
+//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
+//          std::cout<<"end condition"<<std::endl;
+
+        num_boundary_faces++;
+      }
+      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], front, std::less<ot::TreeNode>()) - &mesh[begin]);
+        //std::cout<<"front:"<<found_pt<<std::endl;
+      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(front))))
+      {
+//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
+//          std::cout<<"end condition"<<std::endl;
+
+        num_boundary_faces++;
+      }
+
+      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], back, std::less<ot::TreeNode>()) - &mesh[begin]);
+        //std::cout<<"back:"<<found_pt<<std::endl;
+      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(back)))) {
+
+//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
+//          std::cout<<"end condition"<<std::endl;
+
+        num_boundary_faces++;
+      }
+
+
       temp++;
       if(temp%local_mesh_size==0)
       {
@@ -371,7 +416,7 @@ int main(int argc, char **argv) {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   treeNodesTovtk(linOct, rank, "bfBalancing");
 
-  DendroIntL num_surface=calculateBoundaryFaces(linOct,1);
+  DendroIntL num_surface=calculateBoundaryFaces(linOct,10);
   //if (!rank) {
     std::cout << BLU << "===============================================" << NRM << std::endl;
     std::cout << RED " Number of Boundary Faces: Rank:" <<rank<<"\t"<<num_surface<<NRM << std::endl;
@@ -381,12 +426,7 @@ int main(int argc, char **argv) {
   par::Mpi_Reduce<DendroIntL>(&num_surface,&total_boundary_faces,1, MPI_SUM, 0, MPI_COMM_WORLD);
 
 
-  if (!rank) {
-  double surf_volume_r=total_boundary_faces/(double)totalSz;
-  std::cout << BLU << "===============================================" << NRM << std::endl;
-  std::cout << RED " Surface to Volume ratio:" <<total_boundary_faces<<"/"<<totalSz<<"="<<surf_volume_r<<NRM << std::endl;
-  std::cout << BLU << "===============================================" << NRM << std::endl;
-  }
+
 
   localTime = endTime - startTime;
   par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);
@@ -399,6 +439,14 @@ int main(int argc, char **argv) {
   if (rank == 0) {
     std::cout << GRN " # of Unbalanced Octants: " YLW << totalSz << NRM << std::endl;
   }
+
+  if (!rank) {
+    double surf_volume_r=total_boundary_faces/(double)totalSz;
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+    std::cout << RED " Surface to Volume ratio:" <<total_boundary_faces<<"/"<<totalSz<<"="<<surf_volume_r<<NRM << std::endl;
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+  }
+
   pts.clear();
 
   //treeNodesTovtk(linOct, rank, "p2o_output");
