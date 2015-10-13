@@ -352,6 +352,16 @@ namespace ot {
       TreeNode getCFD() const;
 
 
+//      /*
+//       * @author Milinda Fernando
+//       * @return the deepeset first decendant of this octant.
+//       * This is always the min x, min y, min z (the coordinates we store) but if we are
+//       * using Hilbert Curve this needs to be calculated.
+//       * */
+//
+//      TreeNode getDFD() const ;
+
+
       /**
        *@author Dhairya Malhotra
        *@return the next octant in morton order which has the least depth.

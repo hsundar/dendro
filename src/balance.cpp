@@ -149,8 +149,6 @@ namespace ot {
 
     blockPartStage1(in, blocks, dim, maxDepth, comm);
 
-    // treeNodesTovtk(blocks, rank, "blocks_Stage_1", true);
-    // treeNodesTovtk(in, rank, "in_Stage_1", true);
 
     PROF_BAL_BPART1_END
 
@@ -161,11 +159,12 @@ namespace ot {
     PROF_BAL_BPART2_BEGIN
 
     blockPartStage2(in, blocks, minsAllBlocks, dim, maxDepth, comm);
-
+    //blockPartStage2_p2o(in,blocks,minsAllBlocks,dim,maxDepth,comm);
     PROF_BAL_BPART2_END
 
     // std::cout << rank << ": Done with block Part" << std::endl;
-    // assert(par::test::isSorted(blocks, comm));
+    //p2oLocal()
+    assert(par::test::isUniqueAndSorted(blocks, comm));
     //blocks will be sorted.
 
     assert(!blocks.empty());
@@ -245,10 +244,10 @@ namespace ot {
     std::vector<ot::TreeNode> allBoundaryLeaves;
     std::vector<unsigned int> maxBlockBndVec;
 
-    // treeNodesTovtk(in, rank, "inp_bal_blk", true);
-    // treeNodesTovtk(blocks, rank, "blocks_bal_blk", true);
+    treeNodesTovtk(in, rank, "inp_bal_blk", true);
+    treeNodesTovtk(blocks, rank, "blocks_bal_blk", true);
 
-    // std::cout << rank << ": sizes " << blocks.size() << ", " << in.size() << std::endl;
+    std::cout << rank << ": sizes " << blocks.size() << ", " << in.size() << std::endl;
 
     balanceBlocks(in, blocks, out, allBoundaryLeaves, incCorner, &maxBlockBndVec);
     in.clear();
@@ -821,7 +820,7 @@ namespace ot {
 #endif
         if ((blocks[nextNode].isAncestor(in[nextPt])) ||
             (blocks[nextNode] == in[nextPt])) {
-          splitInp[nextNode].push_back(in[nextPt]);
+
           nextPt++;
         } else {
           nextNode++;
@@ -829,6 +828,7 @@ namespace ot {
             assert(false);
           }
         }
+
       }//end while
       for (unsigned int i = 0; i < blocks.size(); i++) {
         comboRipple(splitInp[i], incCorner, maxNum);
@@ -937,8 +937,20 @@ namespace ot {
                     std::vector<TreeNode> &allBoundaryLeaves, bool incCorner,
                     std::vector<unsigned int> *maxBlockBndVec) {
     PROF_CON_BAL_BEGIN
+      int rank=0;
+      MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+      std::cout<<RED<<"Rank:"<<rank<<"\t inp size:"<<inp.size()<<NRM<<std::endl;
 
-    if (inp.empty()) {
+      std::vector<ot::TreeNode> temp_inp;
+      std::vector<ot::TreeNode> temp_blocks;
+
+
+
+      temp_inp=inp;
+      temp_blocks=blocks;
+      treeNodesTovtk(temp_inp,rank,"inp");
+      treeNodesTovtk(temp_blocks,rank,"blocks");
+      if (inp.empty()) {
       nodes.clear();
       allBoundaryLeaves.clear();
       if (maxBlockBndVec != NULL) {
@@ -958,9 +970,6 @@ namespace ot {
     nextNode = 0;
     //All elements of inp are inside some element in blocks.
     while (nextPt < inp.size()) {
-      // std::cout << "pt: " << nextPt << "/" << inp.size() << " & block: " << nextNode << "/" << blocks.size() << std::endl;
-      // std::cout << "point: " << inp[nextPt] << std::endl;
-      // std::cout << "block: " << blocks[nextNode] << std::endl;
       //The first pt must be inside some block.
 #ifdef __DEBUG_OCT__
       assert(areComparable(blocks[nextNode], inp[nextPt]));
@@ -971,9 +980,16 @@ namespace ot {
       } else {
         nextNode++;
         if (nextNode == blocks.size()) {
+
+            std::cout<<"Rank:"<<rank<<std::endl;
+            std::cout << "pt: " << nextPt << "/" << inp.size() << " & block: " << nextNode << "/" << blocks.size() << std::endl;
+            std::cout << "point: " << inp[nextPt] << std::endl;
+            std::cout << "block: " << blocks[nextNode-1] << std::endl;
+            std::cout << "block: " << blocks[nextNode-2] << std::endl;
           assert(false);
         }
       }
+
     }//end while
 
     //Create Local Trees
