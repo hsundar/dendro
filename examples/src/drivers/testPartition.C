@@ -357,6 +357,10 @@ int main(int argc, char **argv) {
   ot::points2Octree(pts, gSize, linOct, dim, maxDepth, maxNumPts, MPI_COMM_WORLD);
   endTime = MPI_Wtime();
 
+  par::sampleSort(linOct, balOct, MPI_COMM_WORLD);
+  linOct = balOct;
+  balOct.clear();
+
 #ifdef PETSC_USE_LOG
   PetscLogStagePop();
 #endif
@@ -414,7 +418,8 @@ int main(int argc, char **argv) {
   PetscLogStagePush(stages[1]);
 #endif
 
-  std::cout << "input[0] is " << linOct[0] << std::endl;
+
+  // std::cout << "input[0] is " << linOct[0] << std::endl;
   startTime = MPI_Wtime();
   ot::balanceOctree(linOct, balOct, dim, maxDepth, incCorner, MPI_COMM_WORLD, NULL, NULL);
   endTime = MPI_Wtime();

@@ -920,7 +920,7 @@ int TreeNode ::balanceSubtree(std::vector<TreeNode>& inp,
 
   PROF_BAL_SUBTREE_BEGIN
 
-     unsigned int dim = getDim();
+  unsigned int dim = getDim();
   unsigned int maxDepth = getMaxDepth();
   unsigned int maxCornerX = this->maxX();
   unsigned int maxCornerY = this->maxY();

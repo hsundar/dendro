@@ -35,7 +35,6 @@ namespace ot {
 #endif
     PROF_BAL_BEGIN
 
-    // std::cout << "Entering " << __func__ << std::endl;
 
     int rank, size;
     MPI_Comm_size(comm, &size);
@@ -63,6 +62,8 @@ namespace ot {
     }
 
     MPI_Comm_rank(comm, &rank);
+
+    // std::cout << rank << ": Entering " << __func__ << std::endl;
 
     //Check if the input is too small...
     DendroIntL locSize = in.size();
@@ -147,13 +148,17 @@ namespace ot {
 #endif
     PROF_BAL_BPART1_BEGIN
 
+    // std::cout << rank << ": starting blockPart" << std::endl;
     blockPartStage1(in, blocks, dim, maxDepth, comm);
 
-    // treeNodesTovtk(blocks, rank, "blocks_Stage_1", true);
+    treeNodesTovtk(blocks, rank, "blocks_Stage_1", true);
     // treeNodesTovtk(in, rank, "in_Stage_1", true);
 
     PROF_BAL_BPART1_END
 
+    par::sampleSort(blocks, minsAllBlocks, comm);
+    blocks = minsAllBlocks;
+    minsAllBlocks.clear();
 #ifdef __PROF_WITH_BARRIER__
     MPI_Barrier(comm);
 #endif
@@ -165,7 +170,10 @@ namespace ot {
     PROF_BAL_BPART2_END
 
     // std::cout << rank << ": Done with block Part" << std::endl;
-    // assert(par::test::isSorted(blocks, comm));
+
+    // treeNodesTovtk(blocks, rank, "afterBlkPart_blocks", true);
+    // treeNodesTovtk(in, rank, "afterBlkPart_octs", true);
+    assert(par::test::isSorted(blocks, comm));
     //blocks will be sorted.
 
     assert(!blocks.empty());
@@ -252,6 +260,7 @@ namespace ot {
 
     balanceBlocks(in, blocks, out, allBoundaryLeaves, incCorner, &maxBlockBndVec);
     in.clear();
+
 
     // std::cout << rank << ": done with balance blocks" << std::endl;
 
@@ -395,9 +404,14 @@ namespace ot {
     ripple(allBoundaryLeaves, incCorner);
 #endif
 
-    // std::cout << rank << ": done with ripple" << std::endl;
+    // treeNodesTovtk(out, rank, "out_bal_blk", true);
+    // treeNodesTovtk(allBoundaryLeaves, rank, "bdy_bal_blk", true);
+
+    // assert(par::test::isSorted(out, comm));
+    // assert(par::test::isSorted(allBoundaryLeaves, comm));
     mergeComboBalAndPickBoundary(out, allBoundaryLeaves, myFirstBlock, myLastBlock);
     // std::cout << rank << ": done with mergeCombo" << std::endl;
+    // treeNodesTovtk(out, rank, "out_after_merge", true);
 
 #ifdef __MEASURE_BAL_COMM__
     MPI_Barrier(comm);
@@ -774,6 +788,7 @@ namespace ot {
     nodes.clear();
 
     //10.Merge (In-place) results from all three stages....
+    // treeNodesTovtk(out, rank, "out_before_final_merge", true);
     finalMergeInBal(out, allBoundaryLeaves);
 
     PROF_BAL_END
@@ -938,6 +953,11 @@ namespace ot {
                     std::vector<unsigned int> *maxBlockBndVec) {
     PROF_CON_BAL_BEGIN
 
+    // @hari debug code: remove
+    // std::cout << "Entering " << __func__ << std::endl;
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
     if (inp.empty()) {
       nodes.clear();
       allBoundaryLeaves.clear();
@@ -958,7 +978,7 @@ namespace ot {
     nextNode = 0;
     //All elements of inp are inside some element in blocks.
     while (nextPt < inp.size()) {
-      // std::cout << "pt: " << nextPt << "/" << inp.size() << " & block: " << nextNode << "/" << blocks.size() << std::endl;
+      // if (!rank) std::cout << "pt: " << nextPt << "/" << inp.size() << " & block: " << nextNode << "/" << blocks.size(); //  << std::endl;
       // std::cout << "point: " << inp[nextPt] << std::endl;
       // std::cout << "block: " << blocks[nextNode] << std::endl;
       //The first pt must be inside some block.
@@ -968,8 +988,10 @@ namespace ot {
       if ( blocks[nextNode].isAncestor(inp[nextPt]) || blocks[nextNode] == inp[nextPt] ) {
         splitInp[nextNode].push_back(inp[nextPt]);
         nextPt++;
+        // if (!rank) std::cout << GRN " pushed" NRM << std::endl;
       } else {
         nextNode++;
+        // if (!rank) std::cout << RED " skipped" NRM << std::endl;
         if (nextNode == blocks.size()) {
           assert(false);
         }
@@ -978,14 +1000,17 @@ namespace ot {
 
     //Create Local Trees
     for (unsigned int bi = 0; bi < blocks.size(); bi++) {
+      // if (!rank) std::cout << "block: " << bi << "/" << blocks.size(); //  << std::endl;
       //This also sorts and makes the vector unique inside.
       blocks[bi].balanceSubtree(splitInp[bi], blockOut[bi], incCorner, true);
 
       splitInp[bi].clear();
       //This tackles the case where blocks[bi] has no decendants.
       if (blockOut[bi].empty()) {
+        // if (!rank) std::cout << "    - Empty block" << std::endl;
         blockOut[bi].push_back(blocks[bi]);
       }
+      // if (!rank) std::cout << " added: " << blockOut[bi].size() << std::endl;
     }//end for bi
 
     delete[] splitInp;
@@ -999,6 +1024,7 @@ namespace ot {
 
     unsigned int numEmptyBlocks = 0;
     for (unsigned int bi = 0; bi < blocks.size(); bi++) {
+      // if (!rank) std::cout << "block: " << bi << "/" << blocks.size(); //  << std::endl;
       blockOutSize += blockOut[bi].size();
       if (blockOut[bi].size() > 1) {
         blocks[bi].pickInternalBoundaryCells(blockOut[bi], blockBoundaries[bi]);
@@ -1009,6 +1035,7 @@ namespace ot {
         numEmptyBlocks++;
       }
       allBoundarySz += blockBoundaries[bi].size();
+      // if (!rank) std::cout << " bdy: " << blockBoundaries[bi].size() << std::endl;
     }//end for bi
 
     //Concatenate the lists into nodes and allBoundaryLeaves
@@ -1024,6 +1051,7 @@ namespace ot {
         maxDepth = blocks[0].getMaxDepth();
       }
       for (unsigned int bi = 0; bi < blocks.size(); bi++) {
+        // if (!rank) std::cout << "block: " << bi << " adding " << blockOut[bi].size() << " nodes" << std::endl;
         (*maxBlockBndVec)[bi] = 0;
         for (unsigned int bj = 0; bj < blockOut[bi].size(); bj++) {
           nodes[nodeCtr] = blockOut[bi][bj];
@@ -2639,13 +2667,61 @@ PROF_RIPPLE_BAL_END
     unsigned int bndCnt = 0;
     unsigned int bndSz = allBoundaryLeaves.size();
 
+
     for (unsigned int i = 0; i < out.size(); i++) {
       if (bndCnt < allBoundaryLeaves.size()) {
         if (out[i] == allBoundaryLeaves[bndCnt]) {
+          // CASE 0: Octant and boundary version are the same
           tmpNodeList[tmpLsz] = out[i];
           tmpLsz++;
           bndCnt++;
-        } else if (out[i] < allBoundaryLeaves[bndCnt]) {
+        } else if (out[i] < allBoundaryLeaves[bndCnt]) { // CASE 1
+#ifdef __DEBUG_OCT__
+          assert(areComparable(out[i], allBoundaryLeaves[bndCnt]));
+#endif
+          if (out[i].isAncestor(allBoundaryLeaves[bndCnt])) {
+            while ((bndCnt < bndSz) && out[i].isAncestor(allBoundaryLeaves[bndCnt])) {
+              tmpNodeList[tmpLsz] = allBoundaryLeaves[bndCnt];
+              tmpLsz++;
+              bndCnt++;
+#ifdef __DEBUG_OCT__
+              if(bndCnt < bndSz) {
+                assert(areComparable(out[i], allBoundaryLeaves[bndCnt]));
+              }
+#endif
+            }
+          } else {
+            tmpNodeList[tmpLsz] = out[i];
+            tmpLsz++;
+          }
+        } else { // CASE 2:
+          // out[i] > bdy[cnt]
+          if (out[i].isAncestor(allBoundaryLeaves[bndCnt])) {
+            while ((bndCnt < bndSz) && out[i].isAncestor(allBoundaryLeaves[bndCnt])) {
+              tmpNodeList[tmpLsz] = allBoundaryLeaves[bndCnt];
+              tmpLsz++;
+              bndCnt++;
+            }
+          } else {
+            tmpNodeList[tmpLsz] = allBoundaryLeaves[bndCnt];
+            tmpLsz++;
+            bndCnt++;
+          }
+        } // case 2
+      } else { // DONE WITH Bdy Nodes
+        tmpNodeList[tmpLsz] = out[i];
+        tmpLsz++;
+      }
+    }//end for i
+    /* Rewriting for Hilbert  @hari added 10/12/15
+    for (unsigned int i = 0; i < out.size(); i++) {
+      if (bndCnt < allBoundaryLeaves.size()) {
+        if (out[i] == allBoundaryLeaves[bndCnt]) {
+          // CASE 0: Octant and boundary version are the same
+          tmpNodeList[tmpLsz] = out[i];
+          tmpLsz++;
+          bndCnt++;
+        } else if (out[i] < allBoundaryLeaves[bndCnt]) { // CASE 1
 #ifdef __DEBUG_OCT__
           assert(areComparable(out[i], allBoundaryLeaves[bndCnt]));
 #endif
@@ -2665,17 +2741,25 @@ PROF_RIPPLE_BAL_END
             tmpNodeList[tmpLsz] = out[i];
             tmpLsz++;
           }
-        } else {
+        } else { // CASE 2:
           // nodes[i] > allBdy .. so insert
           tmpNodeList[tmpLsz] = allBoundaryLeaves[bndCnt];
           tmpLsz++;
           bndCnt++;
         }
-      } else {
+      } else { // DONE WITH Bdy Nodes
         tmpNodeList[tmpLsz] = out[i];
         tmpLsz++;
       }
     }//end for i
+    while (bndCnt < allBoundaryLeaves.size()) {
+      std::cout << " adding extra boundary nodes " << std::endl;
+      tmpNodeList[tmpLsz] = allBoundaryLeaves[bndCnt];
+      tmpLsz++;
+      bndCnt++;
+    }
+    */
+
 
     tmpNodeList.resize(tmpLsz);
     out = tmpNodeList;
@@ -2718,8 +2802,13 @@ PROF_RIPPLE_BAL_END
             tmpNodeList[tmpLsz++] = out[i];
           }
         } else {
-          // nodes[i] > allBdy .. so insert
-          tmpNodeList[tmpLsz++] = allBoundaryLeaves[bndCnt++];
+          if (out[i].isAncestor(allBoundaryLeaves[bndCnt])) {
+            while ((bndCnt < bndSz) && out[i].isAncestor(allBoundaryLeaves[bndCnt])) {
+              tmpNodeList[tmpLsz++] = allBoundaryLeaves[bndCnt++];
+            }
+          } else {
+            tmpNodeList[tmpLsz++] = allBoundaryLeaves[bndCnt++];
+          }
         }
       } else {
         tmpNodeList[tmpLsz++] = out[i];
