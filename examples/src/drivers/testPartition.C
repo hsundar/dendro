@@ -67,7 +67,10 @@ int calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q) {
   int temp=0;
   int begin=0;
   int end=0;
-  int total_boundary_faces=0;
+  unsigned long total_boundary_faces=0;
+
+  unsigned long min_faces=1<<50;
+  unsigned long max_faces=0;
 
   for (int j=0;j<q;j++){
 
@@ -162,16 +165,21 @@ int calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q) {
 
     }
     boundary_faces[j]=num_boundary_faces;
-    total_boundary_faces=total_boundary_faces+num_boundary_faces;
+    total_boundary_faces += num_boundary_faces;
+    if (min_faces > num_boundary_faces) min_faces = num_boundary_faces;
+    if (max_faces < num_boundary_faces) max_faces = num_boundary_faces;
+
     //std::cout<<"q:"<<j<<"\t "<<"number of boundary faces:"<<boundary_faces[j]<<std::endl;
 
   }
 
+  unsigned long global_sum, global_max, global_min;
 
-  //MPI_Reduce(boundary_faces,&total_boundary_faces,q, MPI_INT,MPI_SUM,0, MPI_COMM_WORLD);
+  MPI_Reduce(total_boundary_faces, global_sum, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+  MPI_Reduce(max_faces, global_max, 1, MPI_UNSIGNED_LONG, MPI_MAX, 0, MPI_COMM_WORLD);
+  MPI_Reduce(min_faces, global_min, 1, MPI_UNSIGNED_LONG, MPI_MIN, 0, MPI_COMM_WORLD);
+  
   return total_boundary_faces;
-
-
 }
 
 //@author: Milinda Fernando.
@@ -307,8 +315,7 @@ int main(int argc, char **argv) {
   unsigned int ptsLen;
   unsigned int maxNumPts = 1;
   unsigned int dim = 3;
-  unsigned int maxDepth = 8;
-  unsigned int num_pseudo_proc=1;
+  unsigned int maxDepth = 30;
   double gSize[3];
   //initializeHilbetTable(2);
   G_MAX_DEPTH = maxDepth;
@@ -332,9 +339,12 @@ int main(int argc, char **argv) {
   PetscInitialize(&argc, &argv, "options.hs", NULL);
   ot::RegisterEvents();
   ot::DA_Initialize(MPI_COMM_WORLD);
+  
+  // unsigned int num_pseudo_proc=1;
+  unsigned int num_pseudo_proc=atoi(argv[2]);
 
-  signal(SIGSEGV, handler);   // install our handler
-  signal(SIGTERM, handler);   // install our handler
+  // signal(SIGSEGV, handler);   // install our handler
+  // signal(SIGTERM, handler);   // install our handler
 
 #ifdef PETSC_USE_LOG
   int stages[3];
