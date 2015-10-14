@@ -16,6 +16,7 @@
 #include "dendro.h"
 #include "rotation.h"
 #include "treenode2vtk.h"
+#include "octreeStatistics.h"
 
 
 //Don't want time to be synchronized. Need to check load imbalance.
@@ -35,161 +36,6 @@ std::string exec(const char* cmd) {
   pclose(pipe);
   return result;
 }
-
-
-//@author: Milinda Fernando.
-// This function is to calculate the boundary faces
-// Assume that the given octree vector is sorted.
-int calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q) {
-
-  ot::TreeNode first=mesh[0];
-  ot::TreeNode last=mesh[mesh.size()-1];
-  ot::TreeNode R (first.getDim(), first.getMaxDepth());
-
-
-  int com_size=q;
-  int mesh_nodes=mesh.size();
-  assert(mesh_nodes>q);
-  int local_mesh_size=mesh_nodes/q;
-  int boundary_faces[q];
-
-
-
-  int found_pt;
-  int num_boundary_faces=0;
-
-  ot::TreeNode top;
-  ot::TreeNode bottom;
-  ot::TreeNode left;
-  ot::TreeNode right;
-  ot::TreeNode front;
-  ot::TreeNode back;
-  int temp=0;
-  int begin=0;
-  int end=0;
-  unsigned long total_boundary_faces=0;
-
-  unsigned long min_faces=1<<50;
-  unsigned long max_faces=0;
-
-  for (int j=0;j<q;j++){
-
-    boundary_faces[j]=0;
-    begin=j*local_mesh_size;
-
-    temp=begin;
-    end=begin + local_mesh_size;
-
-    if(end+local_mesh_size>mesh_nodes)
-      end=mesh_nodes;
-
-
-    num_boundary_faces=0;
-
-    while(temp<end)//for(int i=0;i<mesh.size();i++)
-    {
-
-      top=mesh[temp].getTop();
-      bottom=mesh[temp].getBottom();
-      left=mesh[temp].getLeft();
-      right=mesh[temp].getRight();
-      front=mesh[temp].getFront();
-      back=mesh[temp].getBack();
-
-      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], top, std::less<ot::TreeNode>()) - &mesh[begin]);
-      // std::cout<<"top:"<<found_pt<<std::endl;
-      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top))))
-      {
-//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
-//          std::cout<<"end condition"<<std::endl;
-
-        num_boundary_faces++;
-      }
-
-      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], bottom, std::less<ot::TreeNode>()) - &mesh[begin]);
-      //std::cout<<"bottom:"<<found_pt<<std::endl;
-      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(bottom))))
-      {
-//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
-//          std::cout<<"end condition"<<std::endl;
-
-
-        num_boundary_faces++;
-      }
-
-      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], left, std::less<ot::TreeNode>()) - &mesh[begin]);
-      //std::cout<<"left:"<<found_pt<<std::endl;
-      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(left))))
-      {
-//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
-//          std::cout<<"end condition"<<std::endl;
-
-        num_boundary_faces++;
-      }
-
-      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], right, std::less<ot::TreeNode>()) - &mesh[begin]);
-      //std::cout<<"right:"<<found_pt<<std::endl;
-      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(right))))
-      {
-//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
-//          std::cout<<"end condition"<<std::endl;
-
-        num_boundary_faces++;
-      }
-      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], front, std::less<ot::TreeNode>()) - &mesh[begin]);
-      //std::cout<<"front:"<<found_pt<<std::endl;
-      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(front))))
-      {
-//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
-//          std::cout<<"end condition"<<std::endl;
-
-        num_boundary_faces++;
-      }
-
-      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], back, std::less<ot::TreeNode>()) - &mesh[begin]);
-      //std::cout<<"back:"<<found_pt<<std::endl;
-      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(back)))) {
-
-//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
-//          std::cout<<"end condition"<<std::endl;
-
-        num_boundary_faces++;
-      }
-
-
-      temp++;
-      if(temp%local_mesh_size==0)
-      {
-        break;
-      }
-
-    }
-    boundary_faces[j]=num_boundary_faces;
-    total_boundary_faces += num_boundary_faces;
-    if (min_faces > num_boundary_faces) min_faces = num_boundary_faces;
-    if (max_faces < num_boundary_faces) max_faces = num_boundary_faces;
-
-    //std::cout<<"q:"<<j<<"\t "<<"number of boundary faces:"<<boundary_faces[j]<<std::endl;
-
-  }
-
-  unsigned long global_sum, global_max, global_min;
-
-  MPI_Reduce(total_boundary_faces, global_sum, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
-  MPI_Reduce(max_faces, global_max, 1, MPI_UNSIGNED_LONG, MPI_MAX, 0, MPI_COMM_WORLD);
-  MPI_Reduce(min_faces, global_min, 1, MPI_UNSIGNED_LONG, MPI_MIN, 0, MPI_COMM_WORLD);
-  
-  return total_boundary_faces;
-}
-
-//@author: Milinda Fernando.
-// This function is to calculate the boundary faces with some flexibility allowed.
-// Assume that the given octree vector is sorted.
-
-
-
-
-
 
 
 /** Print a demangled stack backtrace of the caller function to FILE* out. */
@@ -331,8 +177,8 @@ int main(int argc, char **argv) {
   bool morton_based_bal=true;
 
 
-  if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " inpfile " << std::endl;
+  if (argc < 3) {
+    std::cerr << "Usage: " << argv[0] << " inpfile " << " num_pseudo_proc "<<std::endl;
     return -1;
   }
 
@@ -455,11 +301,24 @@ int main(int argc, char **argv) {
     std::cout << GRN " P2n Time: " YLW << totalTime << NRM << std::endl;
   }
 
-  int num_loc_boundary_faces=calculateBoundaryFaces(linOct,num_pseudo_proc);
-  int num_total_boundary_faces=0;
-  par::Mpi_Reduce<DendroIntL>(&num_loc_boundary_faces, &num_total_boundary_faces, 1, MPI_SUM, 0, MPI_COMM_WORLD);
+  if (!rank) {
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+    std::cout << RED " Mesh Statistics Calculation Before Balancing" NRM << std::endl;
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+  }
 
-  // reduce and only print the total ...
+  double stat_bf_bal[3];
+  calculateBoundaryFaces(linOct,num_pseudo_proc,stat_bf_bal);
+
+  if (!rank) {
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+    std::cout << RED " Boundary Surfaces (min):"<<stat_bf_bal[0]<< NRM << std::endl;
+    std::cout << RED " Boundary Surfaces (max):"<<stat_bf_bal[1]<< NRM << std::endl;
+    std::cout << RED " Boundary Surfaces (mean):"<<stat_bf_bal[2]<< NRM << std::endl;
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+  }
+
+    // reduce and only print the total ...
   localSz = linOct.size();
   par::Mpi_Reduce<DendroIntL>(&localSz, &totalSz, 1, MPI_SUM, 0, MPI_COMM_WORLD);
   if (rank == 0) {
@@ -467,7 +326,8 @@ int main(int argc, char **argv) {
   }
   pts.clear();
 
-  double s_v_ratio=num_total_boundary_faces/(double)totalSz;
+
+
 
 
   //treeNodesTovtk(linOct, rank, "p2o_output");
@@ -497,8 +357,15 @@ int main(int argc, char **argv) {
     std::string filename="bal_oct";
     convert_r<<filename<<"_"<<rank;
     filename=convert_r.str();
-    ot::readNodesFromFile((char *)filename.c_str(),balOct_M);
+    std::vector<double> bal_pts;
+    ot::readNdsFromFile((char *)filename.c_str(),bal_pts);
+    //ot::readNodesFromFile((char *)filename.c_str(),balOct_M);
     //MPI_Barrier(MPI_COMM_WORLD);
+    assert(bal_pts.size()%5==0);
+    for(int i=0;i<bal_pts.size();i=i+5)
+    {
+       balOct_M.push_back(ot::TreeNode(1,(unsigned int)bal_pts[i],(unsigned int)bal_pts[i+1],(unsigned int)bal_pts[i+2],(unsigned int)bal_pts[i+3],dim,(unsigned int)bal_pts[i+4]));
+    }
 
     par::sampleSort(balOct_M,balOct_H,MPI_COMM_WORLD);
     balOct.clear();
@@ -515,7 +382,17 @@ int main(int argc, char **argv) {
   std::string filename="bal_oct";
   convert<<filename<<"_"<<rank;
   filename=convert.str();
-  ot::writeNodesToFile((char *)filename.c_str(),balOct);
+  std::vector<double> bal_pts;
+  for(int i=0;i<balOct.size();i++)
+  {
+    pts.push_back((double)balOct[i].getX());
+    pts.push_back((double)balOct[i].getY());
+    pts.push_back((double)balOct[i].getZ());
+    pts.push_back((double)balOct[i].getLevel());
+    pts.push_back((double)balOct[i].getMaxDepth());
+  }
+  //ot::writeNodesToFile((char *)filename.c_str(),balOct);
+  ot::writeNdsToFile((char *)filename.c_str(),pts);
 
 #endif
 
@@ -536,17 +413,18 @@ int main(int argc, char **argv) {
     std::cout << "bal Time: " << totalTime << std::endl;
   }
 
-  num_loc_boundary_faces=calculateBoundaryFaces(balOct,num_pseudo_proc);
-  par::Mpi_Reduce<DendroIntL>(&num_loc_boundary_faces, &num_total_boundary_faces, 1, MPI_SUM, 0, MPI_COMM_WORLD);
+  double stat_af_bal[3];
+  calculateBoundaryFaces(balOct,num_pseudo_proc,stat_af_bal);
 
-  double s_v_ratio_bal=num_total_boundary_faces/(double)totalSz;
-
-
-
-  if(!rank) {
-    std::cout<<"SV Ratio before balancing:\t"<<s_v_ratio<<std::endl;
-    std::cout << "SV Ratio After balancing:\t" << s_v_ratio_bal << std::endl;
+  if (!rank) {
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+    std::cout << RED " Boundary Surfaces (min):"<<stat_af_bal[0]<< NRM << std::endl;
+    std::cout << RED " Boundary Surfaces (max):"<<stat_af_bal[1]<< NRM << std::endl;
+    std::cout << RED " Boundary Surfaces (mean):"<<stat_af_bal[2]<< NRM << std::endl;
+    std::cout << BLU << "===============================================" << NRM << std::endl;
   }
+
+
 
   //treeNodesTovtk(balOct, rank, "bal_output");
 
