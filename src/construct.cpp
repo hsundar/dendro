@@ -923,7 +923,7 @@ namespace ot {
     std::vector<TreeNode> leaves;
     leaves.push_back(root);
 
-    treeNodesTovtk(nodes, 0, "input_p2o");
+    //treeNodesTovtk(nodes, 0, "input_p2o");
     p2oLocal(nodes, leaves, maxNumPts, dim, maxDepth);
 
     PROF_P2O_SEQ_END
@@ -1096,7 +1096,7 @@ namespace ot {
 
       // std::cout<<"nca!=min case"<<std::endl;
       TreeNode currentNode = min;
-      while (nca<currentNode /*|| (nca.isAncestor(currentNode) && nca!=currentNode)*/) {
+      while (nca < currentNode /*|| (nca.isAncestor(currentNode) && nca!=currentNode)*/) {
         TreeNode parentOfCurrent = currentNode.getParent();
         // if (!rank) std::cout << "Rank:" << rank << " Parent Node:" << parentOfCurrent << std::endl;
         std::vector<ot::TreeNode> myBros;

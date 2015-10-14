@@ -29,6 +29,7 @@ void treeNodesTovtk(std::vector<ot::TreeNode> &nodes, int mpi_rank, std::string 
     VTKFile >
   }
    */
+#ifdef __DEBUG_TREENODES_VTK
 
   std::sort(nodes.begin(), nodes.end());
   if (!mpi_rank) std::cout << "writing mesh to VTK file: " << vtk_file_name << std::endl;
@@ -132,7 +133,7 @@ void treeNodesTovtk(std::vector<ot::TreeNode> &nodes, int mpi_rank, std::string 
   }
 
   myfile.close();
-
+#endif
 
 }
 
