@@ -518,151 +518,160 @@ namespace ot {
                      unsigned int dim, unsigned int maxDepth, bool isUnique,
                      bool isSorted, bool assertNoEmptyProcs, MPI_Comm comm) {
 
-    PROF_N2O_BEGIN
+      TreeNode root(dim, maxDepth);
 
-    TreeNode root(dim, maxDepth);
+      int size;
+      MPI_Comm_size(comm, &size);
 
-    int size;
-    MPI_Comm_size(comm, &size);
+      if (size == 1) {
+        completeSubtree(root, inp, out, dim, maxDepth, isUnique, isSorted);
+        PROF_N2O_END
+      } //end single proc case
 
-    if (size == 1) {
-      completeSubtree(root, inp, out, dim, maxDepth, isUnique, isSorted);
-      PROF_N2O_END
-    } //end single proc case
+      out = inp;
 
-    out = inp;
-
-    //Sort and remove duplicate leaves.
-    if (!isUnique) {
-      par::removeDuplicates<ot::TreeNode>(out, isSorted, comm);
-    } else if (!isSorted) {
-      std::vector<TreeNode> tmpOut;
-      par::sampleSort<ot::TreeNode>(out, tmpOut, comm);
-      out = tmpOut;
-      tmpOut.clear();
-    }
-
-    //Remove empty processors...
-    MPI_Comm new_comm;
-    // quick and dirty fix to avoid repetetive creation of communicators (which would exhaust MPI resources)
-    if (true /* assertNoEmptyProcs */) {
-      new_comm = comm;
-      assert(!out.empty());
-    } else {
-      par::splitComm2way(out.empty(), &new_comm, comm);
-    }
-
-    if (!(out.empty())) {
-      int new_rank, new_size;
-
-      MPI_Comm_rank(new_comm, &new_rank);
-      MPI_Comm_size(new_comm, &new_size);
-
-      MPI_Request requestSend;
-      MPI_Request requestRecv;
-
-      ot::TreeNode begBuf;
-      ot::TreeNode lastElem;
-
-      if (new_rank) {
-        //Recv
-        par::Mpi_Irecv<ot::TreeNode>(&begBuf, 1, (new_rank - 1), 1, new_comm, &requestRecv);
-      } //end if not P0
-
-      if (new_rank < (new_size - 1)) {
-        lastElem = out[out.size() - 1];
-        //Send
-        par::Mpi_Issend<ot::TreeNode>(&lastElem, 1, (new_rank + 1), 1, new_comm, &requestSend);
-      } //end if not PN
-
-
-      //Add missing corners to complete the region.
-      //Add the first corner leaf on the first processor.
-      if (new_rank == 0) {
-        // @milinda is this correct?
-        ot::TreeNode minCorner(0, 0, 0, maxDepth, dim, maxDepth);
-#ifdef __DEBUG_OCT__
-        assert(areComparable(out[0], minCorner));
-#endif
-        if ((out[0] != minCorner) && (!out[0].isAncestor(minCorner))) {
-          ot::TreeNode ncaTmp = getNCA(out[0], minCorner);
-          std::vector<ot::TreeNode> kids;
-          ncaTmp.addChildren(kids);
-          out.insert(out.begin(), kids[0]);
-          kids.clear();
-        } //end if
-      } //end if
-
-      //Add the last corner leaf on the last processor.
-      if (new_rank == (new_size - 1)) {
-        // @author hari sundar: only works for Morton, so changed to root.getDLD()
-        // ot::TreeNode maxCorner(((1u << maxDepth) - 1), ((1u << maxDepth) - 1), ((1u << maxDepth) - 1), maxDepth, dim, maxDepth);
-        ot::TreeNode maxCorner = root.getDLD();
-#ifdef __DEBUG_OCT__
-        assert(areComparable(out[out.size() - 1], maxCorner));
-#endif
-        if ((out[out.size() - 1] != maxCorner) &&
-            (!out[out.size() - 1].isAncestor(maxCorner))) {
-          ot::TreeNode ncaTmp = getNCA(out[out.size() - 1], maxCorner);
-          std::vector<ot::TreeNode> kids;
-          ncaTmp.addChildren(kids);
-          out.insert(out.end(), kids[(1 << dim) - 1]);
-          kids.clear();
-        } //end if
-      } //end if
-
-      std::vector<ot::TreeNode> tmpList;
-      for (unsigned int i = 0; i < (out.size() - 1); i++) {
-#ifdef __DEBUG_OCT__
-        assert(areComparable(out[i], out[i + 1]));
-#endif
-        if (out[i].isAncestor(out[i + 1])) {
-          appendCompleteRegion(out[i], out[i + 1], tmpList, false, false);
-        } else {
-          appendCompleteRegion(out[i], out[i + 1], tmpList, true, false);
-        }
-      } //end for i
-
-      //Only the last processor adds the last element. All the other processors would have
-      //sent it to the next processor, which will add it if it is not an ancestor of
-      //the first element on that processor
-      if (new_rank == (new_size - 1)) {
-        tmpList.push_back(out[out.size() - 1]);
+      //Sort and remove duplicate leaves.
+      if (!isUnique) {
+        par::removeDuplicates<ot::TreeNode>(out, isSorted, comm);
+      } else if (!isSorted) {
+        std::vector<TreeNode> tmpOut;
+        par::sampleSort<ot::TreeNode>(out, tmpOut, comm);
+        out = tmpOut;
+        tmpOut.clear();
       }
 
-      if (new_rank) {
-        MPI_Status statusWait;
-        MPI_Wait(&requestRecv, &statusWait);
-
-        std::vector<ot::TreeNode> begList;
-#ifdef __DEBUG_OCT__
-        assert(areComparable(begBuf, out[0]));
-#endif
-        if (begBuf.isAncestor(out[0])) {
-          appendCompleteRegion(begBuf, out[0], begList, false, false);
-        } else {
-          appendCompleteRegion(begBuf, out[0], begList, true, false);
-        }
-        out = begList;
-        begList.clear();
-        out.insert(out.end(), tmpList.begin(), tmpList.end());
+      //Remove empty processors...
+      MPI_Comm   new_comm;
+      // quick and dirty fix to avoid repetetive creation of communicators (which would exhaust MPI resources)
+      if (true /* assertNoEmptyProcs */) {
+        new_comm = comm;
+        assert(!out.empty());
       } else {
-        out = tmpList;
+        par::splitComm2way(out.empty(), &new_comm, comm);
       }
 
-      tmpList.clear();
+      if (!(out.empty())) {
+        int new_rank, new_size;
 
-      if (new_rank < (new_size - 1)) {
-        MPI_Status statusWait;
-        MPI_Wait(&requestSend, &statusWait);
-      }
+        MPI_Comm_rank(new_comm, &new_rank);
+        MPI_Comm_size(new_comm, &new_size);
 
-    } //out not empty
+        MPI_Request requestSend;
+        MPI_Request requestRecv;
+
+        ot::TreeNode begBuf;
+        ot::TreeNode lastElem;
+
+        if (new_rank) {
+          //Recv
+          par::Mpi_Irecv<ot::TreeNode>(&begBuf, 1, (new_rank - 1), 1, new_comm, &requestRecv);
+        } //end if not P0
+
+        if (new_rank < (new_size - 1)) {
+          lastElem = out[out.size() - 1];
+          //Send
+          par::Mpi_Issend<ot::TreeNode>(&lastElem, 1, (new_rank + 1), 1, new_comm, &requestSend);
+        } //end if not PN
 
 
-    PROF_N2O_END
+        //Add missing corners to complete the region.
+        //Add the first corner leaf on the first processor.
+        if (new_rank == 0) {
+          ot::TreeNode minCorner(0, 0, 0, maxDepth, dim, maxDepth);
+#ifdef __DEBUG_OCT__
+          assert(areComparable(out[0], minCorner));
+#endif
+          if ((out[0] != minCorner) && (!out[0].isAncestor(minCorner))) {
+            ot::TreeNode ncaTmp = getNCA(out[0], minCorner);
+            std::vector<ot::TreeNode>  kids;
+            ncaTmp.addChildren(kids);
+            out.insert(out.begin(), kids[0]);
+            kids.clear();
+          } //end if
+        } //end if
 
-  } //end function
+        //Add the last corner leaf on the last processor.
+        if (new_rank == (new_size - 1)) {
+          ot::TreeNode maxCorner=root.getDLD();//(((1u << maxDepth) - 1),((1u << maxDepth) - 1), ((1u << maxDepth) - 1), maxDepth, dim, maxDepth);
+#ifdef __DEBUG_OCT__
+          assert(areComparable(out[out.size() - 1], maxCorner));
+#endif
+          if ((out[out.size() - 1] != maxCorner) &&
+              (!out[out.size() - 1].isAncestor(maxCorner))) {
+            ot::TreeNode ncaTmp =  getNCA(out[out.size() - 1], maxCorner);
+            std::vector<ot::TreeNode> kids;
+            ncaTmp.addChildren(kids);
+            out.insert(out.end(), kids[(1 << dim) - 1]);
+            //out.insert(out.end(),kids.begin(),kids.end());
+            kids.clear();
+          } //end if
+        } //end if
+
+        std::vector<ot::TreeNode> tmpList;
+        for (unsigned int i = 0; i < (out.size() - 1); i++) {
+#ifdef __DEBUG_OCT__
+          assert(areComparable(out[i], out[i + 1]));
+#endif
+          if (out[i].isAncestor(out[i + 1])) {
+            //std::cout<<RED<<"out[i].isAncestor(out[i + 1]) true \t"<<new_rank<<NRM<<std::endl;
+            appendCompleteRegion(out[i], out[i + 1], tmpList, false, false);
+          } else {
+            //std::cout<<RED<<"out[i].isAncestor(out[i + 1]) false \t"<<new_rank<<NRM<<std::endl;
+            appendCompleteRegion(out[i], out[i + 1], tmpList, true, false);
+          }
+        } //end for i
+
+        //Only the last processor adds the last element. All the other processors would have
+        //sent it to the next processor, which will add it if it is not an ancestor of
+        //the first element on that processor
+        if (new_rank == (new_size - 1)) {
+          tmpList.push_back(out[out.size() - 1]);
+//          int temp=out.size();
+//          TreeNode maxCorner=root.getDLD();
+//          if (out[temp-1].isAncestor(root.getDLD())) {
+//            appendCompleteRegion(out[temp-1], maxCorner, tmpList, false, false);
+//          } else {
+//            appendCompleteRegion(out[temp-1], maxCorner, tmpList, true, false);
+//          }
+
+
+
+        }
+
+        if (new_rank) {
+          MPI_Status statusWait;
+          MPI_Wait(&requestRecv, &statusWait);
+
+          std::vector<ot::TreeNode> begList;
+#ifdef __DEBUG_OCT__
+          assert(areComparable(begBuf, out[0]));
+#endif
+          if (begBuf.isAncestor(out[0])) {
+            appendCompleteRegion(begBuf, out[0], begList, false, false);
+          } else {
+            appendCompleteRegion(begBuf, out[0], begList, true, false);
+          }
+          out = begList;
+          begList.clear();
+          out.insert(out.end(), tmpList.begin(), tmpList.end());
+        } else {
+          out = tmpList;
+        }
+
+        tmpList.clear();
+
+        if (new_rank < (new_size - 1)) {
+          MPI_Status statusWait;
+          MPI_Wait(&requestSend, &statusWait);
+        }
+
+      } //out not empty
+
+
+      PROF_N2O_END
+
+
+    } //end function
 
 //New Implementation. Written on April 19, 2008
   int completeSubtree(TreeNode block, const std::vector<TreeNode> &inp, std::vector<TreeNode> &out,
@@ -1102,7 +1111,8 @@ namespace ot {
 
       // std::cout<<"nca!=min case"<<std::endl;
       TreeNode currentNode = min;
-      while (currentNode > nca) {
+      //@hari Check now the condition is okay.
+      while (currentNode > nca || (nca.isAncestor(currentNode)&& nca!=currentNode))  {
         TreeNode parentOfCurrent = currentNode.getParent();
         // if (!rank) std::cout << "Rank:" << rank << " Parent Node:" << parentOfCurrent << std::endl;
         std::vector<ot::TreeNode> myBros;
