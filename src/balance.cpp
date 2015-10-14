@@ -147,29 +147,29 @@ namespace ot {
     MPI_Barrier(comm);
 #endif
     PROF_BAL_BPART1_BEGIN
-
-    // std::cout << rank << ": starting blockPart" << std::endl;
+    //std::cout << YLW<<rank << ": starting blockPart1" << NRM<<std::endl;
     blockPartStage1(in, blocks, dim, maxDepth, comm);
-
-    treeNodesTovtk(blocks, rank, "blocks_Stage_1", true);
+    //std::cout << YLW<<rank << ": end blockPart1" << NRM<<std::endl;
+    //treeNodesTovtk(blocks, rank, "blocks_Stage_1");
+      assert(par::test::isUniqueAndSorted(blocks,comm));
     // treeNodesTovtk(in, rank, "in_Stage_1", true);
 
     PROF_BAL_BPART1_END
 
-    par::sampleSort(blocks, minsAllBlocks, comm);
-    blocks = minsAllBlocks;
-    minsAllBlocks.clear();
+    //par::sampleSort(blocks, minsAllBlocks, comm);
+    //blocks = minsAllBlocks;
+    //minsAllBlocks.clear();
 #ifdef __PROF_WITH_BARRIER__
     MPI_Barrier(comm);
 #endif
 
     PROF_BAL_BPART2_BEGIN
-
+      //std::cout << YLW<<rank << ": starting blockPart2" << NRM<<std::endl;
     blockPartStage2(in, blocks, minsAllBlocks, dim, maxDepth, comm);
-
+    //blockPartStage2_p2o(in, blocks, minsAllBlocks, dim, maxDepth, comm);
     PROF_BAL_BPART2_END
 
-    // std::cout << rank << ": Done with block Part" << std::endl;
+     //std::cout << rank << ": Done with block Part" << std::endl;
 
     // treeNodesTovtk(blocks, rank, "afterBlkPart_blocks", true);
     // treeNodesTovtk(in, rank, "afterBlkPart_octs", true);

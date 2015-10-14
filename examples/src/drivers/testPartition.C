@@ -60,20 +60,20 @@ int calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q) {
 
   for (int j=0;j<q;j++){
 
-     boundary_faces[j]=0;
-     begin=j*local_mesh_size;
+    boundary_faces[j]=0;
+    begin=j*local_mesh_size;
 
-     temp=begin;
-     end=begin + local_mesh_size;
+    temp=begin;
+    end=begin + local_mesh_size;
 
-     if(end+local_mesh_size>mesh_nodes)
-       end=mesh_nodes;
+    if(end+local_mesh_size>mesh_nodes)
+      end=mesh_nodes;
 
 
-     num_boundary_faces=0;
+    num_boundary_faces=0;
 
-      while(temp<end)//for(int i=0;i<mesh.size();i++)
-      {
+    while(temp<end)//for(int i=0;i<mesh.size();i++)
+    {
 
       top=mesh[temp].getTop();
       bottom=mesh[temp].getBottom();
@@ -82,22 +82,67 @@ int calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q) {
       front=mesh[temp].getFront();
       back=mesh[temp].getBack();
 
-      if(!(std::lower_bound(&mesh[begin], &mesh[end-1], top, std::less<ot::TreeNode>()) - &mesh[begin]))
-        num_boundary_faces++;
-      if(!(std::lower_bound(&mesh[begin], &mesh[end-1], bottom, std::less<ot::TreeNode>()) - &mesh[begin]))
-        num_boundary_faces++;
-      if(!(std::lower_bound(&mesh[begin], &mesh[end-1], left, std::less<ot::TreeNode>()) - &mesh[begin]))
-        num_boundary_faces++;
+      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], top, std::less<ot::TreeNode>()) - &mesh[begin]);
+      // std::cout<<"top:"<<found_pt<<std::endl;
+      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top))))
+      {
+//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
+//          std::cout<<"end condition"<<std::endl;
 
-      if(!(std::lower_bound(&mesh[begin], &mesh[end-1], right, std::less<ot::TreeNode>()) - &mesh[begin]))
         num_boundary_faces++;
-      if(!(std::lower_bound(&mesh[begin], &mesh[end-1], front, std::less<ot::TreeNode>()) - &mesh[begin]))
-        num_boundary_faces++;
-      if(!(std::lower_bound(&mesh[begin], &mesh[end-1], back, std::less<ot::TreeNode>()) - &mesh[begin]))
-        num_boundary_faces++;
+      }
+
+      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], bottom, std::less<ot::TreeNode>()) - &mesh[begin]);
+      //std::cout<<"bottom:"<<found_pt<<std::endl;
+      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(bottom))))
+      {
+//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
+//          std::cout<<"end condition"<<std::endl;
 
 
-      //std::cout<<"Number of Boundary Faces: "<<i<<"\t"<<num_boundary_faces<<std::endl;
+        num_boundary_faces++;
+      }
+
+      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], left, std::less<ot::TreeNode>()) - &mesh[begin]);
+      //std::cout<<"left:"<<found_pt<<std::endl;
+      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(left))))
+      {
+//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
+//          std::cout<<"end condition"<<std::endl;
+
+        num_boundary_faces++;
+      }
+
+      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], right, std::less<ot::TreeNode>()) - &mesh[begin]);
+      //std::cout<<"right:"<<found_pt<<std::endl;
+      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(right))))
+      {
+//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
+//          std::cout<<"end condition"<<std::endl;
+
+        num_boundary_faces++;
+      }
+      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], front, std::less<ot::TreeNode>()) - &mesh[begin]);
+      //std::cout<<"front:"<<found_pt<<std::endl;
+      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(front))))
+      {
+//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
+//          std::cout<<"end condition"<<std::endl;
+
+        num_boundary_faces++;
+      }
+
+      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], back, std::less<ot::TreeNode>()) - &mesh[begin]);
+      //std::cout<<"back:"<<found_pt<<std::endl;
+      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(back)))) {
+
+//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
+//          std::cout<<"end condition"<<std::endl;
+
+        num_boundary_faces++;
+      }
+
+
       temp++;
       if(temp%local_mesh_size==0)
       {
@@ -375,23 +420,6 @@ int main(int argc, char **argv) {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   treeNodesTovtk(linOct, rank, "bfBalancing");
 
-  DendroIntL num_surface=calculateBoundaryFaces(linOct,1);
-  //if (!rank) {
-    std::cout << BLU << "===============================================" << NRM << std::endl;
-    std::cout << RED " Number of Boundary Faces: Rank:" <<rank<<"\t"<<num_surface<<NRM << std::endl;
-    std::cout << BLU << "===============================================" << NRM << std::endl;
-  //}
-  DendroIntL total_boundary_faces=0;
-  par::Mpi_Reduce<DendroIntL>(&num_surface,&total_boundary_faces,1, MPI_SUM, 0, MPI_COMM_WORLD);
-
-
-  if (!rank) {
-  double surf_volume_r=total_boundary_faces/(double)totalSz;
-  std::cout << BLU << "===============================================" << NRM << std::endl;
-  std::cout << RED " Surface to Volume ratio:" <<total_boundary_faces<<"/"<<totalSz<<"="<<surf_volume_r<<NRM << std::endl;
-  std::cout << BLU << "===============================================" << NRM << std::endl;
-  }
-
   localTime = endTime - startTime;
   par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);
   if (!rank) {
@@ -404,7 +432,7 @@ int main(int argc, char **argv) {
     std::cout << GRN " # of Unbalanced Octants: " YLW << totalSz << NRM << std::endl;
   }
   pts.clear();
-
+  
   //treeNodesTovtk(linOct, rank, "p2o_output");
 
   // =========== Balancing ============
@@ -414,18 +442,52 @@ int main(int argc, char **argv) {
     std::cout << RED " Starting 2:1 Balance" NRM << std::endl;
     std::cout << BLU << "===============================================" << NRM << std::endl;
   }
+
+
+
 #ifdef PETSC_USE_LOG
   PetscLogStagePush(stages[1]);
 #endif
 
 
+
+
+#ifdef HILBERT_ORDERING
+
+  std::vector<ot::TreeNode> balOct_M;
+  std::vector<ot::TreeNode> balOct_H;
+  std::string morton_exec="mpirun -np";
+  std::ostringstream convert;
+  convert <<morton_exec<<" "<<size<<" ./testPartition_M testGaussPts_pt";
+  morton_exec = convert.str();
+  std::cout<<YLW<<"Executing Morton for Balancing\t"<<morton_exec<<NRM<<std::endl;
+  system(morton_exec.c_str());
+  std::cout<<YLW<<"Morton Execution finished for Balancing"<<NRM<<std::endl;
+
+  std::ostringstream convert_r;
+  std::string filename="bal_oct";
+  convert_r<<filename<<"_"<<rank;
+  filename=convert_r.str();
+  ot::readNodesFromFile((char *)filename.c_str(),balOct_M);
+  //MPI_Barrier(MPI_COMM_WORLD);
+
+  par::sampleSort(balOct_M,balOct_H,MPI_COMM_WORLD);
+  treeNodesTovtk(balOct_H,rank,"afBal");
+#else
+  #pragma "Morton Orderign for Balancing"
   // std::cout << "input[0] is " << linOct[0] << std::endl;
   startTime = MPI_Wtime();
   ot::balanceOctree(linOct, balOct, dim, maxDepth, incCorner, MPI_COMM_WORLD, NULL, NULL);
   endTime = MPI_Wtime();
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  //treeNodesTovtk(balOct,rank,"afBalancing");
+  std::ostringstream convert;
+  std::string filename="bal_oct";
+  convert<<filename<<"_"<<rank;
+  filename=convert.str();
+  ot::writeNodesToFile((char *)filename.c_str(),balOct);
+#endif
+
 
 #ifdef PETSC_USE_LOG
   PetscLogStagePop();

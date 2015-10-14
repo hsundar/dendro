@@ -716,7 +716,7 @@ namespace ot {
       sendMinMax[1] = rootNode;
     }
 
-    // std::cout << rank << ": min= " << sendMinMax[0] << ", max= " << sendMinMax[1] << std::endl;
+    //std::cout << rank << ": min= " << sendMinMax[0] << ", max= " << sendMinMax[1] << std::endl;
     par::Mpi_Allgather<ot::TreeNode>(sendMinMax, &(*_mins_maxs.begin()), 2, comm);
 
     std::vector<std::vector<TreeNode> > sendNodes(npes);
@@ -740,10 +740,11 @@ namespace ot {
 #ifdef __DEBUG_OCT__
         assert(areComparable(globalCoarse[i], _mins_maxs[2*p]));
 #endif
-        // if ( (globalCoarse[i].isAncestor(_mins_maxs[2*p])) || ( (globalCoarse[i] >= _mins_maxs[2*p]) && (globalCoarse[i] <=_mins_maxs[(2*p)+1]) ) ) {
+         //if ( (globalCoarse[i].isAncestor(_mins_maxs[2*p])) || ( (globalCoarse[i] >= _mins_maxs[2*p]) && (globalCoarse[i] <=_mins_maxs[(2*p)+1]) ) ) {
         if ( (globalCoarse[i].isAncestor(_mins_maxs[2*p])) || ( (globalCoarse[i] >= _mins_maxs[2*p]) && (globalCoarse[i] <=_mins_maxs[(2*p)+1]) ) || (globalCoarse[i].isAncestor(_mins_maxs[2*p+1])) ) {
-          sendNodes[p].push_back(globalCoarse[i]);
+           sendNodes[p].push_back(globalCoarse[i]);
           // save keymap so that we can assign weights back to globalCoarse.
+           // std::cout<<YLW<<"Global Coarse added:"<<globalCoarse[i]<<std::endl;
           keymap[p].push_back(i);    
           sendCnt[p]++;
         }//end if
@@ -796,7 +797,7 @@ namespace ot {
 
     for (int i=0; i<npes; i++) {
       for (unsigned int j=0; j<sendCnt[i]; j++) {
-        std::cout << rank << " -> " <<  i << " send: " << sendNodes[i][j] << std::endl;
+        //std::cout << rank << " -> " <<  i << " send: " << sendNodes[i][j] << std::endl;
         sendK[sendOffsets[i] + j] = sendNodes[i][j];
       }//end for j
     }//end for i
@@ -812,10 +813,10 @@ namespace ot {
       recvKptr = &(*(recvK.begin()));
     }
 
-    if (! (seq::test::isSorted(sendK)) ) {
-      for (auto x: sendK)
-        std::cout << rank << ": " << x << std::endl;
-    }
+//    if (! (seq::test::isSorted(sendK)) ) {
+//      for (auto x: sendK)
+//        std::cout << rank << ": " << x << std::endl;
+//    }
 
     par::Mpi_Alltoallv_sparse<ot::TreeNode>(sendKptr, sendCnt, sendOffsets,
         recvKptr, recvCnt, recvOffsets, comm);

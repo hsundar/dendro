@@ -397,7 +397,7 @@ namespace ot {
 
     fwrite(&numPts,sizeof(unsigned int),1,outfile);
     fwrite(&(pts[0]), sizeof(double),ptsLen,outfile);
-    fwrite(&(data[0]), sizeof(double),numPts,outfile);
+    //fwrite(&(data[0]), sizeof(double),numPts,outfile);
     fclose(outfile);
     return 1;
   }//end function
