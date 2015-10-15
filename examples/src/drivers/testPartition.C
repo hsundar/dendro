@@ -23,7 +23,18 @@
 #undef MPI_WTIME_IS_GLOBAL
 #endif
 
-
+std::string exec(const char* cmd) {
+  FILE* pipe = popen(cmd, "r");
+  if (!pipe) return "ERROR";
+  char buffer[128];
+  std::string result = "";
+  while (!feof(pipe)) {
+    if (fgets(buffer, 128, pipe) != NULL)
+      result += buffer;
+  }
+  pclose(pipe);
+  return result;
+}
 
 
 //@author: Milinda Fernando.
@@ -56,24 +67,27 @@ int calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q) {
   int temp=0;
   int begin=0;
   int end=0;
-  int total_boundary_faces=0;
+  unsigned long total_boundary_faces=0;
+
+  unsigned long min_faces=1<<50;
+  unsigned long max_faces=0;
 
   for (int j=0;j<q;j++){
 
-     boundary_faces[j]=0;
-     begin=j*local_mesh_size;
+    boundary_faces[j]=0;
+    begin=j*local_mesh_size;
 
-     temp=begin;
-     end=begin + local_mesh_size;
+    temp=begin;
+    end=begin + local_mesh_size;
 
-     if(end+local_mesh_size>mesh_nodes)
-       end=mesh_nodes;
+    if(end+local_mesh_size>mesh_nodes)
+      end=mesh_nodes;
 
 
-     num_boundary_faces=0;
+    num_boundary_faces=0;
 
-      while(temp<end)//for(int i=0;i<mesh.size();i++)
-      {
+    while(temp<end)//for(int i=0;i<mesh.size();i++)
+    {
 
       top=mesh[temp].getTop();
       bottom=mesh[temp].getBottom();
@@ -83,7 +97,7 @@ int calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q) {
       back=mesh[temp].getBack();
 
       found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], top, std::less<ot::TreeNode>()) - &mesh[begin]);
-       // std::cout<<"top:"<<found_pt<<std::endl;
+      // std::cout<<"top:"<<found_pt<<std::endl;
       if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top))))
       {
 //        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
@@ -93,7 +107,7 @@ int calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q) {
       }
 
       found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], bottom, std::less<ot::TreeNode>()) - &mesh[begin]);
-        //std::cout<<"bottom:"<<found_pt<<std::endl;
+      //std::cout<<"bottom:"<<found_pt<<std::endl;
       if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(bottom))))
       {
 //        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
@@ -104,7 +118,7 @@ int calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q) {
       }
 
       found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], left, std::less<ot::TreeNode>()) - &mesh[begin]);
-        //std::cout<<"left:"<<found_pt<<std::endl;
+      //std::cout<<"left:"<<found_pt<<std::endl;
       if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(left))))
       {
 //        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
@@ -114,7 +128,7 @@ int calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q) {
       }
 
       found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], right, std::less<ot::TreeNode>()) - &mesh[begin]);
-        //std::cout<<"right:"<<found_pt<<std::endl;
+      //std::cout<<"right:"<<found_pt<<std::endl;
       if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(right))))
       {
 //        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
@@ -123,7 +137,7 @@ int calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q) {
         num_boundary_faces++;
       }
       found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], front, std::less<ot::TreeNode>()) - &mesh[begin]);
-        //std::cout<<"front:"<<found_pt<<std::endl;
+      //std::cout<<"front:"<<found_pt<<std::endl;
       if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(front))))
       {
 //        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
@@ -133,7 +147,7 @@ int calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q) {
       }
 
       found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], back, std::less<ot::TreeNode>()) - &mesh[begin]);
-        //std::cout<<"back:"<<found_pt<<std::endl;
+      //std::cout<<"back:"<<found_pt<<std::endl;
       if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(back)))) {
 
 //        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
@@ -151,17 +165,27 @@ int calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q) {
 
     }
     boundary_faces[j]=num_boundary_faces;
-    total_boundary_faces=total_boundary_faces+num_boundary_faces;
+    total_boundary_faces += num_boundary_faces;
+    if (min_faces > num_boundary_faces) min_faces = num_boundary_faces;
+    if (max_faces < num_boundary_faces) max_faces = num_boundary_faces;
+
     //std::cout<<"q:"<<j<<"\t "<<"number of boundary faces:"<<boundary_faces[j]<<std::endl;
 
   }
 
+  unsigned long global_sum, global_max, global_min;
 
-  //MPI_Reduce(boundary_faces,&total_boundary_faces,q, MPI_INT,MPI_SUM,0, MPI_COMM_WORLD);
+  MPI_Reduce(total_boundary_faces, global_sum, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+  MPI_Reduce(max_faces, global_max, 1, MPI_UNSIGNED_LONG, MPI_MAX, 0, MPI_COMM_WORLD);
+  MPI_Reduce(min_faces, global_min, 1, MPI_UNSIGNED_LONG, MPI_MIN, 0, MPI_COMM_WORLD);
+  
   return total_boundary_faces;
-
-
 }
+
+//@author: Milinda Fernando.
+// This function is to calculate the boundary faces with some flexibility allowed.
+// Assume that the given octree vector is sorted.
+
 
 
 
@@ -291,7 +315,7 @@ int main(int argc, char **argv) {
   unsigned int ptsLen;
   unsigned int maxNumPts = 1;
   unsigned int dim = 3;
-  unsigned int maxDepth = 8;
+  unsigned int maxDepth = 30;
   double gSize[3];
   //initializeHilbetTable(2);
   G_MAX_DEPTH = maxDepth;
@@ -304,6 +328,8 @@ int main(int argc, char **argv) {
   DendroIntL localSz, totalSz;
   std::vector<double> pts;
   std::vector<ot::TreeNode> linOct, balOct;
+  bool morton_based_bal=true;
+
 
   if (argc < 2) {
     std::cerr << "Usage: " << argv[0] << " inpfile " << std::endl;
@@ -313,9 +339,12 @@ int main(int argc, char **argv) {
   PetscInitialize(&argc, &argv, "options.hs", NULL);
   ot::RegisterEvents();
   ot::DA_Initialize(MPI_COMM_WORLD);
+  
+  // unsigned int num_pseudo_proc=1;
+  unsigned int num_pseudo_proc=atoi(argv[2]);
 
-  signal(SIGSEGV, handler);   // install our handler
-  signal(SIGTERM, handler);   // install our handler
+  // signal(SIGSEGV, handler);   // install our handler
+  // signal(SIGTERM, handler);   // install our handler
 
 #ifdef PETSC_USE_LOG
   int stages[3];
@@ -368,7 +397,7 @@ int main(int argc, char **argv) {
   par::partitionW<ot::TreeNode>(linOct, NULL, MPI_COMM_WORLD);
 
   // treeNodesTovtk(linOct,rank,"par_1");
-  treeNodesTovtk(linOct, rank, "input_points");
+  //treeNodesTovtk(linOct, rank, "input_points");
 
   // reduce and only print the total ...
   localSz = linOct.size();
@@ -430,13 +459,16 @@ int main(int argc, char **argv) {
   par::Mpi_Reduce<DendroIntL>(&num_surface,&total_boundary_faces,1, MPI_SUM, 0, MPI_COMM_WORLD);
 
 
-
-
   localTime = endTime - startTime;
   par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);
   if (!rank) {
     std::cout << GRN " P2n Time: " YLW << totalTime << NRM << std::endl;
   }
+
+  int num_loc_boundary_faces=calculateBoundaryFaces(linOct,num_pseudo_proc);
+  int num_total_boundary_faces=0;
+  par::Mpi_Reduce<DendroIntL>(&num_loc_boundary_faces, &num_total_boundary_faces, 1, MPI_SUM, 0, MPI_COMM_WORLD);
+
   // reduce and only print the total ...
   localSz = linOct.size();
   par::Mpi_Reduce<DendroIntL>(&localSz, &totalSz, 1, MPI_SUM, 0, MPI_COMM_WORLD);
@@ -453,6 +485,9 @@ int main(int argc, char **argv) {
 
   pts.clear();
 
+  double s_v_ratio=num_total_boundary_faces/(double)totalSz;
+
+
   //treeNodesTovtk(linOct, rank, "p2o_output");
 
   // =========== Balancing ============
@@ -462,18 +497,47 @@ int main(int argc, char **argv) {
     std::cout << RED " Starting 2:1 Balance" NRM << std::endl;
     std::cout << BLU << "===============================================" << NRM << std::endl;
   }
+
+
+
 #ifdef PETSC_USE_LOG
   PetscLogStagePush(stages[1]);
 #endif
 
+#ifdef HILBERT_ORDERING
 
-  // std::cout << "input[0] is " << linOct[0] << std::endl;
+
+  std::cout<<"Morton based Balancing"<<std::endl;
+    std::vector<ot::TreeNode> balOct_M;
+    std::vector<ot::TreeNode> balOct_H;
+
+    std::ostringstream convert_r;
+    std::string filename="bal_oct";
+    convert_r<<filename<<"_"<<rank;
+    filename=convert_r.str();
+    ot::readNodesFromFile((char *)filename.c_str(),balOct_M);
+    //MPI_Barrier(MPI_COMM_WORLD);
+
+    par::sampleSort(balOct_M,balOct_H,MPI_COMM_WORLD);
+    balOct.clear();
+    balOct=balOct_H;
+#else
+
+
   startTime = MPI_Wtime();
   ot::balanceOctree(linOct, balOct, dim, maxDepth, incCorner, MPI_COMM_WORLD, NULL, NULL);
   endTime = MPI_Wtime();
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  //treeNodesTovtk(balOct,rank,"afBalancing");
+  std::ostringstream convert;
+  std::string filename="bal_oct";
+  convert<<filename<<"_"<<rank;
+  filename=convert.str();
+  ot::writeNodesToFile((char *)filename.c_str(),balOct);
+
+#endif
+
+
 
 #ifdef PETSC_USE_LOG
   PetscLogStagePop();
@@ -490,69 +554,81 @@ int main(int argc, char **argv) {
     std::cout << "bal Time: " << totalTime << std::endl;
   }
 
-  treeNodesTovtk(balOct, rank, "bal_output");
+  num_loc_boundary_faces=calculateBoundaryFaces(balOct,num_pseudo_proc);
+  par::Mpi_Reduce<DendroIntL>(&num_loc_boundary_faces, &num_total_boundary_faces, 1, MPI_SUM, 0, MPI_COMM_WORLD);
+
+  double s_v_ratio_bal=num_total_boundary_faces/(double)totalSz;
 
 
-  //==================ODA Meshing=================================
-  if (!rank) {
-    std::cout << BLU << "===============================================" << NRM << std::endl;
-    std::cout << RED " Starting ODA Meshing" NRM << std::endl;
-    std::cout << BLU << "===============================================" << NRM << std::endl;
+
+  if(!rank) {
+    std::cout<<"SV Ratio before balancing:\t"<<s_v_ratio<<std::endl;
+    std::cout << "SV Ratio After balancing:\t" << s_v_ratio_bal << std::endl;
   }
-  //ODA ...
-  MPI_Barrier(MPI_COMM_WORLD);
-#ifdef PETSC_USE_LOG
-  PetscLogStagePush(stages[2]);
-#endif
-  startTime = MPI_Wtime();
-  assert(!(balOct.empty()));
-  ot::DA da(balOct, MPI_COMM_WORLD, MPI_COMM_WORLD, compressLut);
-  endTime = MPI_Wtime();
-#ifdef PETSC_USE_LOG
-  PetscLogStagePop();
-#endif
-  balOct.clear();
-  // compute total inp size and output size
-  localSz = da.getNodeSize();
-  localTime = endTime - startTime;
-  par::Mpi_Reduce<DendroIntL>(&localSz, &totalSz, 1, MPI_SUM, 0, MPI_COMM_WORLD);
-  par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);
+
+  //treeNodesTovtk(balOct, rank, "bal_output");
+
+//
+//  //==================ODA Meshing=================================
+//  if (!rank) {
+//    std::cout << BLU << "===============================================" << NRM << std::endl;
+//    std::cout << RED " Starting ODA Meshing" NRM << std::endl;
+//    std::cout << BLU << "===============================================" << NRM << std::endl;
+//  }
+//  //ODA ...
+//  MPI_Barrier(MPI_COMM_WORLD);
+//#ifdef PETSC_USE_LOG
+//  PetscLogStagePush(stages[2]);
+//#endif
+//  startTime = MPI_Wtime();
+//  assert(!(balOct.empty()));
+//  ot::DA da(balOct, MPI_COMM_WORLD, MPI_COMM_WORLD, compressLut);
+//  endTime = MPI_Wtime();
+//#ifdef PETSC_USE_LOG
+//  PetscLogStagePop();
+//#endif
+//  balOct.clear();
+//  // compute total inp size and output size
+//  localSz = da.getNodeSize();
+//  localTime = endTime - startTime;
+//  par::Mpi_Reduce<DendroIntL>(&localSz, &totalSz, 1, MPI_SUM, 0, MPI_COMM_WORLD);
+//  par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);
 
   if (!rank) {
     std::cout << "Total # Vertices: " << totalSz << std::endl;
     std::cout << "Time to build ODA: " << totalTime << std::endl;
   }
 
-  //! Quality of the partition ...
-  DendroIntL maxNodeSize, minNodeSize,
-      maxBdyNode, minBdyNode,
-      maxIndepSize, minIndepSize,
-      maxElementSize, minElementSize;
-
-  localSz = da.getNodeSize();
-  par::Mpi_Reduce<DendroIntL>(&localSz, &maxNodeSize, 1, MPI_MAX, 0, MPI_COMM_WORLD);
-  par::Mpi_Reduce<DendroIntL>(&localSz, &minNodeSize, 1, MPI_MIN, 0, MPI_COMM_WORLD);
-
-  localSz = da.getBoundaryNodeSize();
-  par::Mpi_Reduce<DendroIntL>(&localSz, &maxBdyNode, 1, MPI_MAX, 0, MPI_COMM_WORLD);
-  par::Mpi_Reduce<DendroIntL>(&localSz, &minBdyNode, 1, MPI_MIN, 0, MPI_COMM_WORLD);
-
-  localSz = da.getElementSize();
-  par::Mpi_Reduce<DendroIntL>(&localSz, &maxElementSize, 1, MPI_MAX, 0, MPI_COMM_WORLD);
-  par::Mpi_Reduce<DendroIntL>(&localSz, &minElementSize, 1, MPI_MIN, 0, MPI_COMM_WORLD);
-
-  localSz = da.getIndependentSize();
-  par::Mpi_Reduce<DendroIntL>(&localSz, &maxIndepSize, 1, MPI_MAX, 0, MPI_COMM_WORLD);
-  par::Mpi_Reduce<DendroIntL>(&localSz, &minIndepSize, 1, MPI_MIN, 0, MPI_COMM_WORLD);
-
-  if (!rank) {
-    std::cout << "Nodes          \t(" << minNodeSize << ", " << maxNodeSize << ")" << std::endl;
-    std::cout << "Boundary Node  \t(" << minBdyNode << ", " << maxBdyNode << ")" << std::endl;
-    std::cout << "Element        \t(" << minElementSize << ", " << maxElementSize << ")" << std::endl;
-    std::cout << "Independent    \t(" << minIndepSize << ", " << maxIndepSize << ")" << std::endl;
-  }
-
-  //! ========================
+//  //! Quality of the partition ...
+//  DendroIntL maxNodeSize, minNodeSize,
+//      maxBdyNode, minBdyNode,
+//      maxIndepSize, minIndepSize,
+//      maxElementSize, minElementSize;
+//
+//  localSz = da.getNodeSize();
+//  par::Mpi_Reduce<DendroIntL>(&localSz, &maxNodeSize, 1, MPI_MAX, 0, MPI_COMM_WORLD);
+//  par::Mpi_Reduce<DendroIntL>(&localSz, &minNodeSize, 1, MPI_MIN, 0, MPI_COMM_WORLD);
+//
+//  localSz = da.getBoundaryNodeSize();
+//  par::Mpi_Reduce<DendroIntL>(&localSz, &maxBdyNode, 1, MPI_MAX, 0, MPI_COMM_WORLD);
+//  par::Mpi_Reduce<DendroIntL>(&localSz, &minBdyNode, 1, MPI_MIN, 0, MPI_COMM_WORLD);
+//
+//  localSz = da.getElementSize();
+//  par::Mpi_Reduce<DendroIntL>(&localSz, &maxElementSize, 1, MPI_MAX, 0, MPI_COMM_WORLD);
+//  par::Mpi_Reduce<DendroIntL>(&localSz, &minElementSize, 1, MPI_MIN, 0, MPI_COMM_WORLD);
+//
+//  localSz = da.getIndependentSize();
+//  par::Mpi_Reduce<DendroIntL>(&localSz, &maxIndepSize, 1, MPI_MAX, 0, MPI_COMM_WORLD);
+//  par::Mpi_Reduce<DendroIntL>(&localSz, &minIndepSize, 1, MPI_MIN, 0, MPI_COMM_WORLD);
+//
+//  if (!rank) {
+//    std::cout << "Nodes          \t(" << minNodeSize << ", " << maxNodeSize << ")" << std::endl;
+//    std::cout << "Boundary Node  \t(" << minBdyNode << ", " << maxBdyNode << ")" << std::endl;
+//    std::cout << "Element        \t(" << minElementSize << ", " << maxElementSize << ")" << std::endl;
+//    std::cout << "Independent    \t(" << minIndepSize << ", " << maxIndepSize << ")" << std::endl;
+//  }
+//
+//  //! ========================
 
   if (!rank) {
     std::cout << GRN << "Finalizing ..." << NRM << std::endl;

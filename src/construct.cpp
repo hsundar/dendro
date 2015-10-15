@@ -932,7 +932,7 @@ namespace ot {
     std::vector<TreeNode> leaves;
     leaves.push_back(root);
 
-    treeNodesTovtk(nodes, 0, "input_p2o");
+    //treeNodesTovtk(nodes, 0, "input_p2o");
     p2oLocal(nodes, leaves, maxNumPts, dim, maxDepth);
 
     PROF_P2O_SEQ_END
@@ -1067,17 +1067,11 @@ namespace ot {
     }
 
     TreeNode max = ((first > second) ? first : second);
-
     //Add nodes > min and < max
     TreeNode nca = getNCA(min, max);
 
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-    // std::cout << "Rank:" << rank << " NCA:" << nca << std::endl;
-    //
-    //min.printTreeNode();
-    //max.printTreeNode();
 
 
     if (min == nca) {
@@ -1111,8 +1105,7 @@ namespace ot {
 
       // std::cout<<"nca!=min case"<<std::endl;
       TreeNode currentNode = min;
-      //@hari Check now the condition is okay.
-      while (currentNode > nca || (nca.isAncestor(currentNode)&& nca!=currentNode))  {
+      while (nca < currentNode /*|| (nca.isAncestor(currentNode) && nca!=currentNode)*/) {
         TreeNode parentOfCurrent = currentNode.getParent();
         // if (!rank) std::cout << "Rank:" << rank << " Parent Node:" << parentOfCurrent << std::endl;
         std::vector<ot::TreeNode> myBros;
@@ -1121,7 +1114,7 @@ namespace ot {
 #ifdef __DEBUG_OCT__
           assert(areComparable(myBros[i], max));
 #endif
-          if ( (myBros[i] > min) && (myBros[i] < max) && (!(myBros[i].isAncestor(max))) ) {
+          if ( (myBros[i] > min) && (myBros[i] < max) && (!(myBros[i].isAncestor(max)))  ) {
             //Bottom-up here
 
             // if (!rank) std::cout << rank << " adding to new nodes" << myBros[i] << std::endl;
@@ -1163,7 +1156,7 @@ namespace ot {
 //                   std::cout << "max " << max << " " << max.getMaxDepth() << std::endl;
 //                   std::cout << "tmp " << tmpChildList[j] << " " << tmpChildList[j].getMaxDepth() << std::endl;
 //                   bool status=(min>tmpChildList[j]);
-//                   std::cout << " min > tmp " << status << std::endl;   
+//                   std::cout << " min > tmp " << status << std::endl;
 // 		  status=(tmpChildList[j]<max);
 //                   std::cout << " tmp < max " << status << std::endl;
 //                 }
