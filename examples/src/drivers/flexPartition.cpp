@@ -19,6 +19,7 @@
 
 
 int calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q);
+int calculateBoundaryFaces(const std::vector<ot::TreeNode>::const_iterator &beg, const std::vector<ot::TreeNode>::const_iterator &end);
 
 int main(int argc, char* argv[]) {
   if (argc < 4) {
@@ -92,18 +93,39 @@ int main(int argc, char* argv[]) {
 
   // Have the extra octants ...
   // 2. compute partitions.
-  int* partitions = new int[q+1];
+  int part_size = localSz/q;
+  int* partitions   = new int[q+1];
+  int* num_faces    = new int[q+1];
+  int faces;
   // partition 0
-  partitions[0] = 0;
+  partitions[0] = slackCnt;
   if (!rank) {
-    slack_prev.insert(slack_prev.end(), balOct.begin(), balOct.begin() + slackCnt);
-    for (int j = 0; j < slack; ++j) {
-
+    num_faces[0] = calculateBoundaryFaces(balOct.begin(), balOct.begin()+part_size);
+    slack_prev.insert(slack_prev.end(), balOct.begin(), balOct.begin()+part_size);
+    for (int j = 0; j < slackCnt; ++j) {
+      faces = calculateBoundaryFaces(slack_prev[j], slack_prev.end());
+      if (faces < num_faces[0]) {
+        num_faces[0] = faces;
+        partitions[0] = j;
+      }
     }
   }
+  std::vector<ot::TreeNode>::const_iterator first, last;
   // local partitions
   for (int i=1; i<q; ++i) {
+    first = balOct.begin()+i*part_size;
+    last = (i==(q-1))?balOct.end():balOct.begin()+(i+1)*part_size;
+    partitions[i] = i*part_size + slackCnt;
+    num_faces[i] = calculateBoundaryFaces(first, last);
+    first -= slackCnt;
+    for (int j = 0; j < slackCnt; ++j) {
+      faces = calculateBoundaryFaces(first+j, last);
+      if (faces < num_faces[i]) {
+        num_faces[i] = faces;
+        partitions[i] = j;
+      }
 
+    }
   }
   // partition q
   partitions[q] = balOct.size();
@@ -112,6 +134,9 @@ int main(int argc, char* argv[]) {
   if (!rank) {
     std::cout << GRN << "Finalizing ..." << NRM << std::endl;
   }
+
+  delete [] partitions;
+  delete [] num_faces;
 
   PetscFinalize();
   return 0;
