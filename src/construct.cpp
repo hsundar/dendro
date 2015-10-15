@@ -950,7 +950,7 @@ namespace ot {
                unsigned int maxNumPts, unsigned int dim, unsigned int maxDepth) {
       PROF_P2O_LOCAL_BEGIN;
 
-      std::cout << "entering p2o_local=====" << std::endl;
+      //std::cout << "entering p2o_local=====" << std::endl;
 
 
       int rank;
@@ -1037,7 +1037,7 @@ namespace ot {
       }
       leaves_lst.clear();
 
-      std::cout << rank << ": leaving p2o_local" << std::endl;
+      //std::cout << rank << ": leaving p2o_local" << std::endl;
       PROF_P2O_LOCAL_END
   } //*/
 

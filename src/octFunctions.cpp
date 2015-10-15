@@ -341,6 +341,8 @@ namespace ot {
     return 1;
   }//end function
 
+
+
   int readDataPtsFromFile(char* filename, std::vector<double>& pts,
       std::vector<double>& ptVals) {
     // file format:
@@ -385,6 +387,7 @@ namespace ot {
     fclose(outfile);
     return 1;
   }//end function
+
 
   int writeDataPtsToFile(char* filename, std::vector<double>& pts,
       std::vector<double>& data) {

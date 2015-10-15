@@ -152,13 +152,16 @@ target_link_libraries(testConBalAndCoarsen dendro petsc ${MPI_LIBRARIES} m)
 ##    Dendro DA APPS
 ##---------------------------------------------------------------------------------------
 if(BUILD_DA_EXAMPLES)
-    add_executable(testPartition examples/src/drivers/testPartition.C include/hcurvedata.h src/hcurvedata.cpp )
+    add_executable(testPartition examples/src/drivers/testPartition.C include/hcurvedata.h src/hcurvedata.cpp examples/include/octreeStatistics.h examples/src/drivers/octreeStatistics.cpp )
     target_link_libraries(testPartition dendroDA dendro petsc ${MPI_LIBRARIES} m)
+
+    add_executable(flexPart examples/src/drivers/flexPart.C include/hcurvedata.h src/hcurvedata.cpp examples/include/octreeStatistics.h examples/src/drivers/octreeStatistics.cpp )
+    target_link_libraries(flexPart dendroDA dendro petsc ${MPI_LIBRARIES} m)
 
     add_executable(tstMatVec examples/src/drivers/tstMatVec.C examples/src/backend/odaJac.C examples/src/backend/handleType2Stencils.C)
     target_link_libraries(tstMatVec dendroDA dendro petsc ${MPI_LIBRARIES} m)
 
-    add_executable(buildDA examples/src/drivers/buildDA.C include/hcurvedata.h)
+    add_executable(buildDA examples/src/drivers/buildDA.C include/hcurvedata.h examples/include/octreeStatistics.h examples/src/drivers/octreeStatistics.cpp)
     target_link_libraries(buildDA dendroDA dendro petsc ${MPI_LIBRARIES} m)
 
     add_executable(buildRgDA examples/src/drivers/buildRgDA.C)
