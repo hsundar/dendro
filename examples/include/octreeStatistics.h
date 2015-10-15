@@ -25,8 +25,8 @@
 // stat[1] : max
 // stat[2] : mean
 void calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q,double* stat);
+int calculateBoundaryFaces(const std::vector<ot::TreeNode>::const_iterator &beg, const std::vector<ot::TreeNode>::const_iterator &end);
 
-//q: Number of pseudo processors
-// mesh: List of octants
-// slack: flexibility should be between [0,1]
+
+
 #endif
