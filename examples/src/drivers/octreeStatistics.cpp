@@ -45,7 +45,7 @@ void calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q,double
     int end=0;
     unsigned long total_boundary_faces=0;
 
-    unsigned long min_faces=1<<50;
+    unsigned long min_faces=1<<28;
     unsigned long max_faces=0;
 
 
@@ -145,25 +145,3 @@ void calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q,double
 // Assume that the given octree vector is sorted.
 
 
-double calculateOptimalBoundaries(const std::string& fileprefix, int q,double slack,int opt)
-{
-
-    int com_size;
-    MPI_Comm_size(MPI_COMM_WORLD,&com_size);
-    std::vector<ot::TreeNode> globalNodes;
-    char ptsFileName[256];
-//    for(int i=0;i<com_size;i++)
-//    {
-//        ot::readNodesFromFile()
-//        ot::writePtsToFile()
-//    }
-
-
-
-
-
-
-    return 0.0;
-
-
-}

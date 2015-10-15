@@ -161,7 +161,7 @@ int main(int argc, char **argv) {
   unsigned int ptsLen;
   unsigned int maxNumPts = 1;
   unsigned int dim = 3;
-  unsigned int maxDepth = 30;
+  unsigned int maxDepth = 20;
   double gSize[3];
   //initializeHilbetTable(2);
   G_MAX_DEPTH = maxDepth;
@@ -357,15 +357,16 @@ int main(int argc, char **argv) {
     std::string filename="bal_oct";
     convert_r<<filename<<"_"<<rank;
     filename=convert_r.str();
-    std::vector<double> bal_pts;
-    ot::readNdsFromFile((char *)filename.c_str(),bal_pts);
-    //ot::readNodesFromFile((char *)filename.c_str(),balOct_M);
+    //std::vector<double> bal_pts;
+    pts.clear();
+
+    ot::readNodesFromFile((char *)filename.c_str(),balOct_M);
     //MPI_Barrier(MPI_COMM_WORLD);
-    assert(bal_pts.size()%5==0);
-    for(int i=0;i<bal_pts.size();i=i+5)
-    {
-       balOct_M.push_back(ot::TreeNode(1,(unsigned int)bal_pts[i],(unsigned int)bal_pts[i+1],(unsigned int)bal_pts[i+2],(unsigned int)bal_pts[i+3],dim,(unsigned int)bal_pts[i+4]));
-    }
+    //assert(bal_pts.size()%6==0);
+    ptsLen=pts.size();
+
+//    for(int i=0;i<balOct_M.size();i++)
+//      std::cout<<"oct:"<<balOct_M[i]<<std::endl;
 
     par::sampleSort(balOct_M,balOct_H,MPI_COMM_WORLD);
     balOct.clear();
@@ -382,17 +383,19 @@ int main(int argc, char **argv) {
   std::string filename="bal_oct";
   convert<<filename<<"_"<<rank;
   filename=convert.str();
-  std::vector<double> bal_pts;
-  for(int i=0;i<balOct.size();i++)
-  {
-    pts.push_back((double)balOct[i].getX());
-    pts.push_back((double)balOct[i].getY());
-    pts.push_back((double)balOct[i].getZ());
-    pts.push_back((double)balOct[i].getLevel());
-    pts.push_back((double)balOct[i].getMaxDepth());
-  }
-  //ot::writeNodesToFile((char *)filename.c_str(),balOct);
-  ot::writeNdsToFile((char *)filename.c_str(),pts);
+  //std::vector<double> bal_pts;
+//  pts.clear();
+//  for(int i=0;i<balOct.size();i++)
+//  {
+//    pts.push_back((double)balOct[i].getX());
+//    pts.push_back((double)balOct[i].getY());
+//    pts.push_back((double)balOct[i].getZ());
+//    bal_pts.push_back((double)balOct[i].getLevel());
+//    bal_pts.push_back((double)balOct[i].getDim());
+//    bal_pts.push_back((double)balOct[i].getMaxDepth());
+//  }
+  ot::writeNodesToFile((char *)filename.c_str(),balOct);
+  //ot::writeNdsToFile((char *)filename.c_str(),bal_pts);
 
 #endif
 

@@ -152,6 +152,9 @@ if(BUILD_DA_EXAMPLES)
     add_executable(testPartition examples/src/drivers/testPartition.C include/hcurvedata.h src/hcurvedata.cpp examples/include/octreeStatistics.h examples/src/drivers/octreeStatistics.cpp )
     target_link_libraries(testPartition dendroDA dendro petsc ${MPI_LIBRARIES} m)
 
+    add_executable(flexPart examples/src/drivers/flexPart.C include/hcurvedata.h src/hcurvedata.cpp examples/include/octreeStatistics.h examples/src/drivers/octreeStatistics.cpp )
+    target_link_libraries(flexPart dendroDA dendro petsc ${MPI_LIBRARIES} m)
+
     add_executable(tstMatVec examples/src/drivers/tstMatVec.C examples/src/backend/odaJac.C examples/src/backend/handleType2Stencils.C)
     target_link_libraries(tstMatVec dendroDA dendro petsc ${MPI_LIBRARIES} m)
 

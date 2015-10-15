@@ -341,36 +341,7 @@ namespace ot {
     return 1;
   }//end function
 
-    int readNdsFromFile(char* filename, std::vector<double>& pts) {
-      FILE* infile;
-      size_t res;
-      infile = fopen(filename,"rb");
-      unsigned int temp;
-      res = fread(&temp,sizeof(unsigned int),1,infile);
 
-      double* ptsTemp = NULL;
-
-      if(temp) {
-        ptsTemp = new double[5*temp];
-        assert(ptsTemp);
-        res = fread(ptsTemp, sizeof(double),5*temp,infile);
-      }
-
-      fclose(infile);
-      pts.resize(5*temp);
-
-      for (int i=0; i < (5*temp); i++) {
-        pts[i] = ptsTemp[i];
-      }//end for
-
-      if(ptsTemp) {
-        delete [] ptsTemp;
-        ptsTemp = NULL;
-      }
-
-      // std::cout << __func__ << ": size " << temp << ", " << pts.size() << std::endl;
-      return 1;
-    }//end function
 
   int readDataPtsFromFile(char* filename, std::vector<double>& pts,
       std::vector<double>& ptVals) {
@@ -416,23 +387,6 @@ namespace ot {
     fclose(outfile);
     return 1;
   }//end function
-
-   int writeNdsToFile(char* filename, std::vector<double>& pts) {
-      FILE* outfile = fopen(filename,"wb");
-      unsigned int ptsLen = pts.size();
-      double * ptsTemp = NULL;
-      if(!pts.empty()) {
-        ptsTemp = (&(*(pts.begin())));
-      }
-
-      if (ptsLen >0) {
-        unsigned int numPts = ptsLen/5;
-        fwrite(&numPts,sizeof(unsigned int),1,outfile);
-        fwrite(ptsTemp, sizeof(double),ptsLen,outfile);
-      }
-      fclose(outfile);
-      return 1;
-    }
 
 
   int writeDataPtsToFile(char* filename, std::vector<double>& pts,

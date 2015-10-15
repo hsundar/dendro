@@ -936,7 +936,7 @@ namespace ot {
     @param pts the points
     */
   int readPtsFromFile(char* filename, std::vector<double>& pts);
-    int readNdsFromFile(char* filename, std::vector<double>& pts);
+   // int readNdsFromFile(char* filename, std::vector<double>& pts);
   /**
     @author Ilya Lashuk
     @brief Reads a list of points and corresponding values from a file
@@ -971,7 +971,7 @@ namespace ot {
     @param nodes the octants
     */
   int writeNodesToFile (char* filename, const std::vector<TreeNode> & nodes);
-  int writeNdsToFile(char* filename, std::vector<double>& pts);
+  //int writeNdsToFile(char* filename, std::vector<double>& pts);
 
 
   /**

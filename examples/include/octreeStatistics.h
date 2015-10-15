@@ -16,8 +16,7 @@
 #include "TreeNode.h"
 
 
-#define OPT_LOW_BLOCK 1
-#define OPT_SUM_BLOCK 2
+
 
 
 //q: Number of pseudo processors
@@ -30,8 +29,4 @@ void calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q,double
 //q: Number of pseudo processors
 // mesh: List of octants
 // slack: flexibility should be between [0,1]
-
-double calculateOptimalBoundaries(const std::string& fileprefix, int q,double slack,int opt);
-
-
 #endif
