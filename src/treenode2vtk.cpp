@@ -1,35 +1,7 @@
 #include "treenode2vtk.h"
 
+
 void treeNodesTovtk(std::vector<ot::TreeNode> &nodes, int mpi_rank, std::string vtk_file_name, bool hsorted) {
-  // @milinda change the formating.
-  // look here: http://www.cfd-online.com/Forums/paraview/124844-generating-vtu-pvtu-files.html
-
-  /*
-  char hdr_fname[256];
-  if (!mpi_rank) {
-    std::ofstream header;
-
-    sprintf(hdr_fname, "%s.pvtu", vtk_file_name);
-
-    header.open(hdr_fname);
-
-    header << "<?xml version=\"1.0\"?>" << std::endl;
-    header << "<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\"> " << std::endl;
-    header << "<PUnstructuredGrid GhostLevel=\"0\"> \n"
-                  "<PPoints> \n"
-                  "  <PDataArray type=\"Float32\" Name=\"Position\" NumberOfComponents=\"3\"/> \n"
-                  "</PPoints> " << std::endl;
-    header << "" << std::endl;
-
-
-    header << "</PUnstructuredGrid> \n"
-                  "</VTKFile>" << std::endl;
-
-    header.close();                                                                                                                                                                                                                                                                                                                                                                                                                                                                              </
-    VTKFile >
-  }
-   */
-#ifdef __DEBUG_TREENODES_VTK
 
   std::sort(nodes.begin(), nodes.end());
   if (!mpi_rank) std::cout << "writing mesh to VTK file: " << vtk_file_name << std::endl;
@@ -133,7 +105,6 @@ void treeNodesTovtk(std::vector<ot::TreeNode> &nodes, int mpi_rank, std::string 
   }
 
   myfile.close();
-#endif
 
 }
 

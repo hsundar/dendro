@@ -142,7 +142,12 @@ namespace ot {
         unsigned int ncaY = ((y1>>maxDiffBinLen)<<maxDiffBinLen);
         unsigned int ncaZ = ((z1>>maxDiffBinLen)<<maxDiffBinLen);
         unsigned int ncaLev = (maxDepth - maxDiffBinLen);
+        ot::TreeNode nca(1,ncaX,ncaY,ncaZ,ncaLev,dim,maxDepth);
 
+        if(nca==*(this))
+            return true;
+        else if(nca==other)
+            return false;
 
 
         unsigned int index1=0;
@@ -176,9 +181,7 @@ namespace ot {
         index2= (((z2&(1<<mid_bit))>>mid_bit)<<2)|( (((x2&(1<<mid_bit))>>mid_bit)^((z2&(1<<mid_bit))>>mid_bit)) <<1)|(((x2&(1<<mid_bit))>>mid_bit)^((y2&(1<<mid_bit))>>mid_bit)^((z2&(1<<mid_bit))>>mid_bit));
 
 
-        bool state= rotations[rot_offset*current_rot+num_children+index1] < rotations[rot_offset*current_rot+num_children+index2];
-        //return (state || (this->isAncestor(other)));
-        return state;
+        return rotations[rot_offset*current_rot+num_children+index1] < rotations[rot_offset*current_rot+num_children+index2];
 
 
 

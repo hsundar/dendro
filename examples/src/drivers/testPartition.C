@@ -147,7 +147,7 @@ int main(int argc, char **argv) {
   unsigned int ptsLen;
   unsigned int maxNumPts = 1;
   unsigned int dim = 3;
-  unsigned int maxDepth = 20;
+  unsigned int maxDepth = 8 ;
   double gSize[3];
   //initializeHilbetTable(2);
 
@@ -181,8 +181,8 @@ int main(int argc, char **argv) {
   // unsigned int num_pseudo_proc=1;
 
 
- //  signal(SIGSEGV, handler);   // install our handler
-  // signal(SIGTERM, handler);   // install our handler
+   signal(SIGSEGV, handler);   // install our handler
+   signal(SIGTERM, handler);   // install our handler
 
 #ifdef PETSC_USE_LOG
   int stages[3];
@@ -274,9 +274,15 @@ int main(int argc, char **argv) {
   ot::points2Octree(pts, gSize, linOct, dim, maxDepth, maxNumPts, MPI_COMM_WORLD);
   endTime = MPI_Wtime();
 
+  MPI_Barrier(MPI_COMM_WORLD);
+
+
+
   par::sampleSort(linOct, balOct, MPI_COMM_WORLD);
   linOct = balOct;
   balOct.clear();
+  
+  assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
 
 #ifdef PETSC_USE_LOG
   PetscLogStagePop();
@@ -299,6 +305,8 @@ int main(int argc, char **argv) {
   if (!rank) {
     std::cout << GRN " P2n Time: " YLW << totalTime << NRM << std::endl;
   }
+
+  treeNodesTovtk(linOct, rank, "bf_bal");
 
   // ===============================================Points2Octree END ===================================================================
 
@@ -332,64 +340,61 @@ int main(int argc, char **argv) {
 
 
 
-  //treeNodesTovtk(linOct, rank, "p2o_output");
-
-// ================================================================== Balancing BEGIN============================================================
-  MPI_Barrier(MPI_COMM_WORLD);
-  if (!rank) {
-    std::cout << BLU << "===============================================" << NRM << std::endl;
-    std::cout << RED " Starting 2:1 Balance" NRM << std::endl;
-    std::cout << BLU << "===============================================" << NRM << std::endl;
-  }
 
 
-
-#ifdef PETSC_USE_LOG
-  PetscLogStagePush(stages[1]);
-#endif
-
-
-
-  startTime = MPI_Wtime();
-  ot::balanceOctree(linOct, balOct, dim, maxDepth, incCorner, MPI_COMM_WORLD, NULL, NULL);
-  endTime = MPI_Wtime();
-
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  std::ostringstream convert;
-//  std::string filename="bal_oct";
-//  convert<<filename<<"_"<<rank;
-//  filename=convert.str();
-//   ot::writeNodesToFile((char *)filename.c_str(),balOct);
-
-
-
-
-
-#ifdef PETSC_USE_LOG
-  PetscLogStagePop();
-#endif
-  linOct.clear();
-  // compute total inp size and output size
-  localSz = balOct.size();
-  localTime = endTime - startTime;
-  par::Mpi_Reduce<DendroIntL>(&localSz, &totalSz, 1, MPI_SUM, 0, MPI_COMM_WORLD);
-  par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);
-
-  if (!rank) {
-    std::cout << "# of Balanced Octants: " << totalSz << std::endl;
-    std::cout << "bal Time: " << totalTime << std::endl;
-  }
-
-  double stat_af_bal[3];
-  calculateBoundaryFaces(balOct,num_pseudo_proc,stat_af_bal);
-
-  if (!rank) {
-    std::cout << BLU << "===============================================" << NRM << std::endl;
-    std::cout << RED " Boundary Surfaces (min):"<<stat_af_bal[0]<< NRM << std::endl;
-    std::cout << RED " Boundary Surfaces (max):"<<stat_af_bal[1]<< NRM << std::endl;
-    std::cout << RED " Boundary Surfaces (mean):"<<stat_af_bal[2]<< NRM << std::endl;
-    std::cout << BLU << "===============================================" << NRM << std::endl;
-  }
+//// ================================================================== Balancing BEGIN============================================================
+//  MPI_Barrier(MPI_COMM_WORLD);
+//  if (!rank) {
+//    std::cout << BLU << "===============================================" << NRM << std::endl;
+//    std::cout << RED " Starting 2:1 Balance" NRM << std::endl;
+//    std::cout << BLU << "===============================================" << NRM << std::endl;
+//  }
+//
+//
+//
+//#ifdef PETSC_USE_LOG
+//  PetscLogStagePush(stages[1]);
+//#endif
+//
+//
+//
+//  startTime = MPI_Wtime();
+//  ot::balanceOctree(linOct, balOct, dim, maxDepth, incCorner, MPI_COMM_WORLD, NULL, NULL);
+//  endTime = MPI_Wtime();
+//
+//  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//  std::ostringstream convert;
+////  std::string filename="bal_oct";
+////  convert<<filename<<"_"<<rank;
+////  filename=convert.str();
+////   ot::writeNodesToFile((char *)filename.c_str(),balOct);
+//
+//
+//#ifdef PETSC_USE_LOG
+//  PetscLogStagePop();
+//#endif
+//  linOct.clear();
+//  // compute total inp size and output size
+//  localSz = balOct.size();
+//  localTime = endTime - startTime;
+//  par::Mpi_Reduce<DendroIntL>(&localSz, &totalSz, 1, MPI_SUM, 0, MPI_COMM_WORLD);
+//  par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);
+//
+//  if (!rank) {
+//    std::cout << "# of Balanced Octants: " << totalSz << std::endl;
+//    std::cout << "bal Time: " << totalTime << std::endl;
+//  }
+//
+//  double stat_af_bal[3];
+//  calculateBoundaryFaces(balOct,num_pseudo_proc,stat_af_bal);
+//
+//  if (!rank) {
+//    std::cout << BLU << "===============================================" << NRM << std::endl;
+//    std::cout << RED " Boundary Surfaces (min):"<<stat_af_bal[0]<< NRM << std::endl;
+//    std::cout << RED " Boundary Surfaces (max):"<<stat_af_bal[1]<< NRM << std::endl;
+//    std::cout << RED " Boundary Surfaces (mean):"<<stat_af_bal[2]<< NRM << std::endl;
+//    std::cout << BLU << "===============================================" << NRM << std::endl;
+//  }
 
 // ================================================================== Balancing END================================================================
 

@@ -40,6 +40,7 @@ namespace ot {
     MPI_Comm_size(comm, &size);
     out.clear();
 
+
     if (newCommPtr) {
       *newCommPtr = comm;
     }
@@ -147,11 +148,11 @@ namespace ot {
     MPI_Barrier(comm);
 #endif
     PROF_BAL_BPART1_BEGIN
-    //std::cout << YLW<<rank << ": starting blockPart1" << NRM<<std::endl;
+    std::cout << YLW<<rank << ": starting blockPart1" << NRM<<std::endl;
     blockPartStage1(in, blocks, dim, maxDepth, comm);
-    //std::cout << YLW<<rank << ": end blockPart1" << NRM<<std::endl;
-    //treeNodesTovtk(blocks, rank, "blocks_Stage_1");
-      assert(par::test::isUniqueAndSorted(blocks,comm));
+    std::cout << YLW<<rank << ": end blockPart1" << NRM<<std::endl;
+    treeNodesTovtk(blocks, rank, "blocks_Stage_1");
+
     // treeNodesTovtk(in, rank, "in_Stage_1", true);
 
     PROF_BAL_BPART1_END
@@ -164,12 +165,12 @@ namespace ot {
 #endif
 
     PROF_BAL_BPART2_BEGIN
-      //std::cout << YLW<<rank << ": starting blockPart2" << NRM<<std::endl;
+    std::cout << YLW<<rank << ": starting blockPart2" << NRM<<std::endl;
     blockPartStage2(in, blocks, minsAllBlocks, dim, maxDepth, comm);
     //blockPartStage2_p2o(in, blocks, minsAllBlocks, dim, maxDepth, comm);
     PROF_BAL_BPART2_END
 
-     //std::cout << rank << ": Done with block Part" << std::endl;
+     std::cout << rank << ": Done with block Part" << std::endl;
 
     // treeNodesTovtk(blocks, rank, "afterBlkPart_blocks", true);
     // treeNodesTovtk(in, rank, "afterBlkPart_octs", true);
@@ -976,11 +977,12 @@ namespace ot {
 
     nextPt = 0;
     nextNode = 0;
+    assert(par::test::isUniqueAndSorted(blocks,MPI_COMM_WORLD));
     //All elements of inp are inside some element in blocks.
     while (nextPt < inp.size()) {
-      // if (!rank) std::cout << "pt: " << nextPt << "/" << inp.size() << " & block: " << nextNode << "/" << blocks.size(); //  << std::endl;
-      // std::cout << "point: " << inp[nextPt] << std::endl;
-      // std::cout << "block: " << blocks[nextNode] << std::endl;
+//       if (!rank) std::cout << "pt: " << nextPt << "/" << inp.size() << " & block: " << nextNode << "/" << blocks.size(); //  << std::endl;
+//       std::cout << "point: " << inp[nextPt] << std::endl;
+//       std::cout << "block: " << blocks[nextNode] << std::endl;
       //The first pt must be inside some block.
 #ifdef __DEBUG_OCT__
       assert(areComparable(blocks[nextNode], inp[nextPt]));
