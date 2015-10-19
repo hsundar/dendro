@@ -138,10 +138,79 @@ void calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q,double
     stat[1]=global_max;
     stat[2]=global_sum/(double)(q*com_size);
 
+
 }
 
-//@author: Milinda Fernando.
-// This function is to calculate the boundary faces with some flexibility allowed.
-// Assume that the given octree vector is sorted.
+int calculateBoundaryFaces(const std::vector<ot::TreeNode>::const_iterator &beg, const std::vector<ot::TreeNode>::const_iterator &end)
+{
 
+
+    std::vector<ot::TreeNode>::const_iterator found_pt;
+    int num_boundary_faces=0;
+
+    ot::TreeNode top;
+    ot::TreeNode bottom;
+    ot::TreeNode left;
+    ot::TreeNode right;
+    ot::TreeNode front;
+    ot::TreeNode back;
+
+
+    for(std::vector<ot::TreeNode>::const_iterator it =beg;it!=end;it++)
+    {
+        top=(*(it)).getTop();
+        bottom=(*(it)).getBottom();
+        left=(*(it)).getLeft();
+        right=(*(it)).getRight();
+        front=(*(it)).getFront();
+        back=(*(it)).getBack();
+
+
+        found_pt=(std::lower_bound(beg,end, top, std::less<ot::TreeNode>()));
+        if(found_pt==beg || ((found_pt==end) && (!(*it).isAncestor(top))))
+        {
+            num_boundary_faces++;
+        }
+
+        found_pt=(std::lower_bound(beg,end, bottom, std::less<ot::TreeNode>()));
+        if(found_pt==beg || ((found_pt==end) && (!(*it).isAncestor(bottom))))
+        {
+            num_boundary_faces++;
+        }
+
+        found_pt=(std::lower_bound(beg,end, left, std::less<ot::TreeNode>()));
+        if(found_pt==beg || ((found_pt==end) && (!(*it).isAncestor(left))))
+        {
+            num_boundary_faces++;
+        }
+
+        found_pt=(std::lower_bound(beg,end, right, std::less<ot::TreeNode>()));
+        if(found_pt==beg || ((found_pt==end) && (!(*it).isAncestor(right))))
+        {
+            num_boundary_faces++;
+        }
+
+
+        found_pt=(std::lower_bound(beg,end, front, std::less<ot::TreeNode>()));
+        if(found_pt==beg || ((found_pt==end) && (!(*it).isAncestor(front))))
+        {
+            num_boundary_faces++;
+        }
+
+        found_pt=(std::lower_bound(beg,end, back, std::less<ot::TreeNode>()));
+        if(found_pt==beg || ((found_pt==end) && (!(*it).isAncestor(back))))
+        {
+            num_boundary_faces++;
+        }
+
+
+
+
+    }
+
+
+return num_boundary_faces;
+
+
+}
 

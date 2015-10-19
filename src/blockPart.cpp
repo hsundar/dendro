@@ -584,7 +584,9 @@ namespace ot {
     std::vector<TreeNode> localCoarse;
     //include both the min and max elements as well  
     //The output will be sorted, unique and linear
+
     appendCompleteRegion(nodes[0], nodes[nodes.size()-1], localCoarse, true, true);
+    //treeNodesTovtk(localCoarse,rank,"localCoarse");
 
     // 2. Get local Blocks. These will be input to completeOctree that will
     // produce globalCoarse.
@@ -606,6 +608,9 @@ namespace ot {
     unsigned int nextPt = 0;
     unsigned int nextNode = 0;
     //Every element in nodes is inside some element in localCoarse.
+    //@har: Why we need an addiational sort for the nodes ?
+    std::vector<ot::TreeNode> sorted_nodes;
+
     while (nextPt < nodes.size()) {
       //The first pt. lies in some block.
 #ifdef __DEBUG_OCT__
@@ -875,6 +880,7 @@ namespace ot {
     // assert(seq::test::isSorted(recvK));
 
     //Every element in nodes is inside some element in recvK.
+      std::cout<<RED<<"Block Part 2 While loop 1 Started"<<NRM<<std::endl;
     while (nextPt < nodes.size()) {
       //The first pt. lies in some block.
 #ifdef __DEBUG_OCT__
@@ -892,7 +898,7 @@ namespace ot {
         }
       }//end if-else
     }//end while
-
+      std::cout<<RED<<"Block Part 2 While loop 1 Ended"<<NRM<<std::endl;
     recvK.clear();
 
     //5. Now communicate the wts back to the procs ...
@@ -938,7 +944,9 @@ namespace ot {
       std::cout << rank << ": C[" << q++ << "] " << x << ", wt = " << x.getWeight() << std::endl;
     }
     */
+    std::cout << RED " Before Partition" NRM << std::endl;
     par::partitionW<ot::TreeNode>(globalCoarse,getNodeWeight,comm);
+    std::cout << RED " After Partition" NRM << std::endl;
     /*
     std::cout << RED " After Partition" NRM << std::endl;
     q=0;
@@ -1002,19 +1010,25 @@ namespace ot {
     if (npes > 1) {
       unsigned int pCnt=0;
       for (unsigned int i=0; i< nodes.size(); i++) {
-        if ( (nodes[i] >= vtkDist[pCnt]) && ( (pCnt == (npes-1)) 
+
+        if ( (nodes[i] >= vtkDist[pCnt]) && ( (pCnt == (npes-1))
               || ( nodes[i] < vtkDist[pCnt+1] ) || (vtkDist[pCnt+1] == rootNode) ) ) {
           part[i] = pCnt;
         } else {
+
           while ( (pCnt < (npes -1)) && (nodes[i] >= vtkDist[pCnt+1])
               && (vtkDist[pCnt+1] != rootNode)  ) {
             pCnt++;
+//              std::cout<<YLW<<"pCnt:"<<pCnt<<"/"<<(npes-1)<<NRM<<std::endl;
+//              std::cout<<YLW<<"nodes "<<(i+1)<<"\t"<<nodes[i+1]<<"\t vtkDist[pCnt+1]:"<<vtkDist[pCnt+1]<<NRM<<std::endl;
           }//end while
+
           part[i] = pCnt;
         }//end if-else
       }//end for i
     }//end if np>1
 
+      std::cout<<BLU<<"Line 1017"<<NRM<<std::endl;
     vtkDist.clear();
     //_________________________________________________________________________
     // Now the partitions should be contiguous since the two lists are globally
