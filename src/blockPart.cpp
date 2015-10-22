@@ -710,8 +710,10 @@ namespace ot {
     // communicate ...
     ot::TreeNode sendMinMax[2];
 
+#ifdef __DEBUG_OCT__
     assert(par::test::isSorted(nodes, comm));
     assert(par::test::isSorted(globalCoarse, comm));
+#endif
 
     if (!nodes.empty()) {
       sendMinMax[0] =  nodes[0];
@@ -726,8 +728,6 @@ namespace ot {
 
     std::vector<std::vector<TreeNode> > sendNodes(npes);
     std::vector<std::vector<unsigned int> > keymap(npes);
-
-
 
 
 

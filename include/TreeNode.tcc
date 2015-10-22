@@ -108,7 +108,7 @@ namespace ot {
 #endif
 
        if ((this->m_uiX == other.m_uiX) && (this->m_uiY == other.m_uiY) && (this->m_uiZ == other.m_uiZ)) {
-            return ((this->m_uiLevel & ot::TreeNode::MAX_LEVEL) < (other.m_uiLevel & ot::TreeNode::MAX_LEVEL));
+            return (this->m_uiLevel < other.m_uiLevel);
         } //end if
 
 #ifdef HILBERT_ORDERING
@@ -126,6 +126,7 @@ namespace ot {
 
         unsigned int z1 = m_uiZ;
         unsigned int z2 = other.getZ();
+
 // we don't need this check becasue we perform this ealier.
 //        if(x1==x2 && y1==y2 && z1==z2)
 //        {
@@ -144,11 +145,12 @@ namespace ot {
         unsigned int ncaLev = (maxDepth - maxDiffBinLen);
         ot::TreeNode nca(1,ncaX,ncaY,ncaZ,ncaLev,dim,maxDepth);
 
-        if(nca==*(this))
+        if(nca==*(this)){
             return true;
-        else if(nca==other)
+        }
+        else if(nca==other) {
             return false;
-
+        }
 
         unsigned int index1=0;
         unsigned int index2=0;
@@ -175,6 +177,10 @@ namespace ot {
             current_rot=HILBERT_TABLE[current_rot*num_children+index1];
 
         }
+
+
+
+
 
         mid_bit--;
         index1= (((z1&(1<<mid_bit))>>mid_bit)<<2)|( (((x1&(1<<mid_bit))>>mid_bit)^((z1&(1<<mid_bit))>>mid_bit)) <<1)|(((x1&(1<<mid_bit))>>mid_bit)^((y1&(1<<mid_bit))>>mid_bit)^((z1&(1<<mid_bit))>>mid_bit));

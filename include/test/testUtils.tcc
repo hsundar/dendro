@@ -30,6 +30,8 @@ namespace seq {
           if ( nodes[i] < nodes[i-1] ) {
             std::cout<<"\n Local Sort Check failed for: "<<nodes[i]<<" and "
               <<nodes[i-1]<<std::endl<<std::endl;
+            std::cout<<"nodes[i] < nodes[i-1]:"<<(nodes[i] < nodes[i-1])<<std::endl;
+            std::cout<<"nodes[i] > nodes[i-1]:"<<(nodes[i] > nodes[i-1])<<std::endl;
             return false;
           }
         }
@@ -42,6 +44,8 @@ namespace seq {
           if ( nodes[i] <= nodes[i-1] ) {
             std::cout<<"\n Local Sort+Unique Check failed for: "<<nodes[i]<<" and "
               <<nodes[i-1]<<std::endl;
+            std::cout<<"nodes[i] <= nodes[i-1]:"<<(nodes[i] <= nodes[i-1])<<std::endl;
+            std::cout<<"nodes[i] >= nodes[i-1]:"<<(nodes[i] >= nodes[i-1])<<std::endl;
             return false;
           }
         }

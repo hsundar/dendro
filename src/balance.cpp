@@ -174,7 +174,9 @@ namespace ot {
 
     // treeNodesTovtk(blocks, rank, "afterBlkPart_blocks", true);
     // treeNodesTovtk(in, rank, "afterBlkPart_octs", true);
+#ifdef __DEBUG_OCT__
     assert(par::test::isSorted(blocks, comm));
+#endif
     //blocks will be sorted.
 
     assert(!blocks.empty());
@@ -429,8 +431,10 @@ namespace ot {
 #endif
 
     //There is no need to sort, the lists are already sorted.
+#ifdef __DEBUG_OCT__
     assert(par::test::isSorted(out, comm));
     assert(par::test::isSorted(allBoundaryLeaves, comm));
+#endif
     //////////////////////////////////////////////////////////////////////////////////////////////////
     //Preparation for inter-processor balance....
     //First Stage of Communication...
@@ -977,7 +981,9 @@ namespace ot {
 
     nextPt = 0;
     nextNode = 0;
+#ifdef __DEBUG_OCT__
     assert(par::test::isUniqueAndSorted(blocks,MPI_COMM_WORLD));
+#endif
     //All elements of inp are inside some element in blocks.
     while (nextPt < inp.size()) {
 //       if (!rank) std::cout << "pt: " << nextPt << "/" << inp.size() << " & block: " << nextNode << "/" << blocks.size(); //  << std::endl;

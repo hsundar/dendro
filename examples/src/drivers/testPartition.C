@@ -235,9 +235,9 @@ int main(int argc, char **argv) {
   tmpNodes.clear();
   // std::cout << rank << "partition" << std::endl;
   par::partitionW<ot::TreeNode>(linOct, NULL, MPI_COMM_WORLD);
-
+  assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
   // treeNodesTovtk(linOct,rank,"par_1");
-  //treeNodesTovtk(linOct, rank, "input_points");
+  treeNodesTovtk(linOct, rank, "ip");
 
   // reduce and only print the total ...
   localSz = linOct.size();
@@ -276,13 +276,16 @@ int main(int argc, char **argv) {
 
   MPI_Barrier(MPI_COMM_WORLD);
 
-
-
   par::sampleSort(linOct, balOct, MPI_COMM_WORLD);
+  linOct.clear();
   linOct = balOct;
   balOct.clear();
-  
+
+  //@hari: We get duplicate elements from p2oLocal
+  assert(par::test::isSorted(linOct,MPI_COMM_WORLD));
+  par::removeDuplicates(linOct,true,MPI_COMM_WORLD);
   assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
+
 
 #ifdef PETSC_USE_LOG
   PetscLogStagePop();
