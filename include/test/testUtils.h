@@ -29,6 +29,10 @@ namespace seq {
       bool isSorted(const std::vector<T >& nodes);
 
     template<typename T>
+      bool isSorted_all_pairs(const std::vector<T > & nodes);
+
+
+    template<typename T>
       bool isSorted(T * nodes, unsigned int sz);
 
     /**

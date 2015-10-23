@@ -24,6 +24,22 @@ namespace seq {
         return true;
       }
 
+      template <typename T>
+      bool isSorted_all_pairs(const std::vector<T > & nodes) {
+        for (unsigned int i = 0; i < nodes.size(); i++) {
+          for(unsigned int j=i+1;j<nodes.size();j++)
+          {
+            if(nodes[i]>nodes[j]) {
+              std::cout << "\n Local Sort_pair Check failed for: " << nodes[i] << " and " << nodes[j] << std::endl << std::endl;
+              return false;
+            }
+          }
+
+        }
+        return true;
+      }
+
+
     template <typename T>
       bool isSorted(T* nodes, unsigned int sz) {
         for (unsigned int i = 1; i < sz; i++) {

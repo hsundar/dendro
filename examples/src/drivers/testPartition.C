@@ -236,6 +236,7 @@ int main(int argc, char **argv) {
   // std::cout << rank << "partition" << std::endl;
   par::partitionW<ot::TreeNode>(linOct, NULL, MPI_COMM_WORLD);
   assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
+
   // treeNodesTovtk(linOct,rank,"par_1");
   treeNodesTovtk(linOct, rank, "ip");
 
@@ -275,15 +276,8 @@ int main(int argc, char **argv) {
   endTime = MPI_Wtime();
 
   MPI_Barrier(MPI_COMM_WORLD);
+  treeNodesTovtk(linOct, rank, "bf_bal");
 
-  par::sampleSort(linOct, balOct, MPI_COMM_WORLD);
-  linOct.clear();
-  linOct = balOct;
-  balOct.clear();
-
-  //@hari: We get duplicate elements from p2oLocal
-  assert(par::test::isSorted(linOct,MPI_COMM_WORLD));
-  par::removeDuplicates(linOct,true,MPI_COMM_WORLD);
   assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
 
 
@@ -309,7 +303,7 @@ int main(int argc, char **argv) {
     std::cout << GRN " P2n Time: " YLW << totalTime << NRM << std::endl;
   }
 
-  treeNodesTovtk(linOct, rank, "bf_bal");
+
 
   // ===============================================Points2Octree END ===================================================================
 

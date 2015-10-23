@@ -857,9 +857,9 @@ namespace ot {
     // if (nodes.size() > (1 << dim) )
     blockPartStage1_p2o(nodes, leaves, dim, maxDepth, comm);
     blockPartStage2_p2o(nodes, leaves, minsAllBlocks, dim, maxDepth, comm);
-#ifdef __DEBUG_OCT__
+//#ifdef __DEBUG_OCT__
     assert(par::test::isUniqueAndSorted(leaves, comm));
-#endif
+//#endif
     p2oLocal(nodes, leaves, maxNumPts, dim, maxDepth);
 
     PROF_P2O_END
@@ -1050,9 +1050,13 @@ namespace ot {
     unsigned int maxDepth = first.getMaxDepth();
 
     TreeNode min = ((first < second) ? first : second);
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     if (includeMin) {
       newNodes.push_back(min);
+//      if(!rank)
+//        std::cout<<"pushed min:"<<min<<std::endl;
     }
 
     if (first == second) {
@@ -1063,8 +1067,6 @@ namespace ot {
     //Add nodes > min and < max
     TreeNode nca = getNCA(min, max);
 
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
 
     if (min == nca) {
@@ -1080,7 +1082,7 @@ namespace ot {
 #ifdef __DEBUG_OCT__
           assert(areComparable(tmpChildList[j], max));
 #endif
-          if ((tmpChildList[j]>min) && (tmpChildList[j] < max) &&
+          if ((tmpChildList[j] < max) &&
               (!(tmpChildList[j].isAncestor(max)))) {
             newNodes.push_back(tmpChildList[j]);
           } else if (tmpChildList[j].isAncestor(max)) {
@@ -1098,24 +1100,28 @@ namespace ot {
 
       // std::cout<<"nca!=min case"<<std::endl;
       TreeNode currentNode = min;
-      int count=0;
+      //int count=0;
       while (nca < currentNode) {
         TreeNode parentOfCurrent = currentNode.getParent();
         // if (!rank) std::cout << "Rank:" << rank << " Parent Node:" << parentOfCurrent << std::endl;
         std::vector<ot::TreeNode> myBros;
         parentOfCurrent.addChildren(myBros);
-        seq::test::isUniqueAndSorted(myBros);
-        seq::test::isUniqueAndSorted(newNodes);
-//        std::cout<<"While Lopp Count:"<<count<<std::endl;
-        count++;
+
+
         for (unsigned int i = 0; i < myBros.size(); i++) {
 #ifdef __DEBUG_OCT__
           assert(areComparable(myBros[i], max));
 #endif
+
           if ( (myBros[i] > min) && (myBros[i] < max) && (!(myBros[i].isAncestor(max))) && newNodes[newNodes.size()-1]<myBros[i] ) {
+
             newNodes.push_back(myBros[i]);
-//            std::cout<<"Pushing: Rank:"<<rank<<"\t "<<myBros[i]<<std::endl;
-            assert(seq::test::isUniqueAndSorted(newNodes));
+//            if(!rank) {
+//              treeNodesTovtk(newNodes,count,"newNodes");
+//              assert(seq::test::isUniqueAndSorted(newNodes));
+//
+//            }
+//            count++;
           } else if (myBros[i].isAncestor(max)) {
 
             // if (!rank) std::cout << rank << " Found ancesstor of max:" << myBros[i] << std::endl;
