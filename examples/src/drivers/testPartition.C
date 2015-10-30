@@ -3,20 +3,16 @@
 #include "sys.h"
 
 #include "parUtils.h"
-#include "TreeNode.h"
-#include "colors.h"
 #include "oda.h"
 
-#include <cstdlib>
+
 #include <execinfo.h>
-#include <unistd.h>
+
 #include <cxxabi.h>
 
 #include "externVars.h"
-#include "dendro.h"
-#include "rotation.h"
-#include "treenode2vtk.h"
 #include "octreeStatistics.h"
+#include "testUtils.h"
 
 
 //Don't want time to be synchronized. Need to check load imbalance.
@@ -137,6 +133,7 @@ void handler (int sig) {
 }
 
 int main(int argc, char **argv) {
+
 
   int size, rank;
   bool incCorner = 1;
@@ -278,7 +275,7 @@ int main(int argc, char **argv) {
   MPI_Barrier(MPI_COMM_WORLD);
   treeNodesTovtk(linOct, rank, "bf_bal");
 
-  assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
+
 
 
 #ifdef PETSC_USE_LOG
@@ -333,11 +330,8 @@ int main(int argc, char **argv) {
   }
 
 
-
-
-
-
-
+assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
+//assert(ot::test::isComplete(linOct));
 
 //// ================================================================== Balancing BEGIN============================================================
 //  MPI_Barrier(MPI_COMM_WORLD);
@@ -347,18 +341,15 @@ int main(int argc, char **argv) {
 //    std::cout << BLU << "===============================================" << NRM << std::endl;
 //  }
 //
-//
-//
 //#ifdef PETSC_USE_LOG
 //  PetscLogStagePush(stages[1]);
 //#endif
 //
-//
-//
 //  startTime = MPI_Wtime();
 //  ot::balanceOctree(linOct, balOct, dim, maxDepth, incCorner, MPI_COMM_WORLD, NULL, NULL);
 //  endTime = MPI_Wtime();
-//
+
+
 //  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 //  std::ostringstream convert;
 ////  std::string filename="bal_oct";

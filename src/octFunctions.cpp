@@ -306,6 +306,11 @@ namespace ot {
     unsigned int ncaY = ((fy>>maxDiffBinLen)<<maxDiffBinLen);
     unsigned int ncaZ = ((fz>>maxDiffBinLen)<<maxDiffBinLen);
     unsigned int ncaLev = (maxDepth - maxDiffBinLen);
+    //assert(ncaLev<std::min(first.getLevel(),second.getLevel()));
+
+    if(ncaLev>std::min(first.getLevel(),second.getLevel()))
+      ncaLev=std::min(first.getLevel(),second.getLevel());
+
     TreeNode nca(ncaX,ncaY,ncaZ,ncaLev,dim,maxDepth);
     return nca;
   }//end function

@@ -619,7 +619,7 @@ namespace ot {
         nextNode++;
         if (nextNode == localCoarse.size()) {
           //If this fails then either the lists are not sorted
-          //or there is some node which is not inside any block 
+          //or there is some node which is not inside any block
           assert(false);
         }
       }//end if-else

@@ -26,6 +26,7 @@ namespace ot {
 //Assumes nodes is sorted and unique.
 bool isComplete(const std::vector<ot::TreeNode >& nodes) {
   assert(!nodes.empty());
+
   unsigned int dim = nodes[0].getDim();
   unsigned int maxDepth = nodes[0].getMaxDepth();
 
@@ -40,6 +41,7 @@ bool isComplete(const std::vector<ot::TreeNode >& nodes) {
     }//end for i
 
     if( (tmp2.size()%8) != 0) {
+      std::cout<<"octants in "<<lev<<" not divisible by 8"<<std::endl;
       return false;
     }
 
@@ -50,6 +52,7 @@ bool isComplete(const std::vector<ot::TreeNode >& nodes) {
       for(int i = 1; i < (1 << dim); i++) {
         assert((tmp2Cnt + i) < tmp2.size()); 
         if(tmp2[tmp2Cnt + i].getParent() != currParent) {
+          std::cout<<"Treenodes at lev:"<<lev<<" do not have the same parents"<<std::endl;
           return false; 
         }
       }

@@ -1067,8 +1067,6 @@ namespace ot {
     //Add nodes > min and < max
     TreeNode nca = getNCA(min, max);
 
-
-
     if (min == nca) {
       //special case. Top down approach
       std::cout << "Special Case: min==nca" << std::endl;
@@ -1101,7 +1099,7 @@ namespace ot {
       // std::cout<<"nca!=min case"<<std::endl;
       TreeNode currentNode = min;
       //int count=0;
-      while (nca < currentNode) {
+      while (nca < currentNode ) {
         TreeNode parentOfCurrent = currentNode.getParent();
         // if (!rank) std::cout << "Rank:" << rank << " Parent Node:" << parentOfCurrent << std::endl;
         std::vector<ot::TreeNode> myBros;
@@ -1113,15 +1111,8 @@ namespace ot {
           assert(areComparable(myBros[i], max));
 #endif
 
-          if ( (myBros[i] > min) && (myBros[i] < max) && (!(myBros[i].isAncestor(max))) && newNodes[newNodes.size()-1]<myBros[i] ) {
-
+          if ( (myBros[i] > min) && (myBros[i] < max) && (!(myBros[i].isAncestor(max))) /*&& newNodes[newNodes.size()-1]<myBros[i]*/ ) {
             newNodes.push_back(myBros[i]);
-//            if(!rank) {
-//              treeNodesTovtk(newNodes,count,"newNodes");
-//              assert(seq::test::isUniqueAndSorted(newNodes));
-//
-//            }
-//            count++;
           } else if (myBros[i].isAncestor(max)) {
 
             // if (!rank) std::cout << rank << " Found ancesstor of max:" << myBros[i] << std::endl;
@@ -1145,15 +1136,6 @@ namespace ot {
                 if ((tmpChildList[j] < max) &&
                     (!(tmpChildList[j].isAncestor(max)))) {
                   newNodes.push_back(tmpChildList[j]);
-//
-//                  if(!par::test::isUniqueAndSorted(newNodes,MPI_COMM_WORLD))
-//                  {
-//                    std::cout<<YLW<<"adding children of :"<<tmpAncestor<<std::endl;
-//                    std::cout<<YLW<<"Pushing new nodes :"<<tmpChildList[j]<<std::endl;
-//                    exit(0);
-//                  }
-                  // if (!rank) std::cout << "Adding child " << j << " to newnode " << tmpChildList[j] << std::endl;
-
                 } else if (tmpChildList[j].isAncestor(max)) {
                   tmpAncestor = tmpChildList[j];
                   repeatLoop = true;
