@@ -164,7 +164,7 @@ namespace ot {
 
     PROF_BAL_BPART2_END
 
-    std::cout << rank << ": Done with block Part" << std::endl;
+    //std::cout << rank << ": Done with block Part" << std::endl;
 
 
 #ifdef __DEBUG_OCT__

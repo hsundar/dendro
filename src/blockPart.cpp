@@ -871,7 +871,7 @@ namespace ot {
     // assert(seq::test::isSorted(recvK));
 
     //Every element in nodes is inside some element in recvK.
-      std::cout<<RED<<"Block Part 2 While loop 1 Started"<<NRM<<std::endl;
+
     while (nextPt < nodes.size()) {
       //The first pt. lies in some block.
 #ifdef __DEBUG_OCT__
@@ -889,7 +889,7 @@ namespace ot {
         }
       }//end if-else
     }//end while
-      std::cout<<RED<<"Block Part 2 While loop 1 Ended"<<NRM<<std::endl;
+
     recvK.clear();
 
     //5. Now communicate the wts back to the procs ...
@@ -935,9 +935,9 @@ namespace ot {
       std::cout << rank << ": C[" << q++ << "] " << x << ", wt = " << x.getWeight() << std::endl;
     }
     */
-    std::cout << RED " Before Partition" NRM << std::endl;
+
     par::partitionW<ot::TreeNode>(globalCoarse,getNodeWeight,comm);
-    std::cout << RED " After Partition" NRM << std::endl;
+
     /*
     std::cout << RED " After Partition" NRM << std::endl;
     q=0;
@@ -1019,7 +1019,7 @@ namespace ot {
       }//end for i
     }//end if np>1
 
-      std::cout<<BLU<<"Line 1017"<<NRM<<std::endl;
+
     vtkDist.clear();
     //_________________________________________________________________________
     // Now the partitions should be contiguous since the two lists are globally

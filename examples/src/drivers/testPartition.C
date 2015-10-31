@@ -332,8 +332,8 @@ int main(int argc, char **argv) {
 
 assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
 //assert(ot::test::isComplete(linOct));
-
-//// ================================================================== Balancing BEGIN============================================================
+//
+////// ================================================================== Balancing BEGIN============================================================
 //  MPI_Barrier(MPI_COMM_WORLD);
 //  if (!rank) {
 //    std::cout << BLU << "===============================================" << NRM << std::endl;
