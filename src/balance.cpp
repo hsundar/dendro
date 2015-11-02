@@ -148,32 +148,27 @@ namespace ot {
     MPI_Barrier(comm);
 #endif
     PROF_BAL_BPART1_BEGIN
-    std::cout << YLW<<rank << ": starting blockPart1" << NRM<<std::endl;
-    blockPartStage1(in, blocks, dim, maxDepth, comm);
-    std::cout << YLW<<rank << ": end blockPart1" << NRM<<std::endl;
-    treeNodesTovtk(blocks, rank, "blocks_Stage_1");
 
-    // treeNodesTovtk(in, rank, "in_Stage_1", true);
+    blockPartStage1(in, blocks, dim, maxDepth, comm);
+
 
     PROF_BAL_BPART1_END
 
-    //par::sampleSort(blocks, minsAllBlocks, comm);
-    //blocks = minsAllBlocks;
-    //minsAllBlocks.clear();
 #ifdef __PROF_WITH_BARRIER__
     MPI_Barrier(comm);
 #endif
 
     PROF_BAL_BPART2_BEGIN
-    std::cout << YLW<<rank << ": starting blockPart2" << NRM<<std::endl;
+
     blockPartStage2(in, blocks, minsAllBlocks, dim, maxDepth, comm);
-    //blockPartStage2_p2o(in, blocks, minsAllBlocks, dim, maxDepth, comm);
+
     PROF_BAL_BPART2_END
 
-     std::cout << rank << ": Done with block Part" << std::endl;
+    //std::cout << rank << ": Done with block Part" << std::endl;
 
-    //p2oLocal()
-    assert(par::test::isUniqueAndSorted(blocks, comm));
+#ifdef __DEBUG_OCT__
+    assert(par::test::isSorted(blocks, comm));
+#endif
     //blocks will be sorted.
 
     assert(!blocks.empty());
@@ -428,8 +423,10 @@ namespace ot {
 #endif
 
     //There is no need to sort, the lists are already sorted.
+#ifdef __DEBUG_OCT__
     assert(par::test::isSorted(out, comm));
     assert(par::test::isSorted(allBoundaryLeaves, comm));
+#endif
     //////////////////////////////////////////////////////////////////////////////////////////////////
     //Preparation for inter-processor balance....
     //First Stage of Communication...
@@ -982,7 +979,9 @@ namespace ot {
 
     nextPt = 0;
     nextNode = 0;
+#ifdef __DEBUG_OCT__
     assert(par::test::isUniqueAndSorted(blocks,MPI_COMM_WORLD));
+#endif
     //All elements of inp are inside some element in blocks.
     while (nextPt < inp.size()) {
 //       if (!rank) std::cout << "pt: " << nextPt << "/" << inp.size() << " & block: " << nextNode << "/" << blocks.size(); //  << std::endl;

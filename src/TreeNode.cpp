@@ -283,7 +283,7 @@ int TreeNode  ::addChildren(std::vector<ot::TreeNode>& children) const {
   children.resize(childrenSz + (1 << dim));
   
   //#define MORTON_ORDERING
-  
+
   if ((m_uiLevel & ot::TreeNode::MAX_LEVEL) == maxDepth) {
     for (int i = 0; i < (1 << dim); i++) {
       children[childrenSz + i] = *this;

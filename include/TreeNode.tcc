@@ -108,7 +108,7 @@ namespace ot {
 #endif
 
        if ((this->m_uiX == other.m_uiX) && (this->m_uiY == other.m_uiY) && (this->m_uiZ == other.m_uiZ)) {
-            return ((this->m_uiLevel & ot::TreeNode::MAX_LEVEL) < (other.m_uiLevel & ot::TreeNode::MAX_LEVEL));
+            return (this->m_uiLevel < other.m_uiLevel);
         } //end if
 
 #ifdef HILBERT_ORDERING
@@ -126,13 +126,26 @@ namespace ot {
 
         unsigned int z1 = m_uiZ;
         unsigned int z2 = other.getZ();
-// we don't need this check becasue we perform this ealier.
-//        if(x1==x2 && y1==y2 && z1==z2)
-//        {
-//            return false;
-//        }
 
+        unsigned len;
         unsigned int maxDepth = m_uiMaxDepth;
+
+        if(this->getLevel()>other.getLevel())
+        {
+            len=1u<<(this->getMaxDepth()-other.getLevel());
+            if(!((x1<x2 || x1>=(x2+len)) || (y1<y2 || y1>=(y2+len)) ||(z1<z2 || z1>=(z2+len))))
+                return false;
+
+
+        }else if(this->getLevel()<other.getLevel())
+        {
+            len=1u<<(this->getMaxDepth()-this->getLevel());
+            if(!((x2<x1 || x2>=(x1+len))||(y2<y1 || y2>=(y1+len))||(z2<z1 || z2>=(z1+len))))
+                return true;
+
+
+        }
+
         unsigned int maxDiff = (unsigned int)(std::max((std::max((x1^x2),(y1^y2))),(z1^z2)));
         int dim=m_uiDim;
 
@@ -142,13 +155,18 @@ namespace ot {
         unsigned int ncaY = ((y1>>maxDiffBinLen)<<maxDiffBinLen);
         unsigned int ncaZ = ((z1>>maxDiffBinLen)<<maxDiffBinLen);
         unsigned int ncaLev = (maxDepth - maxDiffBinLen);
-        ot::TreeNode nca(1,ncaX,ncaY,ncaZ,ncaLev,dim,maxDepth);
 
-        if(nca==*(this))
-            return true;
-        else if(nca==other)
-            return false;
-
+//        if(ncaLev>std::min(this->getLevel(),other.getLevel()))
+//        {
+//
+//            std::cout<<"P1:"<<*(this)<<"\t P2:"<<other<<std::endl;
+//            std::cout<<"MaxDiff:"<<maxDiff<<std::endl;
+//            std::cout<<"MaxDiffLen:"<<maxDiffBinLen<<std::endl;
+//            std::cout<<"NCALEV:"<<ncaLev<<"\t this_lev:"<<this->getLevel()<<"\t other_lev:"<<other.getLevel()<<std::endl;
+//
+//            std::cout<<std::endl;
+//
+//        }
 
         unsigned int index1=0;
         unsigned int index2=0;
@@ -175,6 +193,7 @@ namespace ot {
             current_rot=HILBERT_TABLE[current_rot*num_children+index1];
 
         }
+
 
         mid_bit--;
         index1= (((z1&(1<<mid_bit))>>mid_bit)<<2)|( (((x1&(1<<mid_bit))>>mid_bit)^((z1&(1<<mid_bit))>>mid_bit)) <<1)|(((x1&(1<<mid_bit))>>mid_bit)^((y1&(1<<mid_bit))>>mid_bit)^((z1&(1<<mid_bit))>>mid_bit));
@@ -417,63 +436,6 @@ namespace ot {
 
         dld=TreeNode (1, dld_x, dld_y, dld_z, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
 
-
-// todo: Remove these branching code
-//        if (m_uiDim == 2) {
-//
-//
-//
-//            TreeNode dld;
-//            if(index1==0)
-//            {
-//                dld=TreeNode (1, minX(), minY(), minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-//            }else if(index1==1)
-//            {
-//                dld=TreeNode (1, minX(), maxY()-1, minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-//            }else if(index1==2)
-//            {
-//                dld=TreeNode(1, maxX()-1, maxY()-1, minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-//            }else if(index1==3)
-//            {
-//                dld=TreeNode(1, maxX()-1, minY(), minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-//            }
-//
-//            return dld;
-//
-//        } else if (m_uiDim == 3) {
-//
-//            TreeNode dld;
-//
-//             if(index1==0)
-//            {
-//                dld=TreeNode(1, minX(), minY(), minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-//            }else if(index1==1)
-//            {
-//                dld=TreeNode(1, minX(), maxY()-1, minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-//            }else if(index1==2)
-//            {
-//                dld=TreeNode(1, maxX()-1, maxY()-1, minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-//            }else if(index1==3)
-//            {
-//                dld=TreeNode(1, maxX()-1, minY(), minZ(), m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-//            }else if(index1==4)
-//            {
-//                dld=TreeNode(1, maxX()-1, minY(), maxZ()-1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-//            }else if(index1==5)
-//            {
-//                dld=TreeNode(1, maxX()-1, maxY()-1, maxZ()-1,m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-//            }else if(index1==6)
-//            {
-//                dld=TreeNode(1, minX(), maxY()-1, maxZ()-1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-//            }else if(index1==7)
-//            {
-//                dld=TreeNode(1, minX(), minY(), maxZ()-1, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
-//            }
-//
-//            return dld;
-//
-//        }
-
         return dld;
 
 #else
@@ -617,19 +579,26 @@ namespace ot {
     }
 #endif
 
-#ifdef HILBERT_ORDERING
-        unsigned int min1[3], min2[3], max1[3], max2[3];
-
-        min1[0] = this->minX(); min1[1] = this->minY(); min1[2] = this->minZ();
-        min2[0] = other.minX(); min2[1] = other.minY(); min2[2] = other.minZ();
-
-        max1[0] = this->maxX(); max1[1] = this->maxY(); max1[2] = this->maxZ();
-        max2[0] = other.maxX(); max2[1] = other.maxY(); max2[2] = other.maxZ();
-
-        return ( (this->m_uiLevel < other.m_uiLevel) && (min2[0] >= min1[0]) && (min2[1] >= min1[1]) && (min2[2] >= min1[2]) && (max2[0] <= max1[0]) && (max2[1] <= max1[1]) && (max2[2] <= max1[2]) );
-#else
+//#ifdef HILBERT_ORDERING
+//        unsigned int min1[3], min2[3], max1[3], max2[3];
+//
+//        min1[0] = this->minX(); min1[1] = this->minY(); min1[2] = this->minZ();
+//        min2[0] = other.minX(); min2[1] = other.minY(); min2[2] = other.minZ();
+//
+//        max1[0] = this->maxX(); max1[1] = this->maxY(); max1[2] = this->maxZ();
+//        max2[0] = other.maxX(); max2[1] = other.maxY(); max2[2] = other.maxZ();
+//
+//        bool state1=( (this->m_uiLevel < other.m_uiLevel) && (min2[0] >= min1[0]) && (min2[1] >= min1[1]) && (min2[2] >= min1[2]) && (max2[0] <= max1[0]) && (max2[1] <= max1[1]) && (max2[2] <= max1[2]) );
+////#else
+//        bool state2= ((other > (*this)) && (other <= (this->getDLD())));
+//        if(state1!=state2) {
+//            std::cout << "this:" << *(this) << "\t other:" << other << std::endl;
+//            //std::cout <<"other:"<<other<<">\t *(this):"<<*(this)<<":"<<(other > (*this))<<std::endl;
+//            //std::cout <<"(other <= (this->getDLD())):"<<(other <= (this->getDLD()))<<std::endl;
+//        }
+//         return state1;
         return ((other > (*this)) && (other <= (this->getDLD())));
-#endif
+//#endif
     } //end function
 
     inline unsigned int TreeNode::minX() const {

@@ -3,20 +3,16 @@
 #include "sys.h"
 
 #include "parUtils.h"
-#include "TreeNode.h"
-#include "colors.h"
 #include "oda.h"
 
-#include <cstdlib>
+
 #include <execinfo.h>
-#include <unistd.h>
+
 #include <cxxabi.h>
 
 #include "externVars.h"
-#include "dendro.h"
-#include "rotation.h"
-#include "treenode2vtk.h"
 #include "octreeStatistics.h"
+#include "testUtils.h"
 
 
 //Don't want time to be synchronized. Need to check load imbalance.
@@ -138,6 +134,7 @@ void handler (int sig) {
 
 int main(int argc, char **argv) {
 
+
   int size, rank;
   bool incCorner = 1;
   char bFile[50];
@@ -235,9 +232,10 @@ int main(int argc, char **argv) {
   tmpNodes.clear();
   // std::cout << rank << "partition" << std::endl;
   par::partitionW<ot::TreeNode>(linOct, NULL, MPI_COMM_WORLD);
+  assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
 
   // treeNodesTovtk(linOct,rank,"par_1");
-  //treeNodesTovtk(linOct, rank, "input_points");
+  treeNodesTovtk(linOct, rank, "ip");
 
   // reduce and only print the total ...
   localSz = linOct.size();
@@ -275,14 +273,10 @@ int main(int argc, char **argv) {
   endTime = MPI_Wtime();
 
   MPI_Barrier(MPI_COMM_WORLD);
+  treeNodesTovtk(linOct, rank, "bf_bal");
 
 
 
-  par::sampleSort(linOct, balOct, MPI_COMM_WORLD);
-  linOct = balOct;
-  balOct.clear();
-  
-  assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
 
 #ifdef PETSC_USE_LOG
   PetscLogStagePop();
@@ -316,7 +310,7 @@ int main(int argc, char **argv) {
     std::cout << GRN " P2n Time: " YLW << totalTime << NRM << std::endl;
   }
 
-  treeNodesTovtk(linOct, rank, "bf_bal");
+
 
   // ===============================================Points2Octree END ===================================================================
 
@@ -373,18 +367,15 @@ int main(int argc, char **argv) {
 //    std::cout << BLU << "===============================================" << NRM << std::endl;
 //  }
 //
-//
-//
 //#ifdef PETSC_USE_LOG
 //  PetscLogStagePush(stages[1]);
 //#endif
 //
-//
-//
 //  startTime = MPI_Wtime();
 //  ot::balanceOctree(linOct, balOct, dim, maxDepth, incCorner, MPI_COMM_WORLD, NULL, NULL);
 //  endTime = MPI_Wtime();
-//
+
+
 //  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 //  std::ostringstream convert;
 ////  std::string filename="bal_oct";
