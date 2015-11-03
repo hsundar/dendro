@@ -149,8 +149,12 @@ namespace ot {
 #endif
     PROF_BAL_BPART1_BEGIN
 
-    blockPartStage1(in, blocks, dim, maxDepth, comm);
+    //std::cout << GRN<<rank << ":Block Part START" << NRM<<std::endl;
 
+    blockPartStage1(in, blocks, dim, maxDepth, comm);
+    //assert(par::test::isUniqueAndSorted(blocks,comm));
+    treeNodesTovtk(blocks,rank,"blk_part1");
+    //std::cout << GRN<<rank << ":Block Part 1 END" << NRM<<std::endl;
 
     PROF_BAL_BPART1_END
 
@@ -164,7 +168,7 @@ namespace ot {
 
     PROF_BAL_BPART2_END
 
-    //std::cout << rank << ": Done with block Part" << std::endl;
+   // std::cout << GRN<<rank << ":Block Part END" << NRM<<std::endl;
 
 
 #ifdef __DEBUG_OCT__

@@ -745,8 +745,8 @@ namespace ot {
 #ifdef __DEBUG_OCT__
         assert(areComparable(globalCoarse[i], _mins_maxs[2*p]));
 #endif
-         //if ( (globalCoarse[i].isAncestor(_mins_maxs[2*p])) || ( (globalCoarse[i] >= _mins_maxs[2*p]) && (globalCoarse[i] <=_mins_maxs[(2*p)+1]) ) ) {
-        if ( (globalCoarse[i].isAncestor(_mins_maxs[2*p])) || ( (globalCoarse[i] >= _mins_maxs[2*p]) && (globalCoarse[i] <=_mins_maxs[(2*p)+1]) ) || (globalCoarse[i].isAncestor(_mins_maxs[2*p+1])) ) {
+         if ( (globalCoarse[i].isAncestor(_mins_maxs[2*p])) || ( (globalCoarse[i] >= _mins_maxs[2*p]) && (globalCoarse[i] <=_mins_maxs[(2*p)+1]) ) ) {
+        //if ( (globalCoarse[i].isAncestor(_mins_maxs[2*p])) || ( (globalCoarse[i] >= _mins_maxs[2*p]) && (globalCoarse[i] <=_mins_maxs[(2*p)+1]) ) || (globalCoarse[i].isAncestor(_mins_maxs[2*p+1])) ) {
            sendNodes[p].push_back(globalCoarse[i]);
           // save keymap so that we can assign weights back to globalCoarse.
            // std::cout<<YLW<<"Global Coarse added:"<<globalCoarse[i]<<std::endl;
@@ -960,7 +960,7 @@ namespace ot {
     // ot::TreeNode *sendMin = NULL;
     ot::TreeNode sendMin;
     if (!globalCoarse.empty()) {
-      sendMin = globalCoarse.begin()->getCFD();
+      sendMin = globalCoarse[0]; //globalCoarse.begin()->getCFD();
     } else {
       sendMin = rootNode;
     }

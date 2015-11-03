@@ -334,59 +334,55 @@ assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
 //assert(ot::test::isComplete(linOct));
 //
 ////// ================================================================== Balancing BEGIN============================================================
-//  MPI_Barrier(MPI_COMM_WORLD);
-//  if (!rank) {
-//    std::cout << BLU << "===============================================" << NRM << std::endl;
-//    std::cout << RED " Starting 2:1 Balance" NRM << std::endl;
-//    std::cout << BLU << "===============================================" << NRM << std::endl;
-//  }
-//
-//#ifdef PETSC_USE_LOG
-//  PetscLogStagePush(stages[1]);
-//#endif
-//
-//  startTime = MPI_Wtime();
-//  ot::balanceOctree(linOct, balOct, dim, maxDepth, incCorner, MPI_COMM_WORLD, NULL, NULL);
-//  endTime = MPI_Wtime();
+  MPI_Barrier(MPI_COMM_WORLD);
+  if (!rank) {
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+    std::cout << RED " Starting 2:1 Balance" NRM << std::endl;
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+  }
+
+#ifdef PETSC_USE_LOG
+  PetscLogStagePush(stages[1]);
+#endif
+
+  startTime = MPI_Wtime();
+  ot::balanceOctree(linOct, balOct, dim, maxDepth, incCorner, MPI_COMM_WORLD, NULL, NULL);
+  endTime = MPI_Wtime();
+
+  assert(par::test::isUniqueAndSorted(balOct,MPI_COMM_WORLD));
+ // assert(ot::test::isComplete(balOct));
 
 
-//  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//  std::ostringstream convert;
-////  std::string filename="bal_oct";
-////  convert<<filename<<"_"<<rank;
-////  filename=convert.str();
-////   ot::writeNodesToFile((char *)filename.c_str(),balOct);
-//
-//
-//#ifdef PETSC_USE_LOG
-//  PetscLogStagePop();
-//#endif
-//  linOct.clear();
-//  // compute total inp size and output size
-//  localSz = balOct.size();
-//  localTime = endTime - startTime;
-//  par::Mpi_Reduce<DendroIntL>(&localSz, &totalSz, 1, MPI_SUM, 0, MPI_COMM_WORLD);
-//  par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);
-//
-//  if (!rank) {
-//    std::cout << "# of Balanced Octants: " << totalSz << std::endl;
-//    std::cout << "bal Time: " << totalTime << std::endl;
-//  }
-//
-//  double stat_af_bal[3];
-//  calculateBoundaryFaces(balOct,num_pseudo_proc,stat_af_bal);
-//
-//  if (!rank) {
-//    std::cout << BLU << "===============================================" << NRM << std::endl;
-//    std::cout << RED " Boundary Surfaces (min):"<<stat_af_bal[0]<< NRM << std::endl;
-//    std::cout << RED " Boundary Surfaces (max):"<<stat_af_bal[1]<< NRM << std::endl;
-//    std::cout << RED " Boundary Surfaces (mean):"<<stat_af_bal[2]<< NRM << std::endl;
-//    std::cout << BLU << "===============================================" << NRM << std::endl;
-//  }
+
+#ifdef PETSC_USE_LOG
+  PetscLogStagePop();
+#endif
+  linOct.clear();
+  // compute total inp size and output size
+  localSz = balOct.size();
+  localTime = endTime - startTime;
+  par::Mpi_Reduce<DendroIntL>(&localSz, &totalSz, 1, MPI_SUM, 0, MPI_COMM_WORLD);
+  par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);
+
+  if (!rank) {
+    std::cout << "# of Balanced Octants: " << totalSz << std::endl;
+    std::cout << "bal Time: " << totalTime << std::endl;
+  }
+
+  double stat_af_bal[3];
+  calculateBoundaryFaces(balOct,num_pseudo_proc,stat_af_bal);
+
+  if (!rank) {
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+    std::cout << RED " Boundary Surfaces (min):"<<stat_af_bal[0]<< NRM << std::endl;
+    std::cout << RED " Boundary Surfaces (max):"<<stat_af_bal[1]<< NRM << std::endl;
+    std::cout << RED " Boundary Surfaces (mean):"<<stat_af_bal[2]<< NRM << std::endl;
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+  }
 
 // ================================================================== Balancing END================================================================
 
-  //treeNodesTovtk(balOct, rank, "bal_output");
+  treeNodesTovtk(balOct, rank, "bal_output");
 
 //
 //  //==================ODA Meshing=================================
