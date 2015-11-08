@@ -972,6 +972,7 @@ namespace ot {
     */
   int writeNodesToFile (char* filename, const std::vector<TreeNode> & nodes);
 
+  int writeNodesToFile_binary(char * filename,const std::vector<TreeNode> & nodes);
 
 
   /**
@@ -981,6 +982,10 @@ namespace ot {
     @param nodes the octants
     */
   int readNodesFromFile (char* filename,std::vector<TreeNode > & nodes );
+
+  int readNodesFromFile_binary (char* filename, std::vector<TreeNode > & nodes);
+
+
 
   unsigned int getNodeWeight(const TreeNode * t);
 

@@ -410,6 +410,25 @@ namespace ot {
     return 1;
   }//end function
 
+   int readNodesFromFile_binary (char* filename, std::vector<TreeNode > & nodes) {
+
+     int res;
+     FILE* infile = fopen(filename,"r");
+
+     ot::TreeNode tmp;
+     do
+     {
+       fread(&tmp,sizeof(ot::TreeNode),1,infile);
+       nodes.push_back(tmp);
+
+     }while(!feof(infile));
+
+
+
+
+
+    }
+
   int readNodesFromFile (char* filename, std::vector<TreeNode > & nodes) {
     int res;
     FILE* infile = fopen(filename,"r");
@@ -431,6 +450,20 @@ namespace ot {
     fclose(infile);
     return 1;
   }//end function
+
+  int writeNodesToFile_binary(char * filename,const std::vector<TreeNode> & nodes)
+  {
+    FILE* outfile = fopen(filename,"w");
+
+    for(int i=0;i<nodes.size();i++)
+    {
+      fwrite(&nodes[i],sizeof(ot::TreeNode),1,outfile);
+    }
+
+    fclose(outfile);
+
+    return 0;
+  }
 
   int writeNodesToFile (char* filename, const std::vector<TreeNode> & nodes) {
     FILE* outfile = fopen(filename,"w");

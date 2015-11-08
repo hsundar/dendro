@@ -324,6 +324,7 @@ int main(int argc, char **argv) {
 
     // reduce and only print the total ...
   localSz = linOct.size();
+  std::cout<<"Local unbalanced oct: "<<rank<<"\t # of oct:"<<localSz<<std::endl;
   par::Mpi_Reduce<DendroIntL>(&localSz, &totalSz, 1, MPI_SUM, 0, MPI_COMM_WORLD);
   if (rank == 0) {
     std::cout << GRN " # of Unbalanced Octants: " YLW << totalSz << NRM << std::endl;
@@ -364,6 +365,8 @@ assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
   par::Mpi_Reduce<DendroIntL>(&localSz, &totalSz, 1, MPI_SUM, 0, MPI_COMM_WORLD);
   par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);
 
+  std::cout<<"Local balanced oct: "<<rank<<"\t # of oct:"<<localSz<<std::endl;
+
   if (!rank) {
     std::cout << "# of Balanced Octants: " << totalSz << std::endl;
     std::cout << "bal Time: " << totalTime << std::endl;
@@ -382,10 +385,22 @@ assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
 
 // ================================================================== Balancing END================================================================
 
+#ifdef HILBERT_ORDERING
+  sprintf(ptsFileName, "%s%d_%d.oct", "bal_out_H_", rank, size);
+#else
+  sprintf(ptsFileName, "%s%d_%d.oct", "bal_out_M_", rank, size);
+#endif
+  ot::writeNodesToFile_binary(ptsFileName,balOct);
+
   treeNodesTovtk(balOct, rank, "bal_output");
 
-//
-//  //==================ODA Meshing=================================
+
+
+
+
+
+
+  //==================ODA Meshing=================================
 //  if (!rank) {
 //    std::cout << BLU << "===============================================" << NRM << std::endl;
 //    std::cout << RED " Starting ODA Meshing" NRM << std::endl;
@@ -403,17 +418,17 @@ assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
 //#ifdef PETSC_USE_LOG
 //  PetscLogStagePop();
 //#endif
-//  balOct.clear();
-//  // compute total inp size and output size
+////  balOct.clear();
+////  // compute total inp size and output size
 //  localSz = da.getNodeSize();
 //  localTime = endTime - startTime;
 //  par::Mpi_Reduce<DendroIntL>(&localSz, &totalSz, 1, MPI_SUM, 0, MPI_COMM_WORLD);
 //  par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);
-
-  if (!rank) {
-    std::cout << "Total # Vertices: " << totalSz << std::endl;
-    std::cout << "Time to build ODA: " << totalTime << std::endl;
-  }
+//
+//  if (!rank) {
+//    std::cout << "Total # Vertices: " << totalSz << std::endl;
+//    std::cout << "Time to build ODA: " << totalTime << std::endl;
+//  }
 
 //  //! Quality of the partition ...
 //  DendroIntL maxNodeSize, minNodeSize,
