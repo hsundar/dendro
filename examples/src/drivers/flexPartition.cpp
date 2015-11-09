@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   double slack = atof(argv[2]);
-  // @hari is this total number of procs or npes = size*q ?
+  // npes = size*q ?
   int q = atoi(argv[3]);
 
   // load in file ...
@@ -49,6 +49,7 @@ int main(int argc, char* argv[]) {
 
   if (!rank) std::cout << "finished reading in balanced octree" << std::endl;
 
+  // @milinda this might not be needed anymore
 #ifdef HILBERT_ORDERING
   par::sampleSort(tmpOct, balOct, MPI_COMM_WORLD);
   if (!rank) std::cout << "finished sorting balanced octree" << std::endl;
@@ -60,16 +61,23 @@ int main(int argc, char* argv[]) {
   MPI_Allreduce(&localSz, &globalSz, 1, MPI_UNSIGNED_LONG, MPI_SUM, MPI_COMM_WORLD);
 
   int slackCnt = slack*globalSz/size/q;
+  int part_size = localSz/q;
 
   if(!rank) std::cout << "slack size is " << slackCnt << " octants" << std::endl;
+
+  assert(slackCnt < part_size);
+
 
   //----------------------------------------------------------------------
   //   FLEX
   //----------------------------------------------------------------------
 
   // 1. each process sends slackCnt octs to next/prev.
-  std::vector<ot::TreeNode> slack_next(slackCnt), slack_prev(slackCnt);
+  std::vector<ot::TreeNode> ghosted(localSz+2*slackCnt);
   MPI_Status status;
+
+  ghosted.insert(ghosted.begin()+slackCnt, balOct.begin(), balOct.end());
+
 
   int prev = (!rank)?rank-1:MPI_PROC_NULL;
   int next = (rank+1==size)?MPI_PROC_NULL:rank+1;
@@ -77,8 +85,8 @@ int main(int argc, char* argv[]) {
   ot::TreeNode* sendPrev = &(*(balOct.begin()));
   ot::TreeNode* sendNext = &(balOct[balOct.size() - slackCnt]);
 
-  ot::TreeNode* recvPrev = &(*(slack_prev.begin()));
-  ot::TreeNode* recvNext = &(*(slack_next.begin()));
+  ot::TreeNode* recvPrev = &(*(ghosted.begin()));
+  ot::TreeNode* recvNext = &(*(ghosted.begin()+localSz+slackCnt));
 
   // send to prev
   if (!rank)
@@ -93,42 +101,77 @@ int main(int argc, char* argv[]) {
 
   // Have the extra octants ...
   // 2. compute partitions.
-  int part_size = localSz/q;
   int* partitions   = new int[q+1];
   int* num_faces    = new int[q+1];
   int faces;
+
   // partition 0
   partitions[0] = slackCnt;
   if (!rank) {
-    num_faces[0] = calculateBoundaryFaces(balOct.begin(), balOct.begin()+part_size);
-    slack_prev.insert(slack_prev.end(), balOct.begin(), balOct.begin()+part_size);
-    for (int j = 0; j < slackCnt; ++j) {
-      faces = calculateBoundaryFaces(slack_prev[j], slack_prev.end());
+    // find first
+    num_faces[0] = 6*localSz; // calculateBoundaryFaces(balOct.begin(), balOct.begin()+part_size);
+    for (int j = 0; j < 2*slackCnt; ++j) {
+      faces = calculateBoundaryFaces(ghosted.begin()+j, ghosted.begin()+slackCnt+part_size);
       if (faces < num_faces[0]) {
-        num_faces[0] = faces;
+        num_faces[0] = faces; // we will update this later ...
         partitions[0] = j;
+      }
+    }
+  } else {
+    num_faces[0] = 6*localSz; // calculateBoundaryFaces(balOct.begin(), balOct.begin()+part_size);
+    for (int j = 0; j < slackCnt; ++j) {
+      faces = calculateBoundaryFaces(ghosted.begin()+slackCnt+j, ghosted.begin()+slackCnt+part_size);
+      if (faces < num_faces[0]) {
+        num_faces[0] = faces; // we will update this later ...
+        partitions[0] = slackCnt+j;
       }
     }
   }
   std::vector<ot::TreeNode>::const_iterator first, last;
+
   // local partitions
   for (int i=1; i<q; ++i) {
-    first = balOct.begin()+i*part_size;
-    last = (i==(q-1))?balOct.end():balOct.begin()+(i+1)*part_size;
-    partitions[i] = i*part_size + slackCnt;
-    num_faces[i] = calculateBoundaryFaces(first, last);
-    first -= slackCnt;
-    for (int j = 0; j < slackCnt; ++j) {
-      faces = calculateBoundaryFaces(first+j, last);
+    first = ghosted.begin() + partitions[i-1];
+    num_faces[i] = 6*localSz;
+    last = ghosted.begin() + i*part_size;
+    for (int j = 0; j < 2*slackCnt; ++j) {
+      faces = calculateBoundaryFaces(first, last + j);
       if (faces < num_faces[i]) {
         num_faces[i] = faces;
-        partitions[i] = j;
+        partitions[i] = i*part_size + j;
       }
-
     }
   }
   // partition q
-  partitions[q] = balOct.size();
+  if (rank == size-1) {
+    first = ghosted.begin() + partitions[q-1];
+    num_faces[q] = 6*localSz;
+    last = ghosted.begin() + q*part_size;
+    for (int j = 0; j < slackCnt; ++j) {
+      faces = calculateBoundaryFaces(first, last + j);
+      if (faces < num_faces[q]) {
+        num_faces[q] = faces;
+        partitions[q] = q*part_size + j;
+      }
+    }
+  } else {
+    first = ghosted.begin() + partitions[q-1];
+    num_faces[q] = 6*localSz;
+    last = ghosted.begin() + q*part_size;
+    for (int j = 0; j < 2*slackCnt; ++j) {
+      faces = calculateBoundaryFaces(first, last + j);
+      if (faces < num_faces[q]) {
+        num_faces[q] = faces;
+        partitions[q] = q*part_size + j;
+      }
+    }
+  }
+
+  // @milinda now update num_faces
+  for (int i=0; i<q; ++i) {
+    num_faces[i] = calculateBoundaryFaces(ghosted.begin()+partitions[i], ghosted.begin()+partitions[i+1]);
+    // num_elems = partitions[i+1] - partitions[i];
+  }
 
   //----------------------------------------------------------------------
   if (!rank) {
@@ -145,23 +188,17 @@ int main(int argc, char* argv[]) {
 //@author: Milinda Fernando.
 // This function is to calculate the boundary faces
 // Assume that the given octree vector is sorted.
-int calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q) {
+int calculateBoundaryFaces(const std::vector<ot::TreeNode>::iterator first, const std::vector<ot::TreeNode>::iterator last) {
 
-  ot::TreeNode first=mesh[0];
-  ot::TreeNode last=mesh[mesh.size()-1];
-  ot::TreeNode R (first.getDim(), first.getMaxDepth());
+  ot::TreeNode R (first->getDim(), first->getMaxDepth());
 
-
-  int com_size=q;
-  int mesh_nodes=mesh.size();
-  assert(mesh_nodes>q);
-  int local_mesh_size=mesh_nodes/q;
-  int boundary_faces[q];
-
-
+  int mesh_nodes = last - first;
+  assert(mesh_nodes > 1);
 
   int found_pt;
+  bool isBdyElem;
   int num_boundary_faces=0;
+  int num_boundary_elems=0;
 
   ot::TreeNode top;
   ot::TreeNode bottom;
@@ -169,120 +206,61 @@ int calculateBoundaryFaces(const std::vector<ot::TreeNode> & mesh, int q) {
   ot::TreeNode right;
   ot::TreeNode front;
   ot::TreeNode back;
-  int temp=0;
-  int begin=0;
-  int end=0;
-  unsigned long total_boundary_faces=0;
+
+  auto temp = first;
+  auto last_local = last-1;
 
   unsigned long min_faces=1<<30;
   unsigned long max_faces=0;
 
-  for (int j=0;j<q;j++){
+  while(temp < last) {
+    isBdyElem = false;
+    top    = temp->getTop();
+    bottom = temp->getBottom();
+    left   = temp->getLeft();
+    right  = temp->getRight();
+    front  = temp->getFront();
+    back   = temp->getBack();
 
-    boundary_faces[j]=0;
-    begin=j*local_mesh_size;
-
-    temp=begin;
-    end=begin + local_mesh_size;
-
-    if(end+local_mesh_size>mesh_nodes)
-      end=mesh_nodes;
-
-
-    num_boundary_faces=0;
-
-    while(temp<end)//for(int i=0;i<mesh.size();i++)
-    {
-
-      top=mesh[temp].getTop();
-      bottom=mesh[temp].getBottom();
-      left=mesh[temp].getLeft();
-      right=mesh[temp].getRight();
-      front=mesh[temp].getFront();
-      back=mesh[temp].getBack();
-
-      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], top, std::less<ot::TreeNode>()) - &mesh[begin]);
-      // std::cout<<"top:"<<found_pt<<std::endl;
-      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top))))
-      {
-//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
-//          std::cout<<"end condition"<<std::endl;
-
-        num_boundary_faces++;
-      }
-
-      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], bottom, std::less<ot::TreeNode>()) - &mesh[begin]);
-      //std::cout<<"bottom:"<<found_pt<<std::endl;
-      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(bottom))))
-      {
-//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
-//          std::cout<<"end condition"<<std::endl;
-
-
-        num_boundary_faces++;
-      }
-
-      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], left, std::less<ot::TreeNode>()) - &mesh[begin]);
-      //std::cout<<"left:"<<found_pt<<std::endl;
-      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(left))))
-      {
-//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
-//          std::cout<<"end condition"<<std::endl;
-
-        num_boundary_faces++;
-      }
-
-      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], right, std::less<ot::TreeNode>()) - &mesh[begin]);
-      //std::cout<<"right:"<<found_pt<<std::endl;
-      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(right))))
-      {
-//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
-//          std::cout<<"end condition"<<std::endl;
-
-        num_boundary_faces++;
-      }
-      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], front, std::less<ot::TreeNode>()) - &mesh[begin]);
-      //std::cout<<"front:"<<found_pt<<std::endl;
-      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(front))))
-      {
-//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
-//          std::cout<<"end condition"<<std::endl;
-
-        num_boundary_faces++;
-      }
-
-      found_pt=(std::lower_bound(&mesh[begin], &mesh[end-1], back, std::less<ot::TreeNode>()) - &mesh[begin]);
-      //std::cout<<"back:"<<found_pt<<std::endl;
-      if(found_pt==0 || ((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(back)))) {
-
-//        if((found_pt==(end-1-begin)) && (!mesh[end-1].isAncestor(top)))
-//          std::cout<<"end condition"<<std::endl;
-
-        num_boundary_faces++;
-      }
-
-
-      temp++;
-      if(temp%local_mesh_size==0)
-      {
-        break;
-      }
-
+    found_pt=(std::lower_bound(first, last, top, std::less<ot::TreeNode>()) - first);
+    if(found_pt==0 || ( (found_pt==(last-1-first)) && (! last_local->isAncestor(top)))) {
+      num_boundary_faces++;
+      isBdyElem=true;
     }
-    boundary_faces[j]=num_boundary_faces;
-    total_boundary_faces += num_boundary_faces;
-    if (min_faces > num_boundary_faces) min_faces = num_boundary_faces;
-    if (max_faces < num_boundary_faces) max_faces = num_boundary_faces;
 
-    //std::cout<<"q:"<<j<<"\t "<<"number of boundary faces:"<<boundary_faces[j]<<std::endl;
+    found_pt=(std::lower_bound(first, last, bottom, std::less<ot::TreeNode>()) - first);
+    if(found_pt==0 || ((found_pt==(last-1-first)) && (!last_local->isAncestor(bottom)))) {
+      num_boundary_faces++;
+      isBdyElem=true;
+    }
 
+    found_pt=(std::lower_bound(first, last, left, std::less<ot::TreeNode>()) - first);
+    if(found_pt==0 || ((found_pt==(last-1-first)) && (!last_local->isAncestor(left)))) {
+      num_boundary_faces++;
+      isBdyElem=true;
+    }
+
+    found_pt=(std::lower_bound(first, last, right, std::less<ot::TreeNode>()) - first);
+    if(found_pt==0 || ((found_pt==(last-1-first)) && (!last_local->isAncestor(right)))) {
+      num_boundary_faces++;
+      isBdyElem=true;
+    }
+    found_pt=(std::lower_bound(first, last, front, std::less<ot::TreeNode>()) - first);
+    if(found_pt==0 || ((found_pt==(last-1-first)) && (!last_local->isAncestor(front)))) {
+      num_boundary_faces++;
+      isBdyElem=true;
+    }
+
+    found_pt=(std::lower_bound(first, last, back, std::less<ot::TreeNode>()) - first);
+    if(found_pt==0 || ((found_pt==(last-1-first)) && (!last_local->isAncestor(back)))) {
+      num_boundary_faces++;
+      isBdyElem=true;
+    }
+
+    if (isBdyElem) num_boundary_elems++;
+
+    temp++;
   }
 
-  unsigned long global_sum, global_max, global_min;
-
-  MPI_Reduce(&total_boundary_faces, &global_sum, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
-  MPI_Reduce(&max_faces, &global_max, 1, MPI_UNSIGNED_LONG, MPI_MAX, 0, MPI_COMM_WORLD);
-  MPI_Reduce(&min_faces, &global_min, 1, MPI_UNSIGNED_LONG, MPI_MIN, 0, MPI_COMM_WORLD);
-
-  return total_boundary_faces;
+  return num_boundary_faces;
 }
