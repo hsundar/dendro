@@ -34,6 +34,80 @@
 #endif
 
 
+void split(std::vector<ot::TreeNode>& t, const ot::TreeNode& splitter,MPI_Comm  comm)
+{
+
+    int rank,size;
+    MPI_Comm_size(comm,&size);
+    MPI_Comm_rank(comm,&rank);
+
+    std::vector<ot::TreeNode> sendNodes;
+    std::vector<ot::TreeNode> recvNodes;
+
+    long sendCnt =0;
+    long recvCnt =0;
+
+
+    MPI_Request send_req;
+    //MPI_Request recv_req;
+    MPI_Status  sts;
+
+    if(rank!=size-1) {
+
+        while ((sendCnt < t.size()) && t[sendCnt] < splitter) sendCnt++;
+        if(sendCnt!=0) {
+            for (int i = sendCnt; i < t.size(); i++) {
+                sendNodes.push_back(t[i]);
+                t.erase(t.begin()+i);
+            }
+
+
+
+            sendCnt = t.size() - sendCnt+1;
+            sendNodes.resize(sendCnt);
+
+            par::Mpi_Isend(sendNodes.data(), sendCnt, rank + 1, 1, comm, &send_req);
+        }
+
+    }
+
+    long sendCnt_all[size];
+    par::Mpi_Allgather(&sendCnt,sendCnt_all,1,comm);
+//    for(int i=0;i<size;i++)
+//        std::cout<<"SendCnt_all "<<i<<" :"<<sendCnt_all[i]<<std::endl;
+
+
+
+    if(rank!=0) {
+        recvCnt = sendCnt_all[rank - 1];
+        if(recvCnt>0)
+        {
+            recvNodes.resize(recvCnt);
+            par::Mpi_Irecv(recvNodes.data(),recvCnt,rank-1,1,comm,&send_req);
+            MPI_Wait(&send_req,&sts);
+
+//            for(int i=0;i<recvNodes.size();i++)
+//                std::cout<<"Nodes Recieved for rank: "<<rank<<" :"<<i<<": "<<recvNodes[i]<<std::endl;
+
+            std::vector<ot::TreeNode> t_aligned;
+            t_aligned.reserve(recvNodes.size()+t.size());
+            t_aligned.insert(t_aligned.end(),recvNodes.begin(),recvNodes.end());
+            t_aligned.insert(t_aligned.end(),t.begin(),t.end());
+            t=t_aligned;
+
+        }
+
+    }
+
+
+
+
+
+}
+
+
+
+
 void align_octrees(std::vector<ot::TreeNode>& t1, std::vector<ot::TreeNode>& t2, MPI_Comm comm)
 {
 
@@ -68,244 +142,96 @@ void align_octrees(std::vector<ot::TreeNode>& t1, std::vector<ot::TreeNode>& t2,
     ot::TreeNode max_1;
     ot::TreeNode max_2;
 
-    max_1=t1[t1.size()-1];
-    max_2=t2[t2.size()-1];
+    ot::TreeNode maxs[2];
+    maxs[0]=t1.back();
+    maxs[1]=t2.back();
 
-    ot::TreeNode max_2_all[size];
-    par::Mpi_Allgather(&max_1,max_2_all,1,comm);
+    std::vector<ot::TreeNode> max_all(2*size);
 
-    std::vector<ot::TreeNode> max_2_all_v(max_2_all,max_2_all+size);
 
-    int np=0;
-    np= std::lower_bound(max_2_all_v.begin(),max_2_all_v.end(),max_1)-max_2_all_v.begin();
 
-    int recieve_np[size];
-    //MPI_Alltoall(&np,1,MPI_INT,recieve_np,size,MPI_INT,comm);
-    par::Mpi_Allgather(&np,recieve_np,1,comm);
+    par::Mpi_Allgather(maxs, max_all.data(), 2, comm);
+    // par::Mpi_Allgather(&max_2,max_all+size,1,comm);
+
+        if(!rank)
+        for(int i=0;i<2*size;i++)
+            std::cout<<"max_all :"<<i<<": "<<max_all[i]<<std::endl;
+
+
+    std::sort(max_all.begin(), max_all.end());
+
+    long total_sz = g_sz_1 + g_sz_2;
+
+    long *lc_rank = new long[2*size];
+    long *gb_rank = new long[2*size];
+
+    // !!================================
+    long less_than_A=0, less_than_B=0;
+
+    for (int i=0; i<max_all.size(); ++i) {
+        while ((less_than_A < t1.size()) && t1[less_than_A] <= max_all[i]) less_than_A++;
+        while ((less_than_B < t2.size()) && t2[less_than_B] <= max_all[i]) less_than_B++;
+
+        lc_rank[i] = less_than_A + less_than_B;
+    }
+    par::Mpi_Allreduce(lc_rank, gb_rank,2*size, MPI_SUM, comm);
+
 
 //    if(!rank)
-//    for(int i=0;i<size;i++)
-//        std::cout<<"recieve_np["<<i<<"]:"<<recieve_np[i]<<std::endl;
+//        for(int i=0;i<2*size;i++)
+//            std::cout<<"gb_rank:"<<i<<":"<<gb_rank[i]<<std::endl;
 
 
+    // !!================================
 
-    int recieve_cnt=0;
-    for(int i=0;i<size;i++)
-    {
-        if(recieve_np[i]==rank) {
+    std::vector<ot::TreeNode> splitter_all;
 
-            recieve_cnt++;
-        }
+    int idx=0;
+    for (int i=1; i<size; ++i) {
+       long opt_split = ((long)i*total_sz)/size;
+       while ( opt_split < gb_rank[idx] ) idx++;
+
+       ot::TreeNode splitter = (opt_split - gb_rank[idx])<(gb_rank[idx+1]-opt_split)? max_all[idx]:max_all[idx+1];
+       splitter_all.push_back(splitter);
+
     }
 
-//    std::cout<<"Rank:"<<rank<<"\t Reciever Cnt:"<<recieve_cnt<<std::endl;
-
-    ot::TreeNode search_key[recieve_cnt];
-
-    MPI_Request  request;
-
-    par::Mpi_Isend(&max_1,1,np,1,comm,&request);
-
-    for(int i=0;i<size;i++)
-    {
-        if(recieve_np[i]==rank) {
-            par::Mpi_Irecv((search_key+i),1,i,1,comm,&request);
-
-        }
-    }
-
-    int rank_g_index_1[recieve_cnt];
-
-    for(int i=0;i<recieve_cnt;i++)
-    {
-        rank_g_index_1[i]=std::lower_bound(t2.begin(),t2.end(),search_key[i])-t2.begin();
-        rank_g_index_1 [i]=g_index_2-l_sz_2+rank_g_index_1[i];
-    }
-
-    int rank_g_index_1_all[size*recieve_cnt];
-
-    par::Mpi_Allgather(rank_g_index_1,rank_g_index_1_all,recieve_cnt,comm);
-
-    int ideal_ld=std::max(g_sz_1,g_index_2)/size;
-    int splitter=0;
-    int splitter_all[size];
-    for(int i=0;i<recieve_cnt;i++)
-    {
-        if(rank_g_index_1[i]>splitter)
-            splitter=rank_g_index_1[i];
-    }
-
-//    for(int i=0;i<recieve_cnt;i++)
-//        std::cout<<"Rank of list 1: rank_g_index_1["<<i<<"]:"<<rank_g_index_1[i]<<std::endl;
-
-    par::Mpi_Allgather(&splitter,splitter_all,1,comm);
-
-//    std::cout<<"Splitter of Rank:"<<rank<<" is : "<<splitter_all[rank]<<std::endl;
-
-    int min_sz=std::min(g_index_1,g_index_2);
-
-    int diff_1=0;
-    int diff_2=0;
-
-    int diff_1_all[size];
-    int diff_2_all[size];
-
-
-    diff_1=g_index_1-splitter_all[rank];
-    diff_2=g_index_2-splitter_all[rank];
-
-
-    par::Mpi_Allgather(&diff_1,diff_1_all,1,comm);
-    par::Mpi_Allgather(&diff_2,diff_2_all,1,comm);
-
-//    if(!rank)
-//    for(int i=0;i<size;i++) {
-//        std::cout << "Rank:" << i << "  diff_1_all[" << i<< "]:" << diff_1_all[i] << std::endl;
-//        std::cout << "Rank:" << i << "  diff_2_all[" << i << "]:" << diff_2_all[i] << std::endl;
-//        std::cout<<std::endl;
-//
-//        std::cout<<"Spliter Rank:"<<i<<"\t splitter_all["<<i<<"]:"<<splitter_all[i]<<std::endl;
-//
-//    }
-
-    MPI_Request  req;
-    MPI_Status sts;
-    if(rank!=(size-1) && diff_1>0)
-    {
-
-
-        MPI_Status status;
-        ot::TreeNode send_1[diff_1];
-        int count=0;
-        for(int i=(splitter_all[rank]+(1))-g_index_1+l_sz_1;i<t1.size();i++)
+    if(!rank)
+        for(int i=0;i<splitter_all.size();i++)
         {
-           send_1[count]=t1[i];
-           //std::cout<<"Rank :"<<rank<<"  Sending Treenode Index:"<< i<<", which is :"<<send_1[count]<<std::endl;
-            count++;
+            std::cout<<"Splitter of "<<i<<" is : "<<splitter_all[i]<<std::endl;
         }
 
-        //for(int i=0;i<diff_1;i++)
 
+    split(t1,splitter_all[rank],comm);
+    split(t2,splitter_all[rank],comm);
 
-        //if(rank!=size-1)
-        par::Mpi_Issend(send_1,diff_1,rank+1,1,comm,&req);
-        t1.erase(t1.begin()+((splitter_all[rank]+(1))-g_index_1+l_sz_1),t1.end());
+    std::vector<ot::TreeNode> diff_A;
+    std::vector<ot::TreeNode> diff_B;
 
-
-
-
-    }
-
-
-    if(rank!=0 && diff_1_all[rank-1]>0) {
-
-        ot::TreeNode recv_1[diff_1_all[rank-1]];
-        par::Mpi_Recv(recv_1,diff_1_all[rank-1],rank-1,1,comm,&sts);
-
-//        if(rank==2)
-//        for(int i=0;i<diff_1_all[rank-1];i++)
-//            std::cout <<"Recived octants:"<<recv_1[i]<<"Dim:"<<recv_1[i].getDim()<<std::endl;
-
-
-        std::vector<ot::TreeNode> t1_aligned;
-        for (int i = 0; i < diff_1_all[rank-1]; i++)
-            t1_aligned.push_back(recv_1[i]);
-
-        treeNodesTovtk(t1,rank,"recieved");
-
-        for (int i = 0; i < t1.size(); i++)
-            t1_aligned.push_back(t1_cpy[i]);
-
-//        std::cout<<"Rank:"<<rank<<"\tt1_aligned_size:"<<t1.size()<<std::endl;
-//        if(rank==2)
-//        for(int i=0;i<t1_aligned.size();i++)
-//        {
-//            std::cout<<"TreeNode in rank:"<<rank<<" is:"<<t1_aligned[i]<<std::endl;
-//        }
-
-        t1.clear();
-        t1=t1_aligned;
-
-    }
-
-    if(rank!=(size-1) && diff_2>0)
+    for(int i=0;i<t1.size();i++)
     {
+        int lb=0;
+        while((lb<t2.size()) && t2[lb]<t1[i]) lb++;
 
-
-        ot::TreeNode send_2[diff_2];
-        int count=0;
-        for(int i=splitter_all[rank]+(1)-g_index_2+l_sz_2;i<t2.size();i++){
-            //int lc_index=(splitter_all[rank]+(i+1))-g_index_1+l_sz_2;//g_index_2-(splitter_all[rank]+(i+1));
-            send_2[count]=t2[i];
-            count++;
+        if(t2[lb]!=t1[i]) {
+            diff_B.push_back(t2[lb]);
+            diff_A.push_back(t1[lb]);
         }
-
-        par::Mpi_Issend(send_2,diff_2,rank+1,1,comm,&req);
-        t2.erase(t2.begin()+((splitter_all[rank]+(1))-g_index_1+l_sz_2),t2.end());
-
-
-
-
     }
 
-    if(rank!=0 && diff_2_all[rank-1]>0) {
-
-        ot::TreeNode recv_2[diff_2_all[rank-1]];
-
-        par::Mpi_Recv(recv_2,diff_2_all[rank-1],rank-1,1,comm,&sts);
-//        for(int i=0;i<diff_1_all[rank-1];i++)
-//            std::cout <<"Recived octants:"<<recv_2[i]<<std::endl;
-
-        std::vector<ot::TreeNode> t2_aligned;
+    if(diff_A.size()>0)
+        treeNodesTovtk(diff_A,rank,"diff_A");
+    if(diff_B.size()>0)
+        treeNodesTovtk(diff_B,rank,"diff_B");
 
 
-        for (int i = 0; i < diff_2_all[rank-1]; i++)
-            t2_aligned.push_back(recv_2[i]);
-
-        for (int i = 0; i < t2.size(); i++)
-            t2_aligned.push_back(t2[i]);
-
-        t2.clear();
-        t2 = t2_aligned;
-    }
-
-
-//    std::cout<<"Rank:"<<rank<<" Original t1_size:"<<t1_cpy.size()<<"\t aligend size:"<<t1.size()<<std::endl;
-//    std::cout<<"Rank:"<<rank<<" Original t2_size:"<<t2_cpy.size()<<"\t aligend size:"<<t2.size()<<std::endl;
-
-
-      std::vector<ot::TreeNode> diff;
-
-      for(int i=0;i<t1.size();i++)
-      {
-          int lb=std::lower_bound(t2.begin(),t2.end(),t1[i])-t2.begin();
-          if(t2[lb]!=t1[i])
-              diff.push_back(t1[i]);
-
-      }
+    treeNodesTovtk(t1,rank,"t1_aligned");
+    treeNodesTovtk(t2,rank,"t2_aligned");
 
 
 
-
-
-
-      treeNodesTovtk(t1,rank,"t1_aligned");
-      treeNodesTovtk(t2,rank,"t2_aligned");
-      treeNodesTovtk(diff,rank,"diff");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//      treeNodesTovtk(diff,rank,"diff");
 
 
 }
