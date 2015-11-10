@@ -85,7 +85,7 @@ namespace ot {
     completeOctree(localBlocks, blocks, dim, maxDepth, false, true, false, comm);
     //int rank=0;
     //MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-    treeNodesTovtk(blocks,rank,"p2o_complete_octree");
+    //treeNodesTovtk(blocks,rank,"p2o_complete_octree");
     localBlocks.clear();
 
     PROF_BLKPART1_END
@@ -631,7 +631,7 @@ namespace ot {
     }//end while
 
     sort(localCoarse.begin(), localCoarse.end(), ot::bPartComparator);
-      treeNodesTovtk(localCoarse,rank,"local_coarse");
+      //treeNodesTovtk(localCoarse,rank,"local_coarse");
     long localWt = 0;
     unsigned int cnt = 0;
     while ( ( cnt < localCoarse.size() ) &&
@@ -658,10 +658,10 @@ namespace ot {
     //localBlocks will be sorted, linear and unique at this point 
     //localBlocks will not be empty on any processor
 
-    treeNodesTovtk(localBlocks,rank,"local_blocks");
+    //treeNodesTovtk(localBlocks,rank,"local_blocks");
     completeOctree(localBlocks, blocks, dim, maxDepth, true,true,true, comm);
     assert(par::test::isUniqueAndSorted(blocks, comm));
-    treeNodesTovtk(blocks,rank,"af_complete_octree");
+    //treeNodesTovtk(blocks,rank,"af_complete_octree");
     localBlocks.clear();
 
 #endif

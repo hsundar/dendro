@@ -419,6 +419,8 @@ namespace ot {
      do
      {
        fread(&tmp,sizeof(ot::TreeNode),1,infile);
+       if(tmp.getDim()!=3)
+         std::cout<<"Dim error:"<<tmp<<std::endl;
        nodes.push_back(tmp);
 
      }while(!feof(infile));

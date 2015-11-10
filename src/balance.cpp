@@ -153,7 +153,7 @@ namespace ot {
 
     blockPartStage1(in, blocks, dim, maxDepth, comm);
     //assert(par::test::isUniqueAndSorted(blocks,comm));
-    treeNodesTovtk(blocks,rank,"blk_part1");
+    //treeNodesTovtk(blocks,rank,"blk_part1");
     //std::cout << GRN<<rank << ":Block Part 1 END" << NRM<<std::endl;
 
     PROF_BAL_BPART1_END
@@ -252,10 +252,10 @@ namespace ot {
     std::vector<ot::TreeNode> allBoundaryLeaves;
     std::vector<unsigned int> maxBlockBndVec;
 
-    treeNodesTovtk(in, rank, "inp_bal_blk", true);
-    treeNodesTovtk(blocks, rank, "blocks_bal_blk", true);
+//    treeNodesTovtk(in, rank, "inp_bal_blk", true);
+//    treeNodesTovtk(blocks, rank, "blocks_bal_blk", true);
 
-    std::cout << rank << ": sizes " << blocks.size() << ", " << in.size() << std::endl;
+//    std::cout << rank << ": sizes " << blocks.size() << ", " << in.size() << std::endl;
 
     balanceBlocks(in, blocks, out, allBoundaryLeaves, incCorner, &maxBlockBndVec);
     in.clear();
@@ -956,15 +956,15 @@ namespace ot {
     PROF_CON_BAL_BEGIN
       int rank=0;
       MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-      std::cout<<RED<<"Rank:"<<rank<<"\t inp size:"<<inp.size()<<NRM<<std::endl;
+      //std::cout<<RED<<"Rank:"<<rank<<"\t inp size:"<<inp.size()<<NRM<<std::endl;
 
       std::vector<ot::TreeNode> temp_inp;
       std::vector<ot::TreeNode> temp_blocks;
 
       temp_inp=inp;
       temp_blocks=blocks;
-      treeNodesTovtk(temp_inp,rank,"inp");
-      treeNodesTovtk(temp_blocks,rank,"blocks");
+      //treeNodesTovtk(temp_inp,rank,"inp");
+      //treeNodesTovtk(temp_blocks,rank,"blocks");
       if (inp.empty()) {
       nodes.clear();
       allBoundaryLeaves.clear();

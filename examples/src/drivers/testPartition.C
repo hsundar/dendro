@@ -164,11 +164,12 @@ int main(int argc, char **argv) {
 
 
   if (argc < 3) {
-    std::cerr << "Usage: " << argv[0] << " inpfile num_pseudo_proc" <<std::endl;
+    std::cerr << "Usage: " << argv[0] << " inpfile slack [0.0,1.0] num_pseudo_proc" <<std::endl;
     return -1;
   }
 
-  int num_pseudo_proc=atoi(argv[2]);
+  double slack=atof(argv[2]);
+  int num_pseudo_proc=atoi(argv[3]);
 
 
   PetscInitialize(&argc, &argv, "options.hs", NULL);
@@ -273,7 +274,7 @@ int main(int argc, char **argv) {
   endTime = MPI_Wtime();
 
   MPI_Barrier(MPI_COMM_WORLD);
-  treeNodesTovtk(linOct, rank, "bf_bal");
+//  treeNodesTovtk(linOct, rank, "bf_bal");
 
 
 
@@ -292,14 +293,14 @@ int main(int argc, char **argv) {
 
   // par::partitionW<ot::TreeNode>(linOct, NULL, MPI_COMM_WORLD);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  treeNodesTovtk(linOct, rank, "bfBalancing");
+ // treeNodesTovtk(linOct, rank, "bfBalancing");
 
   DendroIntL num_surface=calculateBoundaryFaces(linOct,10);
-  //if (!rank) {
-    std::cout << BLU << "===============================================" << NRM << std::endl;
-    std::cout << RED " Number of Boundary Faces: Rank:" <<rank<<"\t"<<num_surface<<NRM << std::endl;
-    std::cout << BLU << "===============================================" << NRM << std::endl;
-  //}
+//  //if (!rank) {
+//    std::cout << BLU << "===============================================" << NRM << std::endl;
+//    std::cout << RED " Number of Boundary Faces: Rank:" <<rank<<"\t"<<num_surface<<NRM << std::endl;
+//    std::cout << BLU << "===============================================" << NRM << std::endl;
+//  //}
   DendroIntL total_boundary_faces=0;
   par::Mpi_Reduce<DendroIntL>(&num_surface,&total_boundary_faces,1, MPI_SUM, 0, MPI_COMM_WORLD);
 
@@ -334,7 +335,7 @@ int main(int argc, char **argv) {
 
     // reduce and only print the total ...
   localSz = linOct.size();
-  std::cout<<"Local unbalanced oct: "<<rank<<"\t # of oct:"<<localSz<<std::endl;
+ // std::cout<<"Local unbalanced oct: "<<rank<<"\t # of oct:"<<localSz<<std::endl;
   par::Mpi_Reduce<DendroIntL>(&localSz, &totalSz, 1, MPI_SUM, 0, MPI_COMM_WORLD);
   if (rank == 0) {
     std::cout << GRN " # of Unbalanced Octants: " YLW << totalSz << NRM << std::endl;
@@ -371,8 +372,12 @@ assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
 //  startTime = MPI_Wtime();
 //  ot::balanceOctree(linOct, balOct, dim, maxDepth, incCorner, MPI_COMM_WORLD, NULL, NULL);
 //  endTime = MPI_Wtime();
-=======
->>>>>>> 220a7fe67e14a62c0e008c4f3a924b3e519941e1
+  MPI_Barrier(MPI_COMM_WORLD);
+  if (!rank) {
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+    std::cout << RED " Starting 2:1 Balance" NRM << std::endl;
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+  }
 
 #ifdef PETSC_USE_LOG
   PetscLogStagePush(stages[1]);
@@ -383,7 +388,6 @@ assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
   endTime = MPI_Wtime();
 
   assert(par::test::isUniqueAndSorted(balOct,MPI_COMM_WORLD));
- // assert(ot::test::isComplete(balOct));
 
 
 
@@ -397,7 +401,7 @@ assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
   par::Mpi_Reduce<DendroIntL>(&localSz, &totalSz, 1, MPI_SUM, 0, MPI_COMM_WORLD);
   par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);
 
-  std::cout<<"Local balanced oct: "<<rank<<"\t # of oct:"<<localSz<<std::endl;
+ // std::cout<<"Local balanced oct: "<<rank<<"\t # of oct:"<<localSz<<std::endl;
 
   if (!rank) {
     std::cout << "# of Balanced Octants: " << totalSz << std::endl;
@@ -426,6 +430,8 @@ assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
 
   treeNodesTovtk(balOct, rank, "bal_output");
 
+
+  flexiblePartitionCalculation(balOct,slack,num_pseudo_proc,MPI_COMM_WORLD);
 
 
 
