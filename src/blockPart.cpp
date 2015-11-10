@@ -81,9 +81,11 @@ namespace ot {
     //localBlocks will be globally unique. For example, if the last element in the input on processor i
     //is the same as the first element on processor i+1 and if they are both
     //selected in localBlocks.
-
+      //treeNodesTovtk(localBlocks,rank,"p2o_complete_octree_local_blocks");
     completeOctree(localBlocks, blocks, dim, maxDepth, false, true, false, comm);
-
+    //int rank=0;
+    //MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    treeNodesTovtk(blocks,rank,"p2o_complete_octree");
     localBlocks.clear();
 
     PROF_BLKPART1_END
@@ -578,7 +580,7 @@ namespace ot {
 
 #else
 
-    // 1. First compute the localCoarse octree 
+    // 1. First compute the localCoarse octree
     std::vector<TreeNode> localCoarse;
     //include both the min and max elements as well  
     //The output will be sorted, unique and linear
@@ -594,6 +596,9 @@ namespace ot {
     //Logic: Use bPartComparator to assign priorities and pick the ones
     //with high priority. The number to be picked is determined by a percentage
     //of the total local wt.
+
+
+
 
     for (unsigned int i = 0; i < localCoarse.size(); i++) {
       localCoarse[i].setWeight(0);
@@ -626,7 +631,7 @@ namespace ot {
     }//end while
 
     sort(localCoarse.begin(), localCoarse.end(), ot::bPartComparator);
-
+      treeNodesTovtk(localCoarse,rank,"local_coarse");
     long localWt = 0;
     unsigned int cnt = 0;
     while ( ( cnt < localCoarse.size() ) &&
@@ -635,6 +640,8 @@ namespace ot {
       localWt += (long)(localCoarse[cnt].getWeight());
       cnt++;
     }//end while
+
+
 
     localCoarse.clear();
 
@@ -651,8 +658,10 @@ namespace ot {
     //localBlocks will be sorted, linear and unique at this point 
     //localBlocks will not be empty on any processor
 
-    completeOctree(localBlocks, blocks, dim, maxDepth, true, true, true, comm);
-
+    treeNodesTovtk(localBlocks,rank,"local_blocks");
+    completeOctree(localBlocks, blocks, dim, maxDepth, true,true,true, comm);
+    assert(par::test::isUniqueAndSorted(blocks, comm));
+    treeNodesTovtk(blocks,rank,"af_complete_octree");
     localBlocks.clear();
 
 #endif

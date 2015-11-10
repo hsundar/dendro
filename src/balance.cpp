@@ -170,7 +170,6 @@ namespace ot {
 
    // std::cout << GRN<<rank << ":Block Part END" << NRM<<std::endl;
 
-
 #ifdef __DEBUG_OCT__
     assert(par::test::isSorted(blocks, comm));
 #endif
@@ -253,6 +252,10 @@ namespace ot {
     std::vector<ot::TreeNode> allBoundaryLeaves;
     std::vector<unsigned int> maxBlockBndVec;
 
+    treeNodesTovtk(in, rank, "inp_bal_blk", true);
+    treeNodesTovtk(blocks, rank, "blocks_bal_blk", true);
+
+    std::cout << rank << ": sizes " << blocks.size() << ", " << in.size() << std::endl;
 
     balanceBlocks(in, blocks, out, allBoundaryLeaves, incCorner, &maxBlockBndVec);
     in.clear();
@@ -834,7 +837,7 @@ namespace ot {
 #endif
         if ((blocks[nextNode].isAncestor(in[nextPt])) ||
             (blocks[nextNode] == in[nextPt])) {
-          splitInp[nextNode].push_back(in[nextPt]);
+
           nextPt++;
         } else {
           nextNode++;
@@ -842,6 +845,7 @@ namespace ot {
             assert(false);
           }
         }
+
       }//end while
       for (unsigned int i = 0; i < blocks.size(); i++) {
         comboRipple(splitInp[i], incCorner, maxNum);
@@ -950,13 +954,18 @@ namespace ot {
                     std::vector<TreeNode> &allBoundaryLeaves, bool incCorner,
                     std::vector<unsigned int> *maxBlockBndVec) {
     PROF_CON_BAL_BEGIN
+      int rank=0;
+      MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+      std::cout<<RED<<"Rank:"<<rank<<"\t inp size:"<<inp.size()<<NRM<<std::endl;
 
-    // @hari debug code: remove
-    // std::cout << "Entering " << __func__ << std::endl;
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::vector<ot::TreeNode> temp_inp;
+      std::vector<ot::TreeNode> temp_blocks;
 
-    if (inp.empty()) {
+      temp_inp=inp;
+      temp_blocks=blocks;
+      treeNodesTovtk(temp_inp,rank,"inp");
+      treeNodesTovtk(temp_blocks,rank,"blocks");
+      if (inp.empty()) {
       nodes.clear();
       allBoundaryLeaves.clear();
       if (maxBlockBndVec != NULL) {
@@ -994,9 +1003,16 @@ namespace ot {
         nextNode++;
         // if (!rank) std::cout << RED " skipped" NRM << std::endl;
         if (nextNode == blocks.size()) {
+
+            std::cout<<"Rank:"<<rank<<std::endl;
+            std::cout << "pt: " << nextPt << "/" << inp.size() << " & block: " << nextNode << "/" << blocks.size() << std::endl;
+            std::cout << "point: " << inp[nextPt] << std::endl;
+            std::cout << "block: " << blocks[nextNode-1] << std::endl;
+            std::cout << "block: " << blocks[nextNode-2] << std::endl;
           assert(false);
         }
       }
+
     }//end while
 
     //Create Local Trees

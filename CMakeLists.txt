@@ -122,6 +122,9 @@ target_link_libraries(genPrlFBMpts ${MPI_LIBRARIES} m)
 add_executable(testRipple examples/src/drivers/tstRipple.C)
 target_link_libraries(testRipple dendro petsc ${MPI_LIBRARIES} m)
 
+add_executable(flexPartition examples/src/drivers/flexPartition.cpp)
+target_link_libraries(flexPartition dendro petsc ${MPI_LIBRARIES} m)
+
 add_executable(runScal examples/src/drivers/runScal.C)
 target_link_libraries(runScal dendro petsc ${MPI_LIBRARIES} m)
 

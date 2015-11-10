@@ -292,7 +292,17 @@ int main(int argc, char **argv) {
 
   // par::partitionW<ot::TreeNode>(linOct, NULL, MPI_COMM_WORLD);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  //treeNodesTovtk(linOct, rank, "bfBalancing");
+  treeNodesTovtk(linOct, rank, "bfBalancing");
+
+  DendroIntL num_surface=calculateBoundaryFaces(linOct,10);
+  //if (!rank) {
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+    std::cout << RED " Number of Boundary Faces: Rank:" <<rank<<"\t"<<num_surface<<NRM << std::endl;
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+  //}
+  DendroIntL total_boundary_faces=0;
+  par::Mpi_Reduce<DendroIntL>(&num_surface,&total_boundary_faces,1, MPI_SUM, 0, MPI_COMM_WORLD);
+
 
   localTime = endTime - startTime;
   par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);
@@ -330,11 +340,22 @@ int main(int argc, char **argv) {
     std::cout << GRN " # of Unbalanced Octants: " YLW << totalSz << NRM << std::endl;
   }
 
+  if (!rank) {
+    double surf_volume_r=total_boundary_faces/(double)totalSz;
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+    std::cout << RED " Surface to Volume ratio:" <<total_boundary_faces<<"/"<<totalSz<<"="<<surf_volume_r<<NRM << std::endl;
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+  }
 
 assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
 //assert(ot::test::isComplete(linOct));
 //
 ////// ================================================================== Balancing BEGIN============================================================
+  pts.clear();
+
+  //treeNodesTovtk(linOct, rank, "p2o_output");
+
+  // =========== Balancing ============
   MPI_Barrier(MPI_COMM_WORLD);
   if (!rank) {
     std::cout << BLU << "===============================================" << NRM << std::endl;
@@ -351,7 +372,6 @@ assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
   endTime = MPI_Wtime();
 
   assert(par::test::isUniqueAndSorted(balOct,MPI_COMM_WORLD));
- // assert(ot::test::isComplete(balOct));
 
 
 

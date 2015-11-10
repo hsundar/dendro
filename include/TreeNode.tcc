@@ -367,8 +367,23 @@ namespace ot {
     }
 
     inline TreeNode TreeNode::getDFD() const {
+
+
+#ifdef HILBERT_ORDERING
+
+        TreeNode dfd=*this;
+        while(dfd.getLevel()<m_uiMaxDepth)
+            dfd=dfd.getFirstChild();
+
+        return dfd;
+
+#else
+
+
         TreeNode dfd(1, m_uiX, m_uiY, m_uiZ, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
         return dfd;
+
+#endif
     } //end function
 
     inline TreeNode TreeNode::getCFD() const {
@@ -395,6 +410,7 @@ namespace ot {
 
 
     }
+
 
     inline TreeNode TreeNode::getDLD() const {
 #ifdef HILBERT_ORDERING
