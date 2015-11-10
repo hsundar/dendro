@@ -122,8 +122,7 @@ target_link_libraries(genPrlFBMpts ${MPI_LIBRARIES} m)
 add_executable(testRipple examples/src/drivers/tstRipple.C)
 target_link_libraries(testRipple dendro petsc ${MPI_LIBRARIES} m)
 
-add_executable(flexPartition examples/src/drivers/flexPartition.cpp)
-target_link_libraries(flexPartition dendro petsc ${MPI_LIBRARIES} m)
+
 
 add_executable(runScal examples/src/drivers/runScal.C)
 target_link_libraries(runScal dendro petsc ${MPI_LIBRARIES} m)
@@ -158,8 +157,8 @@ if(BUILD_DA_EXAMPLES)
     add_executable(diffOctree examples/src/drivers/diff_morton_hilbert.C include/hcurvedata.h src/hcurvedata.cpp examples/include/octreeStatistics.h examples/src/drivers/octreeStatistics.cpp include/test/testUtils.h src/test/testUtils.C )
     target_link_libraries(diffOctree dendroDA dendro petsc ${MPI_LIBRARIES} m)
 
-    add_executable(flexPart examples/src/drivers/flexPart.C include/hcurvedata.h src/hcurvedata.cpp examples/include/octreeStatistics.h examples/src/drivers/octreeStatistics.cpp )
-    target_link_libraries(flexPart dendroDA dendro petsc ${MPI_LIBRARIES} m)
+    add_executable(flexPartition examples/src/drivers/flexPartition.C include/hcurvedata.h src/hcurvedata.cpp examples/include/octreeStatistics.h examples/src/drivers/octreeStatistics.cpp include/test/testUtils.h src/test/testUtils.C)
+    target_link_libraries(flexPartition dendroDA dendro petsc ${MPI_LIBRARIES} m)
 
     add_executable(tstMatVec examples/src/drivers/tstMatVec.C examples/src/backend/odaJac.C examples/src/backend/handleType2Stencils.C)
     target_link_libraries(tstMatVec dendroDA dendro petsc ${MPI_LIBRARIES} m)
