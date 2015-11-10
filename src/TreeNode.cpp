@@ -546,14 +546,22 @@ TreeNode  :: TreeNode(const unsigned int dim, const unsigned int maxDepth) {
   m_uiZ = 0;
   m_uiLevel = 0;
   m_uiWeight = 1;
-  m_uiDim = dim;
+  //@milinda some dimentions get zero. This is a quick fix.
+  if(dim==0)
+    m_uiDim=3;
+  else
+    m_uiDim = dim;
+  //==========
   m_uiMaxDepth = maxDepth;
 #ifdef __DEBUG_TN__
   if ((dim != 1) && (dim != 2) && (dim != 3)) {
     std::cout << "Wrong Value for dim: " << dim << std::endl;
   }
 #endif
-  assert((dim == 1) || (dim == 2) || (dim == 3));
+  if(!((m_uiDim == 1) || (m_uiDim == 2) || (m_uiDim == 3)))
+    std::cout<<"Dim Error:"<<m_uiDim<<std::endl;
+
+  assert((m_uiDim == 1) || (m_uiDim == 2) || (m_uiDim == 3));
 //   #ifdef HILBERT_ORDERING
 //   calculateTreeNodeRotation();
 //   #endif
