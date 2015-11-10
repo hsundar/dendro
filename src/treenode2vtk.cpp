@@ -6,7 +6,14 @@ void treeNodesTovtk(std::vector<ot::TreeNode> &nodes, int mpi_rank, std::string 
   std::sort(nodes.begin(), nodes.end());
   if (!mpi_rank) std::cout << "writing mesh to VTK file: " << vtk_file_name << std::endl;
   std::ostringstream convert;
-  convert << vtk_file_name << "_" << mpi_rank << ".vtk";
+
+#ifdef  HILBERT_ORDERING
+  convert << vtk_file_name << "_H_" << mpi_rank << ".vtk";
+#else
+  convert << vtk_file_name << "_M_" << mpi_rank << ".vtk";
+#endif
+
+  //convert << vtk_file_name << "_" << mpi_rank << ".vtk";
   vtk_file_name = convert.str();
 
   std::ofstream myfile;
@@ -17,11 +24,13 @@ void treeNodesTovtk(std::vector<ot::TreeNode> &nodes, int mpi_rank, std::string 
   myfile << "ASCII" << std::endl;
   myfile << "DATASET UNSTRUCTURED_GRID" << std::endl;
 
-  int dim = nodes[0].getDim();
+  int dim = 3;//nodes[0].getDim();
 
   int unit_points = 1 << dim;
   int num_verticies = nodes.size() * (unit_points);
   int num_cells = nodes.size();
+
+  //std::cout<<"FileName :"<<vtk_file_name<<"\t DIM:"<<dim<<"\t number of points:"<<num_verticies<<"\t number of cells:"<<num_cells<<std::endl;
 
 
   myfile << "POINTS " << num_verticies << " float" << std::endl;
