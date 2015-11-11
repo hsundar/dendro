@@ -171,7 +171,7 @@ int main(int argc, char **argv) {
 
   double slack=atof(argv[2]);
   int enable_pts_io=atoi(argv[3]);
-  int numlPts_g=atoi(argv[4]);
+  long numlPts_g=atoi(argv[4]);
   int num_pseudo_proc=atoi(argv[5]);
 
 
@@ -217,8 +217,8 @@ int main(int argc, char **argv) {
   if(enable_pts_io==1)
   {
 
-      int local_numPts=numlPts_g/size;
-      int lc_size=0;
+      long local_numPts=numlPts_g/size;
+      long lc_size=0;
       lc_size=((rank+1)*numlPts_g)/size-(rank*numlPts_g)/size;
       genGauss(0.5,lc_size,dim,argv[1],MPI_COMM_WORLD);
 
@@ -268,7 +268,8 @@ int main(int argc, char **argv) {
   assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
 
   // treeNodesTovtk(linOct,rank,"par_1");
-  treeNodesTovtk(linOct, rank, "ip");
+
+//  treeNodesTovtk(linOct, rank, "ip");
 
   // reduce and only print the total ...
   localSz = linOct.size();
@@ -437,15 +438,15 @@ assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
   }
 
 // ================================================================== Balancing END================================================================
+//
+//#ifdef HILBERT_ORDERING
+//  sprintf(ptsFileName, "%s%d_%d.oct", "bal_out_H_", rank, size);
+//#else
+//  sprintf(ptsFileName, "%s%d_%d.oct", "bal_out_M_", rank, size);
+//#endif
+//  ot::writeNodesToFile_binary(ptsFileName,balOct);
 
-#ifdef HILBERT_ORDERING
-  sprintf(ptsFileName, "%s%d_%d.oct", "bal_out_H_", rank, size);
-#else
-  sprintf(ptsFileName, "%s%d_%d.oct", "bal_out_M_", rank, size);
-#endif
-  ot::writeNodesToFile_binary(ptsFileName,balOct);
-
-  treeNodesTovtk(balOct, rank, "bal_output");
+  //treeNodesTovtk(balOct, rank, "bal_output");
 
 
   flexiblePartitionCalculation(balOct,slack,num_pseudo_proc,MPI_COMM_WORLD);
