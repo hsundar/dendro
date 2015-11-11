@@ -13,6 +13,7 @@
 #include "externVars.h"
 #include "octreeStatistics.h"
 #include "testUtils.h"
+#include "genPts_par.h"
 
 
 //Don't want time to be synchronized. Need to check load imbalance.
@@ -164,12 +165,16 @@ int main(int argc, char **argv) {
 
 
   if (argc < 3) {
-    std::cerr << "Usage: " << argv[0] << " inpfile slack [0.0,1.0] num_pseudo_proc" <<std::endl;
+    std::cerr << "Usage: " << argv[0] << " inpfile slack [0.0,1.0] genPts[0 or 1] numPts_total num_pseudo_proc" <<std::endl;
     return -1;
   }
 
   double slack=atof(argv[2]);
-  int num_pseudo_proc=atoi(argv[3]);
+  int enable_pts_io=atoi(argv[3]);
+  int numlPts_g=atoi(argv[4]);
+  int num_pseudo_proc=atoi(argv[5]);
+
+
 
 
   PetscInitialize(&argc, &argv, "options.hs", NULL);
@@ -189,9 +194,36 @@ int main(int argc, char **argv) {
   PetscLogStageRegister("ODACreate", &stages[2]);
 #endif
 
+
+
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   //std::cout<<"Com Size:"<<size<<std::endl;
+
+  if (!rank) {
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+    std::cout << " Input Parameters"  << std::endl;
+    std::cout << " Input File Prefix:"<<argv[1]  << std::endl;
+    std::cout << " Slack Parameter::"<<slack  << std::endl;
+    std::cout << " Gen Pts files:: "<< enable_pts_io  << std::endl;
+    std::cout << " Total Number of Points:: "<<numlPts_g<<std::endl;
+    std::cout << " Number of psuedo Processors:: "<<num_pseudo_proc<<std::endl;
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+  }
+
+
+
+
+  if(enable_pts_io==1)
+  {
+
+      int local_numPts=numlPts_g/size;
+      int lc_size=0;
+      lc_size=((rank+1)*numlPts_g)/size-(rank*numlPts_g)/size;
+      genGauss(0.5,lc_size,dim,argv[1],MPI_COMM_WORLD);
+
+  }
+
 
   sprintf(ptsFileName, "%s%d_%d.pts", argv[1], rank, size);
   //std::cout<<"Attempt to Read "<<ptsFileName<<std::endl;
