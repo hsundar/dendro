@@ -25,12 +25,12 @@ void genGauss(const double& sd, const int numPts, int dim, char * filePrefix,MPI
     MPI_Comm_rank(comm,&rank);
 
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
+        std::random_device rd;
+        std::mt19937 gen(rd());
 
     sprintf(ptsFileName, "%s%d_%d.pts", filePrefix, rank, size);
 
-    std::normal_distribution<> d(0,sd);
+    std::normal_distribution<> d(0.5,sd);
     double* xyz = new double[dim*numPts];
     double temp=0;
     for(long i=0;i<(long)dim*numPts;i++)

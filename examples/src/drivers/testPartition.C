@@ -220,7 +220,7 @@ int main(int argc, char **argv) {
       long local_numPts=numlPts_g/size;
       long lc_size=0;
       lc_size=((rank+1)*numlPts_g)/size-(rank*numlPts_g)/size;
-      genGauss(0.5,lc_size,dim,argv[1],MPI_COMM_WORLD);
+      genGauss(0.15,lc_size,dim,argv[1],MPI_COMM_WORLD);
 
   }
 
@@ -448,9 +448,10 @@ assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
 
   //treeNodesTovtk(balOct, rank, "bal_output");
 
-
-  flexiblePartitionCalculation(balOct,slack,num_pseudo_proc,MPI_COMM_WORLD);
-
+  while (slack < 0.6) {
+    flexiblePartitionCalculation(balOct, slack, num_pseudo_proc, MPI_COMM_WORLD);
+    slack=slack+0.1;
+  }
 
 
 
