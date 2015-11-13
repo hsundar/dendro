@@ -15,19 +15,26 @@ void flexiblePartitionCalculation(std::vector<ot::TreeNode>& balOct,double slack
 
 
     unsigned long localSz=balOct.size(), globalSz;
-    MPI_Allreduce(&localSz, &globalSz, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
+    MPI_Allreduce(&localSz, &globalSz, 1, MPI_UNSIGNED_LONG, MPI_SUM, MPI_COMM_WORLD);
 
     int slackCnt = slack*globalSz/size/q;
+    int part_size = localSz/q;
 
     if(!rank) std::cout << "slack size is " << slackCnt << " octants" << std::endl;
+
+    assert(slackCnt < part_size);
+
 
     //----------------------------------------------------------------------
     //   FLEX
     //----------------------------------------------------------------------
 
     // 1. each process sends slackCnt octs to next/prev.
-    std::vector<ot::TreeNode> slack_next(slackCnt), slack_prev(slackCnt);
+    std::vector<ot::TreeNode> ghosted(localSz+2*slackCnt);
     MPI_Status status;
+
+    ghosted.insert(ghosted.begin()+slackCnt, balOct.begin(), balOct.end());
+
 
     int prev = (rank)?rank-1:MPI_PROC_NULL;
     int next = (rank+1==size)?MPI_PROC_NULL:rank+1;
@@ -35,135 +42,130 @@ void flexiblePartitionCalculation(std::vector<ot::TreeNode>& balOct,double slack
     ot::TreeNode* sendPrev = &(*(balOct.begin()));
     ot::TreeNode* sendNext = &(balOct[balOct.size() - slackCnt]);
 
-    ot::TreeNode* recvPrev = &(*(slack_prev.begin()));
-    ot::TreeNode* recvNext = &(*(slack_next.begin()));
+    ot::TreeNode* recvPrev = &(*(ghosted.begin()));
+    ot::TreeNode* recvNext = &(*(ghosted.begin()+localSz+slackCnt));
 
-//    if(!rank)
-//        std::cout<<"TreeNode Communication started"<<std::endl;
-
-    //send to prev
-
+    // send to prev
     if (rank)
         par::Mpi_Sendrecv<ot::TreeNode>(sendPrev, slackCnt, prev, 0,
                                         recvPrev, slackCnt, prev, 0,
-                                        comm, &status);
+                                        MPI_COMM_WORLD, &status);
     // send to next
     if (rank != (size-1))
         par::Mpi_Sendrecv<ot::TreeNode>(sendNext, slackCnt, next, 0,
                                         recvNext, slackCnt, next, 0,
-                                        comm, &status);
-
-//  for(int i=0;i<slack_prev.size();i++)
-//  std::cout<<"Recive Previous:"<<i<<" ::"<<slack_prev[i]<<std::endl;
-
-
+                                        MPI_COMM_WORLD, &status);
 
     // Have the extra octants ...
     // 2. compute partitions.
-    int part_size = localSz/q;
     int* partitions   = new int[q+1];
     int* num_faces    = new int[q+1];
-    bool * face_status=new bool[q+1];
+    int* num_elems    = new int[q+1];
     int faces;
-    int faces_min=0;
-    int faces_max=0;
-    int faces_sum=0;
-
-    int faces_all[size];
-//    if(!rank)
-//        std::cout<<"TreeNode Communication Completed"<<std::endl;
 
     // partition 0
-
-    for(int i=0;i<(q+1);i++)
-        face_status[i]= false;
-
-
     partitions[0] = slackCnt;
-
     if (!rank) {
-        num_faces[0] = calculateBoundaryFaces(balOct.begin(), balOct.begin()+part_size);
-        face_status[0]=true;
-        for(int i=0;i<part_size;i++)
-            slack_prev.push_back(balOct[i]);
-            //slack_prev.insert(slack_prev.end(), balOct.begin(), balOct.begin()+part_size);
-
-
-        for (int j = 0; j < slackCnt; ++j) {
-            faces = calculateBoundaryFaces((slack_prev.begin()+j), slack_prev.end());
-            //std::cout<<"j:"<<j<<std::endl;
-            //std::cout<<"Faces from rank:"<<rank<<": is :"<<faces<<std::endl;
-            //std::cout<<"Rank:"<<rank<<"Slack_Cnt:"<<slackCnt<<std::endl;
+        // find first
+        num_faces[0] = 6*localSz; // calculateBoundaryFaces(balOct.begin(), balOct.begin()+part_size);
+        for (int j = 0; j < 2*slackCnt; ++j) {
+            faces = calculateBoundaryFaces(ghosted.begin()+j, ghosted.begin()+slackCnt+part_size);
             if (faces < num_faces[0]) {
-                num_faces[0] = faces;
+                num_faces[0] = faces; // we will update this later ...
                 partitions[0] = j;
-                face_status[0]=true;
             }
         }
-        //std::cout<<"Rank 0 finished"<<std::endl;
+    } else {
+        num_faces[0] = 6*localSz; // calculateBoundaryFaces(balOct.begin(), balOct.begin()+part_size);
+        for (int j = 0; j < slackCnt; ++j) {
+            faces = calculateBoundaryFaces(ghosted.begin()+slackCnt+j, ghosted.begin()+slackCnt+part_size);
+            if (faces < num_faces[0]) {
+                num_faces[0] = faces; // we will update this later ...
+                partitions[0] = slackCnt+j;
+            }
+        }
     }
-
     std::vector<ot::TreeNode>::const_iterator first, last;
+
     // local partitions
     for (int i=1; i<q; ++i) {
-        first = balOct.begin()+i*part_size;
-        last = (i==(q-1))?balOct.end():balOct.begin()+(i+1)*part_size;
-        //assert(first<last);
-        partitions[i] = i*part_size + slackCnt;
-        num_faces[i] = calculateBoundaryFaces(first,last);
-        face_status[i]=true;
-        first -= slackCnt;
-        for (int j = 0; j < slackCnt; ++j) {
-            //assert(j<balOct.size());
-            faces = calculateBoundaryFaces(first+j, last);
-           // std::cout<<"Faces from rank:"<<rank<<": is :"<<faces<<std::endl;
-           // std::cout<<"Rank:"<<rank<<"Slack_Cnt:"<<slackCnt<<std::endl;
+        first = ghosted.begin() + partitions[i-1];
+        num_faces[i] = 6*localSz;
+        last = ghosted.begin() + i*part_size;
+        for (int j = 0; j < 2*slackCnt; ++j) {
+            faces = calculateBoundaryFaces(first, last + j);
             if (faces < num_faces[i]) {
                 num_faces[i] = faces;
-                partitions[i] = j;
-                face_status[i]=true;
+                partitions[i] = i*part_size + j;
             }
-
         }
+    }
+    // partition q
+    if (rank == size-1) {
+        first = ghosted.begin() + partitions[q-1];
+        num_faces[q] = 6*localSz;
+        last = ghosted.begin() + q*part_size;
+        for (int j = 0; j < slackCnt; ++j) {
+            faces = calculateBoundaryFaces(first, last + j);
+            if (faces < num_faces[q]) {
+                num_faces[q] = faces;
+                partitions[q] = q*part_size + j;
+            }
+        }
+    } else {
+        first = ghosted.begin() + partitions[q-1];
+        num_faces[q] = 6*localSz;
+        last = ghosted.begin() + q*part_size;
+        for (int j = 0; j < 2*slackCnt; ++j) {
+            faces = calculateBoundaryFaces(first, last + j);
+            if (faces < num_faces[q]) {
+                num_faces[q] = faces;
+                partitions[q] = q*part_size + j;
+            }
+        }
+    }
 
-       // std::cout<<"Rank "<<rank<<" Loop 2 ended"<<std::endl;
+    // @milinda now update num_faces
+    for (int i=0; i<q; ++i) {
+        num_faces[i] = calculateBoundaryFaces(ghosted.begin()+partitions[i], ghosted.begin()+partitions[i+1]);
+        num_elems[i] = partitions[i+1] - partitions[i];
     }
 
 
 
-    faces_min=INT_MAX;
-    faces_max=0;
-    faces_sum=0;
 
-//    std::cout << BLU << "===============================================" << NRM << std::endl;
-//    std::cout << RED " Boundary Surfaces (min):"<<faces_min<< NRM << std::endl;
-//    std::cout << RED " Boundary Surfaces (max):"<<faces_max<< NRM << std::endl;
-//    std::cout << RED " Boundary Surfaces (mean):"<<faces_sum<< NRM << std::endl;
-//    std::cout << BLU << "===============================================" << NRM << std::endl;
+   int  faces_min=INT_MAX;
+   int  faces_max=0;
+   int  faces_sum=0;
 
+   double max_min_r=INT_MAX;
 
+   int  element_min=0;
+   int  element_max=0;
+   int elems_sum=0;
 
-
-    for(int i=0;i<(q+1);i++)
+    for(int i=0;i<(q);i++)
     {
         //std::cout<<"Face Status: "<<face_status[i]<<std::endl;
 
-        if( face_status[i] && faces_min>num_faces[i])
+        if( faces_min>num_faces[i])
             faces_min=num_faces[i];
 
-        if(face_status[i] && faces_max<num_faces[i])
+        if(faces_max<num_faces[i])
             faces_max=num_faces[i];
 
-        if(face_status[i])
-            faces_sum=+num_faces[i];
+
+        if(element_min>num_elems[i])
+            element_min=num_elems[i];
+
+        if(element_max<num_elems[i]);
+            element_max=num_elems[i];
+
+        faces_sum=+num_faces[i];
+        elems_sum=+num_elems[i];
     }
 
-//    std::cout << BLU << "===============================================" << NRM << std::endl;
-//    std::cout << RED " Boundary Surfaces (min):"<<faces_min<< NRM << std::endl;
-//    std::cout << RED " Boundary Surfaces (max):"<<faces_max<< NRM << std::endl;
-//    std::cout << RED " Boundary Surfaces (mean):"<<faces_sum<< NRM << std::endl;
-//    std::cout << BLU << "===============================================" << NRM << std::endl;
-
+    max_min_r=(double)faces_max/(double)faces_min;
 
     if(!rank)
         std::cout<<"Flexible part calculation completed"<<std::endl;
@@ -173,16 +175,26 @@ void flexiblePartitionCalculation(std::vector<ot::TreeNode>& balOct,double slack
     int faces_max_g;
     int faces_sum_g;
 
+    int elems_min_g;
+    int elems_max_g;
+    int elems_sum_g;
 
+    double max_min_r_g;
 
     double mean_num_faces;
+    double mean_num_elems;
 
     MPI_Allreduce(&faces_min,&faces_min_g,1,MPI_INT,MPI_MIN,comm);
     MPI_Allreduce(&faces_max,&faces_max_g,1,MPI_INT,MPI_MAX,comm);
     MPI_Allreduce(&faces_sum,&faces_sum_g,1,MPI_INT,MPI_SUM,comm);
+    MPI_Allreduce(&max_min_r,&max_min_r_g,1,MPI_DOUBLE,MPI_MIN,comm);
+
+    MPI_Allreduce(&element_min,&elems_min_g,1,MPI_INT,MPI_MIN,comm);
+    MPI_Allreduce(&element_max,&elems_max_g,1,MPI_INT,MPI_MAX,comm);
+    MPI_Allreduce(&elems_sum,&elems_sum_g,1,MPI_INT,MPI_SUM,comm);
 
     mean_num_faces=(double)faces_sum_g/(size*q);
-
+    mean_num_elems=(double)elems_sum_g/(size*q);
    // MPI_Allgather(&faces,1,MPI_INT,faces_all,1,MPI_INT,comm);
 
 //  if(!rank)
@@ -195,15 +207,18 @@ void flexiblePartitionCalculation(std::vector<ot::TreeNode>& balOct,double slack
         std::cout << RED " Boundary Surfaces (min):"<<faces_min_g<< NRM << std::endl;
         std::cout << RED " Boundary Surfaces (max):"<<faces_max_g<< NRM << std::endl;
         std::cout << RED " Boundary Surfaces (mean):"<<mean_num_faces<< NRM << std::endl;
+        std::cout << RED " Boundary Surfaces (max/min parition wise):"<<max_min_r_g<< NRM << std::endl;
+
+        std::cout << YLW " Partition elements (min):"<<elems_min_g<< NRM << std::endl;
+        std::cout << YLW " Partition elements (max):"<<elems_max_g<< NRM << std::endl;
+        std::cout << YLW " Partition elements (mean):"<<mean_num_elems<< NRM << std::endl;
+
         std::cout << BLU << "===============================================" << NRM << std::endl;
     }
 
 
 
-    // partition q
-    partitions[q] = balOct.size();
 
-    //----------------------------------------------------------------------
     if (!rank) {
         std::cout << GRN << "Finalizing ..." << NRM << std::endl;
     }

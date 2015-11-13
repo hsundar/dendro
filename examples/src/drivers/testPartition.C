@@ -447,10 +447,14 @@ assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
 //  ot::writeNodesToFile_binary(ptsFileName,balOct);
 
   //treeNodesTovtk(balOct, rank, "bal_output");
+ double res=slack/2.0;
+  while (slack < 0.5) {
 
-  while (slack < 0.6) {
+    if(!rank)
+    std::cout<<YLW<<"Slack Parameter:"<<slack<<NRM<<std::endl;
+
     flexiblePartitionCalculation(balOct, slack, num_pseudo_proc, MPI_COMM_WORLD);
-    slack=slack+0.1;
+    slack=slack+res;
   }
 
 
