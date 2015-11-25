@@ -126,10 +126,20 @@ void flexiblePartitionCalculation(std::vector<ot::TreeNode>& balOct,double slack
     }
 
     // @milinda now update num_faces
+    char vtkFilename[256];
+    sprintf(vtkFilename,"%s_%f_%d","flex_part",slack,rank);
+    std::vector<ot::TreeNode>flexParts[q+1];
     for (int i=0; i<q; ++i) {
         num_faces[i] = calculateBoundaryFaces(ghosted.begin()+partitions[i], ghosted.begin()+partitions[i+1]);
         num_elems[i] = partitions[i+1] - partitions[i];
+        //flexParts[i].insert(ghosted.begin()+partitions[i], ghosted.begin()+partitions[i+1]);
+        for(int k=partitions[i];k<=partitions[i+1];k++)
+            flexParts[i].push_back(*(ghosted.begin()+k));
+
+        treeNodesTovtk(flexParts[i],i,vtkFilename);
+
     }
+
 
 
 

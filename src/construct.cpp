@@ -1097,7 +1097,13 @@ namespace ot {
             repeatLoop = true;
             break;
           } else {
+            if(tmpChildList[j] != max)
+            {
+              std::cout<<RED<<"tmpChildList["<<j<<"]:"<<tmpChildList[j] << "  and max:"<<max<<NRM<<std::endl;
+            }
+
             assert(tmpChildList[j] == max);
+
             break;
           }
         } //end for j
@@ -1151,6 +1157,12 @@ namespace ot {
                   // if (!rank) std::cout << rank << " Repeating Loop " << tmpAncestor.getLevel() << std::endl;
                   break;
                 } else {
+
+                  if(tmpChildList[j] != max)
+                  {
+                    std::cout<<RED<<"tmpChildList["<<j<<"]:"<<tmpChildList[j] << "  and max:"<<max<<NRM<<std::endl;
+                  }
+
                   assert(tmpChildList[j] == max);
                   break;
                 }

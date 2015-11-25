@@ -754,8 +754,8 @@ namespace ot {
 #ifdef __DEBUG_OCT__
         assert(areComparable(globalCoarse[i], _mins_maxs[2*p]));
 #endif
-         if ( (globalCoarse[i].isAncestor(_mins_maxs[2*p])) || ( (globalCoarse[i] >= _mins_maxs[2*p]) && (globalCoarse[i] <=_mins_maxs[(2*p)+1]) ) ) {
-        //if ( (globalCoarse[i].isAncestor(_mins_maxs[2*p])) || ( (globalCoarse[i] >= _mins_maxs[2*p]) && (globalCoarse[i] <=_mins_maxs[(2*p)+1]) ) || (globalCoarse[i].isAncestor(_mins_maxs[2*p+1])) ) {
+         //if ( (globalCoarse[i].isAncestor(_mins_maxs[2*p])) || ( (globalCoarse[i] >= _mins_maxs[2*p]) && (globalCoarse[i] <=_mins_maxs[(2*p)+1]) ) ) {
+        if ( (globalCoarse[i].isAncestor(_mins_maxs[2*p])) || ( (globalCoarse[i] >= _mins_maxs[2*p]) && (globalCoarse[i] <=_mins_maxs[(2*p)+1]) ) || (globalCoarse[i].isAncestor(_mins_maxs[2*p+1])) ) {
            sendNodes[p].push_back(globalCoarse[i]);
           // save keymap so that we can assign weights back to globalCoarse.
            // std::cout<<YLW<<"Global Coarse added:"<<globalCoarse[i]<<std::endl;

@@ -178,16 +178,32 @@ namespace ot {
 #ifdef __PROF_WITH_BARRIER__
     MPI_Barrier(comm);
 #endif
-    PROF_BUILD_DA_BEGIN 
+    PROF_BUILD_DA_BEGIN
+
+      //@milinda
+      int rank;
+      MPI_Comm_rank(comm,&rank);
 
       DA_FactoryPart0(in, comm, activeInputComm, compressLut, iAmActive);
+
+      if(!rank)
+          std::cout<<"ODA Part 0 completed"<<std::endl;
 
     if(m_bIamActive) {
       DA_FactoryPart1(in);
 
-      DA_FactoryPart2(in);
+        if(!rank)
+            std::cout<<"ODA Part 1 completed"<<std::endl;
 
-      DA_FactoryPart3(in, comm, compressLut, blocksPtr, iAmActive);
+      DA_FactoryPart2(in);
+        if(!rank)
+            std::cout<<"ODA Part 2 completed"<<std::endl;
+
+        DA_FactoryPart3(in, comm, compressLut, blocksPtr, iAmActive);
+
+        if(!rank)
+            std::cout<<"ODA Part 3 completed"<<std::endl;
+
     }
 
     PROF_BUILD_DA_END
