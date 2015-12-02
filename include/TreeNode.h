@@ -82,7 +82,7 @@ namespace ot {
       
       /*
        *@author Milinda Fernando
-       *@Brief Fundemenatal Implementation of rotation pattern calculation just by iterating it from the root to node. 
+       *@Brief Fundamental Implementation of rotation pattern calculation just by iterating it from the root to node.
        *@changes the rotation and rot_index values of the TreeNode.      
        */
       
