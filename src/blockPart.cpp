@@ -567,6 +567,7 @@ namespace ot {
 
     par::partitionW<ot::TreeNode>(nodes, NULL,comm);
 
+
     //std::cout << rank << ": " << __func__ << ":Block Part Node Size:" <<nodes.size()<< std::endl;
     assert(nodes.size() > (1 << dim) ); 
 
@@ -659,6 +660,7 @@ namespace ot {
     //localBlocks will not be empty on any processor
 
     //treeNodesTovtk(localBlocks,rank,"local_blocks");
+
     completeOctree(localBlocks, blocks, dim, maxDepth, true,true,true, comm);
     assert(par::test::isUniqueAndSorted(blocks, comm));
     //treeNodesTovtk(blocks,rank,"af_complete_octree");

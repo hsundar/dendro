@@ -462,6 +462,10 @@ assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
   assert(par::test::isUniqueAndSorted(balOct,MPI_COMM_WORLD));
   assert(par::test::isComplete(balOct,MPI_COMM_WORLD));
 
+//  for(int i=0;i<balOct.size();i++)
+//    assert(balOct[i].getFlag()<=balOct[i].getMaxDepth());
+
+
   if(!rank)
   {
     std::cout<<YLW<<"Balanced Octree Complete Unique and Sorted: OK"<<std::endl;

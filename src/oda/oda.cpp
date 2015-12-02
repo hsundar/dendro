@@ -191,18 +191,23 @@ namespace ot {
 
     if(m_bIamActive) {
       DA_FactoryPart1(in);
-
-        if(!rank)
+      if(!rank)
             std::cout<<"ODA Part 1 completed"<<std::endl;
 
-      DA_FactoryPart2(in);
-        if(!rank)
-            std::cout<<"ODA Part 2 completed"<<std::endl;
+       DA_FactoryPart2(in);
+       if(!rank)
+           std::cout<<"ODA Part 2 completed"<<std::endl;
 
-        DA_FactoryPart3(in, comm, compressLut, blocksPtr, iAmActive);
+        std::vector<ot::TreeNode> tmpIn;
+        par::sampleSort(in,tmpIn,activeInputComm);
+        in=tmpIn;
+        tmpIn.clear();
 
-        if(!rank)
-            std::cout<<"ODA Part 3 completed"<<std::endl;
+
+      DA_FactoryPart3(in, comm, compressLut, blocksPtr, iAmActive);
+
+       if(!rank)
+           std::cout<<"ODA Part 3 completed"<<std::endl;
 
     }
 

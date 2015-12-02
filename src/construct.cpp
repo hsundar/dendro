@@ -1058,6 +1058,7 @@ namespace ot {
     unsigned int dim = first.getDim();
     unsigned int maxDepth = first.getMaxDepth();
 
+
     TreeNode min = ((first < second) ? first : second);
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -1097,10 +1098,10 @@ namespace ot {
             repeatLoop = true;
             break;
           } else {
-            if(tmpChildList[j] != max)
-            {
-              std::cout<<RED<<"tmpChildList["<<j<<"]:"<<tmpChildList[j] << "  and max:"<<max<<NRM<<std::endl;
-            }
+//            if(tmpChildList[j] != max)
+//            {
+//              std::cout<<RED<<"tmpChildList["<<j<<"]:"<<tmpChildList[j] << "  and max:"<<max<<NRM<<std::endl;
+//            }
 
             assert(tmpChildList[j] == max);
 

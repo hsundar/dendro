@@ -195,6 +195,63 @@ namespace par {
         return allLocalsPassed;     
       }
 
+//@author: Milinda Fernando
+// School of Computing, University  of Utah
+      template <typename T>
+      bool  isComplete (const std::vector<T>& nodes, MPI_Comm comm) {
+
+        int vol=0;
+
+        int rank;
+        MPI_Comm_rank(comm, &rank);
+        int maxDepth=0;
+        int maxDepth_g=0;
+
+        if(nodes.size()!=0) {
+
+
+          maxDepth = nodes[0].getMaxDepth();
+          int dim = nodes[0].getDim();
+
+          vol = 0;
+          int len = 0;
+          for (int i = 0; i < nodes.size(); i++) {
+            len = 1u << (maxDepth - nodes[i].getLevel());
+            if (i < (nodes.size() - 1) && (nodes[i].isAncestor(nodes[i + 1]))) {
+              return false;
+            }
+
+            vol += len * len * len;
+          }
+
+        }else{
+          vol=0;
+        }
+
+
+        int g_vol=0;
+        par::Mpi_Reduce(&vol,&g_vol,1,MPI_SUM,0,comm);
+        MPI_Allreduce(&maxDepth,&maxDepth_g,1,MPI_INT,MPI_MAX,comm);
+
+        if(!rank)
+        {
+          assert(maxDepth_g!=0);
+          std::cout<<"MaxDepth of the Octree:"<<maxDepth_g<<std::endl;
+          int max_len=1u<<maxDepth_g;
+          if(g_vol==(max_len*max_len*max_len))
+          {
+            return true;
+          }else
+          {
+            std::cout<<"Volume of the Complete Octree:"<<(max_len*max_len*max_len)<<std::endl;
+            std::cout<<"Computed octree volume:"<<g_vol<<std::endl;
+            return false;
+          }
+
+        }
+
+      }
+
   }//end namespace
 }//end namespace
 

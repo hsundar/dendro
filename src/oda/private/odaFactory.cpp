@@ -146,10 +146,11 @@ void DA::DA_FactoryPart1(std::vector<ot::TreeNode>& in) {
 #endif
   PROF_BUILD_DA_STAGE1_BEGIN
 
-    assert(!in.empty());
+   assert(!in.empty());
 
   // first generate the boundary nodes ...
   std::vector<ot::TreeNode> positiveBoundaryOctants;
+
   //Assumption: in is globally sorted to begin with. 
   //Guarantee: in remains globally sorted in the end.
   //positiveBoundaryOctants need not be globally sorted, in fact I don't think
@@ -172,10 +173,13 @@ void DA::DA_FactoryPart1(std::vector<ot::TreeNode>& in) {
     par::sampleSort<ot::TreeNode>(positiveBoundaryOctants, tmpVecTN, bdyComm);
     positiveBoundaryOctants = tmpVecTN;
     tmpVecTN.clear();
+
   }
 
   par::concatenate<ot::TreeNode>(in, positiveBoundaryOctants, m_mpiCommActive);
   positiveBoundaryOctants.clear();
+  // @Hari: m_uiLevel corrupt bug.
+  //NOTE: @hari: After the concatanation the m_uiLevel get invalid values.
 
   PROF_BUILD_DA_STAGE1_END
 }//end function
@@ -210,12 +214,15 @@ void DA::DA_FactoryPart3(std::vector<ot::TreeNode>& in, MPI_Comm comm, bool comp
   DendroIntL globalSizeBefore; 
   par::Mpi_Allreduce<DendroIntL>(&localSizeBefore, &globalSizeBefore, 1, MPI_SUM, m_mpiCommActive);
 
+  //assert(par::test::isUniqueAndSorted(in,m_mpiCommActive));
+
   //Partition in and create blocks (blocks must be globally sorted).
   std::vector<ot::TreeNode> blocks;
   if(blocksPtr == NULL) {
 
     //min grain size = 1000
-    const DendroIntL THOUSAND = 1000;
+    const DendroIntL THOUSAND = 1;
+
     if (globalSizeBefore < (THOUSAND*m_iNpesActive)) {
       int splittingSize = (globalSizeBefore/THOUSAND); 
       if(splittingSize == 0) {
@@ -235,6 +242,8 @@ void DA::DA_FactoryPart3(std::vector<ot::TreeNode>& in, MPI_Comm comm, bool comp
       }
       in = tmpIn;
       tmpIn.clear();
+
+
 
       MPI_Comm newComm;
       par::splitCommUsingSplittingRank(splittingSize, &newComm, m_mpiCommActive);
@@ -263,13 +272,21 @@ void DA::DA_FactoryPart3(std::vector<ot::TreeNode>& in, MPI_Comm comm, bool comp
 
     PROF_DA_BPART1_BEGIN
 
-      ot::blockPartStage1(in, blocks, m_uiDimension, m_uiMaxDepth, m_mpiCommActive);    
+
+
+
+    ot::blockPartStage1(in, blocks, m_uiDimension, m_uiMaxDepth, m_mpiCommActive);
+    if(!m_iRankActive)
+       std::cout<<GRN<<"ot::blockPartStage1 is completed."<<NRM<<std::endl;
 
     PROF_DA_BPART1_END
 
       PROF_DA_BPART2_BEGIN
 
-      DA_blockPartStage2(in, blocks, m_uiDimension, m_uiMaxDepth, m_mpiCommActive);
+    DA_blockPartStage2(in, blocks, m_uiDimension, m_uiMaxDepth, m_mpiCommActive);
+
+    if(!m_iRankActive)
+      std::cout<<GRN<<"DA_blockPartStage2 is completed."<<NRM<<std::endl;
 
     PROF_DA_BPART2_END
   } else {
@@ -280,6 +297,8 @@ void DA::DA_FactoryPart3(std::vector<ot::TreeNode>& in, MPI_Comm comm, bool comp
 
     DA_blockPartStage3(in, blocks, m_tnMinAllBlocks, m_uiDimension, m_uiMaxDepth, m_mpiCommActive);
 
+  if(!m_iRankActive)
+      std::cout<<GRN<<"DA_blockPartStage3 is completed."<<NRM<<std::endl;
   PROF_DA_BPART3_END
 
     //Store Blocks. 
@@ -447,7 +466,7 @@ void DA::DA_FactoryPart3(std::vector<ot::TreeNode>& in, MPI_Comm comm, bool comp
     // need to be aware of those nodes. Create lists that shall be sent.
     //
 
-    int *sendCnt = new int[m_iNpesActive];
+  int *sendCnt = new int[m_iNpesActive];
   int *recvCnt = new int[m_iNpesActive];
   int *sendOffsets = new int[m_iNpesActive];
   int *recvOffsets = new int[m_iNpesActive];
