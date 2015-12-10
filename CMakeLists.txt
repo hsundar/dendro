@@ -151,7 +151,8 @@ target_link_libraries(testConBalAndCoarsen dendro petsc ${MPI_LIBRARIES} m)
 ##    Dendro DA APPS
 ##---------------------------------------------------------------------------------------
 if(BUILD_DA_EXAMPLES)
-    add_executable(testPartition examples/src/drivers/testPartition.C include/hcurvedata.h src/hcurvedata.cpp examples/include/octreeStatistics.h examples/src/drivers/octreeStatistics.cpp include/test/testUtils.h src/test/testUtils.C examples/include/genPts_par.h examples/src/drivers/genPts_par.C)
+    add_executable(testPartition examples/src/drivers/testPartition.C include/hcurvedata.h src/hcurvedata.cpp examples/include/octreeStatistics.h examples/src/drivers/octreeStatistics.cpp include/test/testUtils.h src/test/testUtils.C examples/include/genPts_par.h examples/src/drivers/genPts_par.C include/dynamicPartition.h src/dynamicPartition.C
+            )
     target_link_libraries(testPartition dendroDA dendro petsc ${MPI_LIBRARIES} m)
 
     add_executable(diffOctree examples/src/drivers/diff_morton_hilbert.C include/hcurvedata.h src/hcurvedata.cpp examples/include/octreeStatistics.h examples/src/drivers/octreeStatistics.cpp include/test/testUtils.h src/test/testUtils.C )
