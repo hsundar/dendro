@@ -56,7 +56,7 @@ namespace ot {
     ot::TreeNode negCorner(negX, negY, negZ, myLevel, dim, maxDepth);\
     ot::TreeNode posCorner(posX, posY, posZ, maxDepth, dim, maxDepth);\
     bool add = true;\
-    if( (negCorner >= firstBlock) && (posCorner <= lastBlock.getDLD()) ) {\
+    if( (negCorner >= nodes[0] && negCorner<=nodes[nodes.size()-1].getDLD() ) && ( posCorner >=nodes[0] && posCorner <= nodes[nodes.size()-1].getDLD()) ) {\
       add = false;\
     }\
     if (add) {\
@@ -71,6 +71,7 @@ namespace ot {
 int pickInterProcessorBoundaryNodes(const std::vector<ot::TreeNode> & nodes,
     std::vector<unsigned int> & res, const ot::TreeNode & firstBlock,
     const ot::TreeNode & lastBlock) {
+
   PROF_PICK_BND_BEGIN
 
   PICK_INTER_PROCESSOR_BOUNDARY_BLOCK(PICK_IPBB_SET_UI_VALUE)
@@ -83,7 +84,98 @@ int pickInterProcessorBoundaryNodes(const std::vector<ot::TreeNode> & nodes,
     const ot::TreeNode & lastBlock) {
   PROF_PICK_BND_BEGIN
 
-  PICK_INTER_PROCESSOR_BOUNDARY_BLOCK(PICK_IPBB_SET_TN_VALUE)
+  res.clear();
+
+
+  int rank,size;
+  MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+  MPI_Comm_size(MPI_COMM_WORLD,&size);
+
+
+#ifdef HILBERT_ORDERING
+
+
+  std::vector<ot::TreeNode> neighbourOct;
+  ot::TreeNode tmp;
+  for(int i=0;i<nodes.size();i++)
+  {
+    tmp=nodes[i].getTop();
+    if(!tmp.isRoot())
+      neighbourOct.push_back(tmp);
+
+    tmp=nodes[i].getBottom();
+    if(!tmp.isRoot())
+      neighbourOct.push_back(tmp);
+
+    tmp=nodes[i].getRight();
+    if(!tmp.isRoot())
+      neighbourOct.push_back(tmp);
+
+    tmp=nodes[i].getLeft();
+    if(!tmp.isRoot())
+      neighbourOct.push_back(tmp);
+
+    tmp=nodes[i].getFront();
+    if(!tmp.isRoot())
+      neighbourOct.push_back(tmp);
+
+    tmp=nodes[i].getBack();
+    if(!tmp.isRoot())
+      neighbourOct.push_back(tmp);
+
+    bool add=false;
+    for(int j=0;j<neighbourOct.size();j++)
+    {
+      if(!(nodes[0]<= neighbourOct[j] && neighbourOct[j]<=nodes[nodes.size()-1]))
+      {
+        add=true;
+        break;
+      }
+    }
+
+    if(add)
+    {
+      res.push_back(nodes[i]);
+    }
+
+    neighbourOct.clear();
+
+  }
+#else
+  unsigned int dim = firstBlock.getDim();
+  unsigned int maxDepth = firstBlock.getMaxDepth();
+  ot::TreeNode root(dim, maxDepth);
+  for(unsigned int nodeCnt = 0; nodeCnt < nodes.size(); nodeCnt++) {
+    unsigned int myMinX = nodes[nodeCnt].minX();
+    unsigned int myMinY = nodes[nodeCnt].minY();
+    unsigned int myMinZ = nodes[nodeCnt].minZ();
+    unsigned int myMaxX = nodes[nodeCnt].maxX();
+    unsigned int myMaxY = nodes[nodeCnt].maxY();
+    unsigned int myMaxZ = nodes[nodeCnt].maxZ();
+    unsigned int myLen = (myMaxX - myMinX);
+    unsigned int myLevel = nodes[nodeCnt].getLevel();
+    unsigned int negX = ((myMinX > 0) ? (myMinX - myLen) : myMinX);
+    unsigned int negY = ((myMinY > 0) ? (myMinY - myLen) : myMinY);
+    unsigned int negZ = ((myMinZ > 0) ? (myMinZ - myLen) : myMinZ);
+    unsigned int posX = ((myMaxX < (1u << maxDepth)) ? (myMaxX + myLen -1) : (myMaxX-1));
+    unsigned int posY = ((myMaxY < (1u << maxDepth)) ? (myMaxY + myLen -1) : (myMaxY-1));
+    unsigned int posZ = ((myMaxZ < (1u << maxDepth)) ? (myMaxZ + myLen -1) : (myMaxZ-1));
+    //@milinda @hari: This is not working for Hilbert ordering. Because we can't guarantee if negCorner and PosCorner is is the current partition current considering node also in the partition.
+    ot::TreeNode negCorner(negX, negY, negZ, myLevel, dim, maxDepth);
+    ot::TreeNode posCorner(posX, posY, posZ, maxDepth, dim, maxDepth);
+    bool add = true;
+    if( (negCorner >= firstBlock) && ( posCorner <= lastBlock.getDLD()) ) {\
+      add = false;
+    }
+    if (add) {
+      res.push_back(nodes[nodeCnt]);
+    }
+  }
+#endif
+
+  treeNodesTovtk(res,rank,"oda_res");
+
+  return 1;
   
   PROF_PICK_BND_END
 }

@@ -59,6 +59,26 @@ namespace ot {
 
     } //end function
 
+    inline unsigned char TreeNode::getMortonIndex() const
+    {
+        unsigned char childNum;
+
+        unsigned int len = (1u << (m_uiMaxDepth - getLevel()));
+        unsigned int len_par = (1u << (m_uiMaxDepth - getLevel() + 1u));
+
+        unsigned int i = (m_uiX % len_par);
+        unsigned int j = (m_uiY % len_par);
+        unsigned int k = (m_uiZ % len_par);
+        i /= len;
+        j /= len;
+        k /= len;
+
+        childNum = static_cast<unsigned char>(4 * k + 2 * j + i);
+        return  childNum;
+    }
+
+
+
     inline int TreeNode::getAnchor(unsigned int &x, unsigned int &y, unsigned int &z) const {
         x = m_uiX;
         y = m_uiY;

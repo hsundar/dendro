@@ -151,12 +151,15 @@ void DA::DA_FactoryPart1(std::vector<ot::TreeNode>& in) {
   // first generate the boundary nodes ...
   std::vector<ot::TreeNode> positiveBoundaryOctants;
 
+  int rank,size;
+  MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+  MPI_Comm_size(MPI_COMM_WORLD,&size);
   //Assumption: in is globally sorted to begin with. 
   //Guarantee: in remains globally sorted in the end.
   //positiveBoundaryOctants need not be globally sorted, in fact I don't think
   //it will be sorted even on 1 processor.
   addBoundaryNodesType1(in, positiveBoundaryOctants, m_uiDimension, m_uiMaxDepth);
-
+  //treeNodesTovtk(positiveBoundaryOctants,rank,"positive_bdy_octs");
   // Update the maxDepth ...
   m_uiMaxDepth = m_uiMaxDepth + 1;
 
@@ -202,6 +205,13 @@ void DA::DA_FactoryPart2(std::vector<ot::TreeNode>& in) {
 
 void DA::DA_FactoryPart3(std::vector<ot::TreeNode>& in, MPI_Comm comm, bool compressLut,
     const std::vector<ot::TreeNode>* blocksPtr, bool* iAmActive) {
+
+
+  int rank,size;
+  MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+  MPI_Comm_size(MPI_COMM_WORLD,&size);
+
+
 #ifdef __PROF_WITH_BARRIER__
   MPI_Barrier(m_mpiCommActive);
 #endif
@@ -421,13 +431,21 @@ void DA::DA_FactoryPart3(std::vector<ot::TreeNode>& in, MPI_Comm comm, bool comp
 
   // first let's pick boundary nodes on each proc.
   std::vector<ot::TreeNode> allBoundaryLeaves;
+  treeNodesTovtk(blocks,rank,"oda_blocks");
+  treeNodesTovtk(in,rank,"oda_in");
 
   pickInterProcessorBoundaryNodes(in, allBoundaryLeaves, blocks[0], blocks[blocks.size() - 1]);
+  //assert(par::test::isUniqueAndSorted(blocks,MPI_COMM_WORLD));
+
+  treeNodesTovtk(allBoundaryLeaves,rank,"oda_interProcessBoundary");
 
   ot::TreeNode myFirstOctant = in[0];
   ot::TreeNode myLastOctant = in[in.size() - 1];
 
   includeSiblingsOfBoundary(allBoundaryLeaves, myFirstOctant, myLastOctant);
+
+
+  treeNodesTovtk(allBoundaryLeaves,rank,"oda_siblingsOfBoundary");
 
   PROF_BUILD_DA_STAGE4_END
 #ifdef __PROF_WITH_BARRIER__
@@ -649,7 +667,8 @@ void DA::DA_FactoryPart3(std::vector<ot::TreeNode>& in, MPI_Comm comm, bool comp
 
   //PostGhosts....
   m_uiPostGhostBegin = myOff + static_cast<unsigned int>(in.size());
-  for (int i=myOff+in.size(); i<localOcts.size(); i++) {
+
+  for (int i=(myOff+in.size());i<localOcts.size();i++){
     localOcts[i] = recvK[i-in.size()];
   }
 
@@ -659,6 +678,12 @@ void DA::DA_FactoryPart3(std::vector<ot::TreeNode>& in, MPI_Comm comm, bool comp
   recvK.clear();
 
   m_uiLocalBufferSize = static_cast<unsigned int>(localOcts.size());
+
+
+
+
+
+
 
   PROF_BUILD_DA_STAGE7_END
 #ifdef __PROF_WITH_BARRIER__
@@ -681,7 +706,32 @@ void DA::DA_FactoryPart3(std::vector<ot::TreeNode>& in, MPI_Comm comm, bool comp
   MPI_Barrier(m_mpiCommActive);
 #endif
 
+
+
+//@milinda: Remove this later
+//  assert(localOcts.size()!=0);
+//  treeNodesTovtk(localOcts,rank,"localOct");
+//  char fileName[256];
+//  sprintf(fileName, "%s%d_%d.pts", "localOctants_Hilbert", rank, size);
+//
+//
+//#ifdef HILBERT_ORDERING
+//  writeNodesToFile_binary(fileName,localOcts);
+//#else
+//  std::vector<ot::TreeNode> oct;
+//  std::vector<ot::TreeNode> tmpOct;
+//  readNodesFromFile_binary(fileName,oct);
+//  assert(oct.size()!=0);
+//  par::sampleSort(oct,tmpOct,MPI_COMM_WORLD);
+//  localOcts=tmpOct;
+//  assert(localOcts.size()!=0);
+//#endif
+
+  treeNodesTovtk(localOcts,rank,"localOct");
   buildNodeList(localOcts);
+
+
+
 
 #ifdef __DEBUG_DA_PUBLIC__
   MPI_Barrier(m_mpiCommActive);

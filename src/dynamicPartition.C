@@ -63,7 +63,7 @@ long BoundaryCalculation(std::vector<ot::TreeNode>& partition,int begin,int end,
         {
 
             tmp=neighbourOct[j];
-            if(tmp<partition[begin] || (tmp>partition[end-1] && !partition[end-1].isAncestor(tmp)) )
+            if(tmp<partition[begin] || (tmp>partition[end-1]) )
             {
                surf_per_oct++;
             }
@@ -130,7 +130,6 @@ void UpdateBoundaryCalculation(std::vector<ot::TreeNode>& partition,int begin, i
         neighbourOct.push_back(tmp);
 
 
-    int num_surf_oct=0;
     bdy_data[end]=0;
 
     for(int j=0;j<neighbourOct.size();j++)
@@ -138,40 +137,45 @@ void UpdateBoundaryCalculation(std::vector<ot::TreeNode>& partition,int begin, i
 
         tmp=neighbourOct[j];
 
-        if(tmp<*(partition.begin()+begin) || tmp>*(partition.begin()+begin+end)) {
-            num_surf_oct++;
+        if((tmp<(*(partition.begin()+begin))) || (tmp>(*(partition.begin()+begin+end-2)) )) {
+
             bdy_data[end]=bdy_data[end]+BAL_CONST;
             bdy_surfaces=bdy_surfaces+BAL_CONST;
 
         }else
         {
 
-//            bool state= (tmp<*(partition.begin()+begin) || tmp>*(partition.begin()+begin+end));
-//            if(state)
-//                std::cout<<"Rank:"<<rank<<" Seraching for: "<<tmp<<std::endl;
 
-            int found_oct=std::lower_bound((partition.begin()+begin),(partition.begin()+begin+end),tmp)-partition.begin();
+            int found_oct=std::lower_bound((partition.begin()+begin),(partition.begin()+begin+end-2),tmp)-partition.begin();
             //std::cout<<"found_pt:"<<found_oct<<" \t "<<partition[found_oct]<<std::endl;
+
+//            if((tmp<partition[found_oct] && found_oct==begin) || (tmp>partition[found_oct] && found_oct>=(begin+end-1)))
+//            {
+//                bdy_data[end]=bdy_data[end]+BAL_CONST;
+//                bdy_surfaces=bdy_surfaces+BAL_CONST;
+//                continue;
+//            }
+
+
+
             int l=0;
             int pow=(2-2*abs(new_octant.getLevel()-partition[found_oct].getLevel()));
 
             l=(1u<<pow); // this gives us how much we need to reduce,
             assert(pow==0 || pow==2);
-//            if(pow!=2 && pow!=0)
-//            {
-//                std::cout<<"Rank:"<<rank<<" POW:"<<pow<<" new oct_lev:"<<new_octant.getLevel()<<" partition lev:"<<partition[found_oct].getLevel()<<std::endl;
-//            }
 
             if(partition[found_oct].getLevel()<=new_octant.getLevel())
             {
                 bdy_data[found_oct]=bdy_data[found_oct]-l;
+                bdy_surfaces=bdy_surfaces-l;
 
             }else
             {
-                bdy_data[end]=bdy_data[end]-l;
-
+                //assert(l==4);
+                bdy_data[found_oct]=bdy_data[found_oct]-BAL_CONST;
+                bdy_surfaces=bdy_surfaces-BAL_CONST;
             }
-            bdy_surfaces=bdy_surfaces-l;
+
         }
 
       //  std::cout<<"Rank:"<<rank<<"\t Number of boundary faces:"<<bdy_surfaces<<std::endl;
@@ -181,7 +185,15 @@ void UpdateBoundaryCalculation(std::vector<ot::TreeNode>& partition,int begin, i
 
     if(bdy_data[end]<0)
         bdy_data[end]=0;
-
+//
+//    char* bdy_data_cpy=new char[partition.size()];
+//    long numfaces_iterative=BoundaryCalculation(partition,begin,end+1,bdy_data_cpy);
+//
+//    if(bdy_surfaces!=numfaces_iterative)
+//    {
+//        std::cout<<"Rank:"<<rank<<" Bdy surfaces: iterative:"<<numfaces_iterative<<" upateBoundary faces:"<<bdy_surfaces<<std::endl;
+//    }
+    //bdy_surfaces=numfaces_iterative;
 
 
 }
@@ -249,7 +261,8 @@ void DynamicPartitioning(std::vector<ot::TreeNode>& partition, double slack, MPI
 
 
     local_nm_faces = BoundaryCalculation(ghosted,slackCnt,slackCnt+partition.size(),bdy_data);
-    long local_nm_faces_prev=local_nm_faces/4;
+    long local_nm_faces_prev=local_nm_faces/BAL_CONST;
+    long local_nm_faces_prev_1=local_nm_faces_prev;
     long global_opt=0;
 
 //    for(int i=0;i<bdy_data.size();i++)
@@ -285,11 +298,16 @@ void DynamicPartitioning(std::vector<ot::TreeNode>& partition, double slack, MPI
 
     int slackCnt_opt=0;
     long global_opt_stat[3];
-    for(int i=0;i<slackCnt;i++)
+    for(int i=1;i<slackCnt;i++)
     {
         if(rank<(size-1)) {
             UpdateBoundaryCalculation(ghosted, slackCnt, slackCnt + partition.size() + i, local_nm_faces, bdy_data);
-            local_nm_faces_prev=local_nm_faces/4;
+
+//            if((local_nm_faces/BAL_CONST)<local_nm_faces_prev_1)
+//            {
+//                std::cout<<"comm cost reduced"<<(local_nm_faces/BAL_CONST)<<std::endl;
+//            }
+            local_nm_faces_prev=local_nm_faces/BAL_CONST;
         }
         //std::cout<<"Rank:"<<rank<<"\t Updated Boundary faces:"<<local_nm_faces<<std::endl;
 

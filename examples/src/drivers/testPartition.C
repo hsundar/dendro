@@ -186,8 +186,8 @@ int main(int argc, char **argv) {
   // unsigned int num_pseudo_proc=1;
 
 
-   signal(SIGSEGV, handler);   // install our handler
-   signal(SIGTERM, handler);   // install our handler
+  // signal(SIGSEGV, handler);   // install our handler
+  // signal(SIGTERM, handler);   // install our handler
 
 #ifdef PETSC_USE_LOG
   int stages[3];
@@ -462,7 +462,7 @@ assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
 //    assert(balOct[i].getFlag()<=balOct[i].getMaxDepth());
 
 
-  DynamicPartitioning(balOct,slack,MPI_COMM_WORLD);
+ // DynamicPartitioning(balOct,slack,MPI_COMM_WORLD);
 
 
 
@@ -473,70 +473,70 @@ assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
 
 
 //  //==================ODA Meshing=================================
-//
-//  if (!rank) {
-//    std::cout << BLU << "===============================================" << NRM << std::endl;
-//    std::cout << RED " Starting ODA Meshing" NRM << std::endl;
-//    std::cout << BLU << "===============================================" << NRM << std::endl;
-//  }
-//  //ODA ...
-//  MPI_Barrier(MPI_COMM_WORLD);
-//#ifdef PETSC_USE_LOG
-//  PetscLogStagePush(stages[2]);
-//#endif
-//  startTime = MPI_Wtime();
-//  assert(!(balOct.empty()));
-//  ot::DA da(balOct, MPI_COMM_WORLD, MPI_COMM_WORLD, compressLut);
-//  endTime = MPI_Wtime();
-//#ifdef PETSC_USE_LOG
-//  PetscLogStagePop();
-//#endif
-////  balOct.clear();
-////  // compute total inp size and output size
-//  localSz = da.getNodeSize();
-//  localTime = endTime - startTime;
-//  par::Mpi_Reduce<DendroIntL>(&localSz, &totalSz, 1, MPI_SUM, 0, MPI_COMM_WORLD);
-//  par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);
-//
-//  if (!rank) {
-//    std::cout << "Total # Vertices: " << totalSz << std::endl;
-//    std::cout << "Time to build ODA: " << totalTime << std::endl;
-//  }
-//
-//  //! Quality of the partition ...
-//  DendroIntL maxNodeSize, minNodeSize,
-//      maxBdyNode, minBdyNode,
-//      maxIndepSize, minIndepSize,
-//      maxElementSize, minElementSize;
-//
-//  localSz = da.getNodeSize();
-//  par::Mpi_Reduce<DendroIntL>(&localSz, &maxNodeSize, 1, MPI_MAX, 0, MPI_COMM_WORLD);
-//  par::Mpi_Reduce<DendroIntL>(&localSz, &minNodeSize, 1, MPI_MIN, 0, MPI_COMM_WORLD);
-//
-//  localSz = da.getBoundaryNodeSize();
-//  par::Mpi_Reduce<DendroIntL>(&localSz, &maxBdyNode, 1, MPI_MAX, 0, MPI_COMM_WORLD);
-//  par::Mpi_Reduce<DendroIntL>(&localSz, &minBdyNode, 1, MPI_MIN, 0, MPI_COMM_WORLD);
-//
-//  localSz = da.getElementSize();
-//  par::Mpi_Reduce<DendroIntL>(&localSz, &maxElementSize, 1, MPI_MAX, 0, MPI_COMM_WORLD);
-//  par::Mpi_Reduce<DendroIntL>(&localSz, &minElementSize, 1, MPI_MIN, 0, MPI_COMM_WORLD);
-//
-//  localSz = da.getIndependentSize();
-//  par::Mpi_Reduce<DendroIntL>(&localSz, &maxIndepSize, 1, MPI_MAX, 0, MPI_COMM_WORLD);
-//  par::Mpi_Reduce<DendroIntL>(&localSz, &minIndepSize, 1, MPI_MIN, 0, MPI_COMM_WORLD);
-//
-//  if (!rank) {
-//    std::cout << "Nodes          \t(" << minNodeSize << ", " << maxNodeSize << ")" << std::endl;
-//    std::cout << "Boundary Node  \t(" << minBdyNode << ", " << maxBdyNode << ")" << std::endl;
-//    std::cout << "Element        \t(" << minElementSize << ", " << maxElementSize << ")" << std::endl;
-//    std::cout << "Independent    \t(" << minIndepSize << ", " << maxIndepSize << ")" << std::endl;
-//  }
-//
-//  if (!rank) {
-//    std::cout << GRN << "Finalizing ..." << NRM << std::endl;
-//  }
-//
-//  ot::DA_Finalize();
-//  PetscFinalize();
+
+  if (!rank) {
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+    std::cout << RED " Starting ODA Meshing" NRM << std::endl;
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+  }
+  //ODA ...
+  MPI_Barrier(MPI_COMM_WORLD);
+#ifdef PETSC_USE_LOG
+  PetscLogStagePush(stages[2]);
+#endif
+  startTime = MPI_Wtime();
+  assert(!(balOct.empty()));
+  ot::DA da(balOct, MPI_COMM_WORLD, MPI_COMM_WORLD, compressLut);
+  endTime = MPI_Wtime();
+#ifdef PETSC_USE_LOG
+  PetscLogStagePop();
+#endif
+//  balOct.clear();
+//  // compute total inp size and output size
+  localSz = da.getNodeSize();
+  localTime = endTime - startTime;
+  par::Mpi_Reduce<DendroIntL>(&localSz, &totalSz, 1, MPI_SUM, 0, MPI_COMM_WORLD);
+  par::Mpi_Reduce<double>(&localTime, &totalTime, 1, MPI_MAX, 0, MPI_COMM_WORLD);
+
+  if (!rank) {
+    std::cout << "Total # Vertices: " << totalSz << std::endl;
+    std::cout << "Time to build ODA: " << totalTime << std::endl;
+  }
+
+  //! Quality of the partition ...
+  DendroIntL maxNodeSize, minNodeSize,
+      maxBdyNode, minBdyNode,
+      maxIndepSize, minIndepSize,
+      maxElementSize, minElementSize;
+
+  localSz = da.getNodeSize();
+  par::Mpi_Reduce<DendroIntL>(&localSz, &maxNodeSize, 1, MPI_MAX, 0, MPI_COMM_WORLD);
+  par::Mpi_Reduce<DendroIntL>(&localSz, &minNodeSize, 1, MPI_MIN, 0, MPI_COMM_WORLD);
+
+  localSz = da.getBoundaryNodeSize();
+  par::Mpi_Reduce<DendroIntL>(&localSz, &maxBdyNode, 1, MPI_MAX, 0, MPI_COMM_WORLD);
+  par::Mpi_Reduce<DendroIntL>(&localSz, &minBdyNode, 1, MPI_MIN, 0, MPI_COMM_WORLD);
+
+  localSz = da.getElementSize();
+  par::Mpi_Reduce<DendroIntL>(&localSz, &maxElementSize, 1, MPI_MAX, 0, MPI_COMM_WORLD);
+  par::Mpi_Reduce<DendroIntL>(&localSz, &minElementSize, 1, MPI_MIN, 0, MPI_COMM_WORLD);
+
+  localSz = da.getIndependentSize();
+  par::Mpi_Reduce<DendroIntL>(&localSz, &maxIndepSize, 1, MPI_MAX, 0, MPI_COMM_WORLD);
+  par::Mpi_Reduce<DendroIntL>(&localSz, &minIndepSize, 1, MPI_MIN, 0, MPI_COMM_WORLD);
+
+  if (!rank) {
+    std::cout << "Nodes          \t(" << minNodeSize << ", " << maxNodeSize << ")" << std::endl;
+    std::cout << "Boundary Node  \t(" << minBdyNode << ", " << maxBdyNode << ")" << std::endl;
+    std::cout << "Element        \t(" << minElementSize << ", " << maxElementSize << ")" << std::endl;
+    std::cout << "Independent    \t(" << minIndepSize << ", " << maxIndepSize << ")" << std::endl;
+  }
+
+  if (!rank) {
+    std::cout << GRN << "Finalizing ..." << NRM << std::endl;
+  }
+
+  ot::DA_Finalize();
+  PetscFinalize();
 } //end function
 

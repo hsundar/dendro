@@ -273,6 +273,7 @@ namespace ot {
       unsigned int getParentY() const;
       unsigned int getParentZ() const;    
       unsigned char getChildNumber(bool real=true) const;
+      unsigned char getMortonIndex() const ;
       int setWeight(unsigned int w);
       int addWeight(unsigned int w);
       int setFlag(unsigned int w);
