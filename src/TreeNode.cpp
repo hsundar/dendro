@@ -547,7 +547,7 @@ TreeNode  :: TreeNode(const unsigned int dim, const unsigned int maxDepth) {
   m_uiLevel = 0;
   m_uiWeight = 1;
   //@milinda some dimentions get zero. This is a quick fix.
-  if(dim==0)
+  if(dim!=3 || dim!=2)
     m_uiDim=3;
   else
     m_uiDim = dim;

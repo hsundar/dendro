@@ -5,9 +5,9 @@ project(dendro)
 set (Dendro_VERSION_MAJOR 4)
 set (Dendro_VERSION_MINOR 0)
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${dendro_SOURCE_DIR}/lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${dendro_SOURCE_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${dendro_SOURCE_DIR}/bin)
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${dendro_SOURCE_DIR}/lib)
+#set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${dendro_SOURCE_DIR}/lib)
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${dendro_SOURCE_DIR}/bin)
 
 
 
@@ -35,7 +35,7 @@ if(MPI_LINK_FLAGS)
   set(LINK_FLAGS "${LINK_FLAGS} ${MPI_LINK_FLAGS}")
 endif()
 
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 set(LINK_FLAGS "${LINK_FLAGS} -rdynamic")
 
@@ -151,7 +151,8 @@ target_link_libraries(testConBalAndCoarsen dendro petsc ${MPI_LIBRARIES} m)
 ##    Dendro DA APPS
 ##---------------------------------------------------------------------------------------
 if(BUILD_DA_EXAMPLES)
-    add_executable(testPartition examples/src/drivers/testPartition.C include/hcurvedata.h src/hcurvedata.cpp examples/include/octreeStatistics.h examples/src/drivers/octreeStatistics.cpp include/test/testUtils.h src/test/testUtils.C )
+    add_executable(testPartition examples/src/drivers/testPartition.C include/hcurvedata.h src/hcurvedata.cpp examples/include/octreeStatistics.h examples/src/drivers/octreeStatistics.cpp include/test/testUtils.h src/test/testUtils.C examples/include/genPts_par.h examples/src/drivers/genPts_par.C include/dynamicPartition.h src/dynamicPartition.C
+            )
     target_link_libraries(testPartition dendroDA dendro petsc ${MPI_LIBRARIES} m)
 
     add_executable(diffOctree examples/src/drivers/diff_morton_hilbert.C include/hcurvedata.h src/hcurvedata.cpp examples/include/octreeStatistics.h examples/src/drivers/octreeStatistics.cpp include/test/testUtils.h src/test/testUtils.C )

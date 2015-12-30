@@ -1574,13 +1574,18 @@ namespace ot {
       if (myLev == 1) {
         continue;
       }
+
       unsigned int currKeySz = static_cast<unsigned int>(keys.size());
-      unsigned int childNum = inPtr[i].getChildNumber();   
+
+      //unsigned int childNum = inPtr[i].getChildNumber();
+      unsigned int childNum=inPtr[i].getChildNumber();
+
       unsigned int mySz = (1u << (maxD - myLev));
       unsigned int myX = inPtr[i].getX();
       unsigned int myY = inPtr[i].getY();
-      unsigned int myZ = inPtr[i].getZ();    
+      unsigned int myZ = inPtr[i].getZ();
 
+     //@hari: I think this is incorrect for Hilbert,
       switch (childNum) {
         case 0:
           {

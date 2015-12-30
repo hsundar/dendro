@@ -76,6 +76,8 @@ bool isComplete(const std::vector<ot::TreeNode >& nodes) {
   return true;
 }
 
+
+
 bool isBalanced(unsigned int dim, unsigned int maxDepth, char*failFileName,
     const std::vector<ot::TreeNode > &nodes, bool incCorn, unsigned int maxLevDiff) {
   TreeNode root (dim, maxDepth);

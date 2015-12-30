@@ -82,7 +82,7 @@ namespace ot {
       
       /*
        *@author Milinda Fernando
-       *@Brief Fundemenatal Implementation of rotation pattern calculation just by iterating it from the root to node. 
+       *@Brief Fundamental Implementation of rotation pattern calculation just by iterating it from the root to node.
        *@changes the rotation and rot_index values of the TreeNode.      
        */
       
@@ -273,6 +273,7 @@ namespace ot {
       unsigned int getParentY() const;
       unsigned int getParentZ() const;    
       unsigned char getChildNumber(bool real=true) const;
+      unsigned char getMortonIndex() const ;
       int setWeight(unsigned int w);
       int addWeight(unsigned int w);
       int setFlag(unsigned int w);

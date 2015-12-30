@@ -30,7 +30,7 @@ namespace ot {
         unsigned int num_children=1u<<m_uiDim; // This is basically the hilbert table offset
         unsigned int rot_offset=num_children<<1;
 
-        unsigned mid_bit=m_uiMaxDepth-parent.m_uiLevel-1; // @hari this is always positive correct ?
+        unsigned mid_bit=m_uiMaxDepth-parent.getLevel()-1; // @hari this is always positive correct ?
         index1= (((m_uiZ&(1<<mid_bit))>>mid_bit)<<2)|( (((m_uiX&(1<<mid_bit))>>mid_bit)^((m_uiZ&(1<<mid_bit))>>mid_bit)) <<1)|(((m_uiX&(1<<mid_bit))>>mid_bit)^((m_uiY&(1<<mid_bit))>>mid_bit)^((m_uiZ&(1<<mid_bit))>>mid_bit));
 
         if(real){
@@ -58,6 +58,26 @@ namespace ot {
         return childNum;
 
     } //end function
+
+    inline unsigned char TreeNode::getMortonIndex() const
+    {
+        unsigned char childNum;
+
+        unsigned int len = (1u << (m_uiMaxDepth - getLevel()));
+        unsigned int len_par = (1u << (m_uiMaxDepth - getLevel() + 1u));
+
+        unsigned int i = (m_uiX % len_par);
+        unsigned int j = (m_uiY % len_par);
+        unsigned int k = (m_uiZ % len_par);
+        i /= len;
+        j /= len;
+        k /= len;
+
+        childNum = static_cast<unsigned char>(4 * k + 2 * j + i);
+        return  childNum;
+    }
+
+
 
     inline int TreeNode::getAnchor(unsigned int &x, unsigned int &y, unsigned int &z) const {
         x = m_uiX;
@@ -108,7 +128,7 @@ namespace ot {
 #endif
 
        if ((this->m_uiX == other.m_uiX) && (this->m_uiY == other.m_uiY) && (this->m_uiZ == other.m_uiZ)) {
-            return (this->m_uiLevel < other.m_uiLevel);
+            return ((this->m_uiLevel & ot::TreeNode::MAX_LEVEL) < (other.m_uiLevel & ot::TreeNode::MAX_LEVEL));
         } //end if
 
 #ifdef HILBERT_ORDERING
@@ -390,7 +410,7 @@ namespace ot {
      TreeNode cfd=*(this);
     #ifdef HILBERT_ORDERING
         unsigned int index1=0;
-        unsigned int len =(m_uiMaxDepth-m_uiLevel); // no len -1 here because we want to get the first point of the given octant not the child.
+        unsigned int len =(this->getMaxDepth()-this->getLevel()); // no len -1 here because we want to get the first point of the given octant not the child.
         unsigned int num_children=1u<<m_uiDim; // This is basically the hilbert table offset
         unsigned int rot_offset=num_children<<1;
         unsigned int cfd_x,cfd_y,cfd_z;
@@ -401,7 +421,7 @@ namespace ot {
         cfd_y=m_uiY +((( (index1&1u) & ( !((index1&2u)>>1u)  ))+( ((index1&2u)>>1u) & (!(index1&1u)  )))<<len);
         cfd_z=m_uiZ +(((index1&4u)>>2u)<<len);
 
-        cfd=TreeNode(1,cfd_x,cfd_y,cfd_z,m_uiLevel,m_uiDim,m_uiMaxDepth);
+        cfd=TreeNode(1,cfd_x,cfd_y,cfd_z,this->getLevel(),m_uiDim,m_uiMaxDepth);
         return cfd;
     #else
       return cfd;
@@ -421,7 +441,7 @@ namespace ot {
 
         unsigned int index1 = 0;
         unsigned int dld_x,dld_y,dld_z;
-        unsigned int len = m_uiMaxDepth-m_uiLevel;
+        unsigned int len = this->getMaxDepth()-this->getLevel();
         unsigned int last_child_index=(1<<m_uiDim)-1;
         unsigned int num_children=1u<<m_uiDim; // This is basically the hilbert table offset
         unsigned int rot_offset=num_children<<1;
@@ -466,7 +486,7 @@ namespace ot {
         MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
         // std::cout<<"Get Next of TreeNode: "<<(*this)<<std::endl;
-        for (i = m.m_uiLevel; i >= 0; --i) {
+        for (i = m.getLevel(); i >= 0; --i) {
 
             // special case that next of the root node.We consider it as the first child of the root.
             if(i==0)
@@ -537,8 +557,8 @@ namespace ot {
 #ifdef HILBERT_ORDERING
 
         TreeNode m=*this;
-        unsigned int len1=((m.m_uiMaxDepth-m.m_uiLevel)-1);
-        //unsigned int len=1<<((m.m_uiMaxDepth-m.m_uiLevel)-1);
+        unsigned int len1=((m.getMaxDepth()-m.getLevel())-1);
+
         unsigned int xf,yf,zf;
         unsigned int num_children=1u<<m_uiDim; // This is basically the hilbert table offset
         unsigned int rot_offset=num_children<<1;
@@ -554,7 +574,7 @@ namespace ot {
          yf=m_uiY +((( (fchild&1u) & ( !((fchild&2u)>>1u)  ))+( ((fchild&2u)>>1u) & (!(fchild&1u)  )))<<len1);
          zf=m_uiZ +(((fchild&4u)>>2u)<<len1);
 
-         m=TreeNode(1,xf,yf,zf,(m_uiLevel+1),m_uiDim,m_uiMaxDepth);
+         m=TreeNode(1,xf,yf,zf,(this->getLevel()+1),m_uiDim,m_uiMaxDepth);
 
         return m;
 
@@ -567,7 +587,7 @@ namespace ot {
     }
 
   inline bool TreeNode::isRoot() const {
-    return (this->m_uiLevel == 0);
+    return (this->getLevel() == 0);
   }
 
     inline bool TreeNode::isAncestor(TreeNode const &other) const {
@@ -1913,7 +1933,7 @@ char TreeNode::calculateTreeNodeRotation() const
   ncaX=this->m_uiX;
   ncaY=this->m_uiY;
   ncaZ=this->m_uiZ;
-  ncaLev=this->m_uiLevel;
+  ncaLev=this->getLevel();
   int index_temp=0;
   int num_children=1u<<m_uiDim;
   int rot_offset=num_children<<1;

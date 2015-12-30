@@ -1624,7 +1624,9 @@ namespace ot {
         myVertices.push_back(ot::TreeNode(myX, (myY + mySz), (myZ + mySz), maxDepth, dim, maxDepth));
         myVertices.push_back(ot::TreeNode((myX + mySz), (myY + mySz), (myZ + mySz), maxDepth, dim, maxDepth));
 
+
         ot::TreeNode parNode = allBoundaryLeaves[j].getParent();
+        //@hari: Is this correct for Hilbert Ordering.
         unsigned int myCnum = allBoundaryLeaves[j].getChildNumber();
         unsigned int parX = parNode.getX();
         unsigned int parY = parNode.getY();
@@ -1661,6 +1663,7 @@ namespace ot {
         }
 
       }//end if positive boundary
+
 
       //Keys to check if you are a post-ghost
       //If the anchor is hanging we need not send it. When some processor searches
@@ -1703,6 +1706,8 @@ namespace ot {
                 maxDepth, dim, maxDepth));
         }
       }//end if hanging anchor
+
+
 
       std::vector<unsigned int> pIds;
       for(int k = 0; k < parVertices.size(); k++) {

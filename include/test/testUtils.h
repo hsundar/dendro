@@ -64,6 +64,11 @@ namespace par {
     template<typename T>
       bool isUniqueAndSorted(const std::vector<T >& nodes,MPI_Comm comm) ;
 
+      //@author: Milinda Fernando. Assess the completeness of the octree based on the volumes of the octants.
+      template <typename T>
+      bool  isComplete (const std::vector<T>& nodes, MPI_Comm comm);
+
+
   }//end namespace
 }//end namespace
 
@@ -87,6 +92,9 @@ namespace ot {
       @remark The vector of nodes is expected to be unique and linear.
     **/ 
     bool isComplete(const std::vector<TreeNode >& nodes) ;
+
+
+
 
     /**
       @fn

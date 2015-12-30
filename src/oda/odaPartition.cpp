@@ -206,9 +206,9 @@ namespace ot {
     //Naive Logic:
     for (unsigned int i = 0; i < globalCoarse.size(); i++) {
       for (int p = 0; p < npesActive; p++) {
-        if ( (globalCoarse[i].isAncestor(_mins_maxs[2*p])) ||
-            ( (globalCoarse[i] >= _mins_maxs[2*p]) &&
-              (globalCoarse[i] <=_mins_maxs[(2*p)+1]) ) ) {
+        //if ( (globalCoarse[i].isAncestor(_mins_maxs[2*p])) || ( (globalCoarse[i] >= _mins_maxs[2*p]) && (globalCoarse[i] <=_mins_maxs[(2*p)+1]) ) ) {
+        //@Hari @Milinda We did this fix to Blockpart2
+        if((globalCoarse[i].isAncestor(_mins_maxs[2*p])) || ( (globalCoarse[i] >= _mins_maxs[2*p]) && (globalCoarse[i] <=_mins_maxs[(2*p)+1]) ) || (globalCoarse[i].isAncestor(_mins_maxs[2*p+1]))){
           sendNodes[p].push_back(globalCoarse[i]);
           // save keymap so that we can assign weights back to globalCoarse.
           keymap[p].push_back(i);    

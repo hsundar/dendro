@@ -567,6 +567,7 @@ namespace ot {
 
     par::partitionW<ot::TreeNode>(nodes, NULL,comm);
 
+
     //std::cout << rank << ": " << __func__ << ":Block Part Node Size:" <<nodes.size()<< std::endl;
     assert(nodes.size() > (1 << dim) ); 
 
@@ -659,6 +660,7 @@ namespace ot {
     //localBlocks will not be empty on any processor
 
     //treeNodesTovtk(localBlocks,rank,"local_blocks");
+
     completeOctree(localBlocks, blocks, dim, maxDepth, true,true,true, comm);
     assert(par::test::isUniqueAndSorted(blocks, comm));
     //treeNodesTovtk(blocks,rank,"af_complete_octree");
@@ -754,8 +756,8 @@ namespace ot {
 #ifdef __DEBUG_OCT__
         assert(areComparable(globalCoarse[i], _mins_maxs[2*p]));
 #endif
-         if ( (globalCoarse[i].isAncestor(_mins_maxs[2*p])) || ( (globalCoarse[i] >= _mins_maxs[2*p]) && (globalCoarse[i] <=_mins_maxs[(2*p)+1]) ) ) {
-        //if ( (globalCoarse[i].isAncestor(_mins_maxs[2*p])) || ( (globalCoarse[i] >= _mins_maxs[2*p]) && (globalCoarse[i] <=_mins_maxs[(2*p)+1]) ) || (globalCoarse[i].isAncestor(_mins_maxs[2*p+1])) ) {
+         //if ( (globalCoarse[i].isAncestor(_mins_maxs[2*p])) || ( (globalCoarse[i] >= _mins_maxs[2*p]) && (globalCoarse[i] <=_mins_maxs[(2*p)+1]) ) ) {
+        if ( (globalCoarse[i].isAncestor(_mins_maxs[2*p])) || ( (globalCoarse[i] >= _mins_maxs[2*p]) && (globalCoarse[i] <=_mins_maxs[(2*p)+1]) ) || (globalCoarse[i].isAncestor(_mins_maxs[2*p+1])) ) {
            sendNodes[p].push_back(globalCoarse[i]);
           // save keymap so that we can assign weights back to globalCoarse.
            // std::cout<<YLW<<"Global Coarse added:"<<globalCoarse[i]<<std::endl;
