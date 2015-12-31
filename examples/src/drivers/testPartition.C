@@ -15,13 +15,17 @@
 #include "testUtils.h"
 #include "genPts_par.h"
 
+#include "dtypes.h"
+
 #include "dynamicPartition.h"
+
 
 
 //Don't want time to be synchronized. Need to check load imbalance.
 #ifdef MPI_WTIME_IS_GLOBAL
 #undef MPI_WTIME_IS_GLOBAL
 #endif
+
 
 /** Print a demangled stack backtrace of the caller function to FILE* out. */
 void handler (int sig) {
@@ -457,14 +461,84 @@ assert(par::test::isUniqueAndSorted(linOct,MPI_COMM_WORLD));
 
   assert(par::test::isUniqueAndSorted(balOct,MPI_COMM_WORLD));
   assert(par::test::isComplete(balOct,MPI_COMM_WORLD));
+  assert(!balOct[0].isRoot());
 
-//  for(int i=0;i<balOct.size();i++)
-//    assert(balOct[i].getFlag()<=balOct[i].getMaxDepth());
+  for(int i=0;i<balOct.size();i++)
+  {
+    assert(!balOct[i].isRoot());
+  }
+
+
+
+
+// for(int i=0;i<balOct.size();i++)
+// {
+//   for(int j=0;j<balOct.size();j++)
+//   {
+//     if((balOct[i] < balOct[j]) && (balOct[i].getLevel()!=balOct[j].getLevel()))
+//     {
+//       assert(balOct[i].isAncestor(balOct[j]));
+//     }
+//   }
+// }
+
 
 
  // DynamicPartitioning(balOct,slack,MPI_COMM_WORLD);
+    int totalOcts=0;
+    int localOcts=balOct.size();
+
+    MPI_Allreduce (&localOcts,&totalOcts,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
+
+    ot::TreeNode *balOctAll_ptr = NULL;
+    std::vector<ot::TreeNode> BalOctsAll;
+
+    ot::TreeNode* balOct_ptr=&(*(balOct.begin()));
 
 
+
+    int *recvcounts = new int[size];
+    int *displs = new int[size];
+
+    //par::Mpi_Gather (&localOcts, recvcounts, 1, 0, MPI_COMM_WORLD);
+    MPI_Allgather(&localOcts,1,MPI_INT,recvcounts,1,MPI_INT,MPI_COMM_WORLD);
+
+/*    for(int i=0;i<size;i++)
+      std::cout<<" "<<recvcounts[i]<<" ";
+      std::cout<<std::endl;*/
+
+    displs[0] = 0;
+    for (int i=1; i<size; ++i)
+      displs[i] = displs[i-1] + recvcounts[i-1]; // scan
+
+/*    for(int i=0;i<size;i++)
+      std::cout<<" "<<displs[i]<<" ";
+      std::cout<<std::endl;*/
+
+
+    if(!rank) {
+      BalOctsAll.resize(totalOcts);
+      balOctAll_ptr = &(*BalOctsAll.begin());
+    }
+
+    MPI_Gatherv(balOct_ptr,balOct.size(), par::Mpi_datatype<ot::TreeNode>::value(),
+                  balOctAll_ptr, recvcounts, displs, par::Mpi_datatype<ot::TreeNode>::value(),0,MPI_COMM_WORLD);
+
+
+
+    if(!rank) {
+      std::cout<<"Total Balanced Octants:"<<BalOctsAll.size()<<std::endl;
+      assert(BalOctsAll.size()==totalOcts);
+      assert(seq::test::isUniqueAndSorted(BalOctsAll));
+      assert(ot::test::isBalanced(3, maxDepth, "Balfail", BalOctsAll, incCorner, 1));
+      //ot::test::isBalanced(3, maxDepth, "Balfail", BalOctsAll, incCorner, 1);
+
+
+    }
+
+    // Clean up ...
+    delete [] displs;
+    delete [] recvcounts;
 
   if(!rank)
   {
