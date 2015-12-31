@@ -410,7 +410,7 @@ namespace ot {
     // assert(par::test::isSorted(allBoundaryLeaves, comm));
     mergeComboBalAndPickBoundary(out, allBoundaryLeaves, myFirstBlock, myLastBlock);
     // std::cout << rank << ": done with mergeCombo" << std::endl;
-    // treeNodesTovtk(out, rank, "out_after_merge", true);
+    treeNodesTovtk(allBoundaryLeaves, rank, "loc_bal_bdy");
 
 #ifdef __MEASURE_BAL_COMM__
     MPI_Barrier(comm);
@@ -539,6 +539,8 @@ namespace ot {
     PROF_BAL_COMM_END
 
     sendK.clear();
+
+    treeNodesTovtk(recvK1, rank, "stage1_recv");
 
 #ifdef __MEASURE_BAL_COMM__
     MPI_Barrier(comm);
@@ -753,6 +755,8 @@ namespace ot {
 
     // 8. Now perform seq. balance on the new list of local nodes.
     ripple(nodes, incCorner);
+
+    // treeNodesTovtk(nodes, rank, "bdy_after_final_ripple");
 
     //////////////////////////////////////////////////////////////////////////////////////////////////
     // 9. Discard all nodes that do not belong to the original domain. This can
