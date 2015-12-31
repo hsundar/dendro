@@ -310,7 +310,9 @@ namespace ot {
         @author Rahul Sampath
         @brief appends the children (sorted) of this octant to 'list'
         */
-      int addChildren(std::vector<TreeNode > &list) const;
+      int addChildren(std::vector<ot::TreeNode>& children) const;
+
+      int addChildrenMorton(std::vector<ot::TreeNode>& children) const;
 
       /**
         @author Rahul Sampath
@@ -336,6 +338,9 @@ namespace ot {
         @return the Deepest first decendant of this octant
         */
       TreeNode getDFD() const;
+
+      TreeNode getDFDMorton() const;
+
 
       /**
         @author Rahul Sampath

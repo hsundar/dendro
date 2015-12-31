@@ -331,6 +331,68 @@ int TreeNode  ::addChildren(std::vector<ot::TreeNode>& children) const {
   return 1;
 } //end function
 
+
+int TreeNode::addChildrenMorton(std::vector<ot::TreeNode>& children) const
+{
+  unsigned int dim = m_uiDim;
+  unsigned int maxDepth = m_uiMaxDepth;
+  unsigned int childrenSz = children.size();
+  children.resize(childrenSz + (1 << dim));
+
+  //#define MORTON_ORDERING
+
+  if ((m_uiLevel & ot::TreeNode::MAX_LEVEL) == maxDepth) {
+    for (int i = 0; i < (1 << dim); i++) {
+      children[childrenSz + i] = *this;
+    }
+    return 1;
+  }
+  //The check that lev < maxD is taken care of in the constructor.
+
+  //Order: X first, Y next and Z last
+
+  unsigned int len = (unsigned int)(1u << (maxDepth - ((m_uiLevel & ot::TreeNode::MAX_LEVEL) + 1)));
+
+  TreeNode   tmpNode0(1, m_uiX, m_uiY, m_uiZ, ((m_uiLevel & ot::TreeNode::MAX_LEVEL) + 1), m_uiDim, m_uiMaxDepth);
+  children[childrenSz + 0] = tmpNode0;
+
+  TreeNode   tmpNode1(1, (m_uiX + len), m_uiY, m_uiZ, ((m_uiLevel & ot::TreeNode::MAX_LEVEL) + 1), m_uiDim, m_uiMaxDepth);
+  children[childrenSz + 1] = tmpNode1;
+
+  if (dim >= 2) {
+    TreeNode   tmpNode2(1, m_uiX, (m_uiY + len), m_uiZ, ((m_uiLevel & ot::TreeNode::MAX_LEVEL) + 1), m_uiDim, m_uiMaxDepth);
+    children[childrenSz + 2] = tmpNode2;
+
+    TreeNode   tmpNode3(1, (m_uiX + len), (m_uiY + len), m_uiZ, ((m_uiLevel & ot::TreeNode::MAX_LEVEL) + 1), m_uiDim, m_uiMaxDepth);
+    children[childrenSz + 3] = tmpNode3;
+  }
+
+  if (dim == 3) {
+    TreeNode   tmpNode4(1, m_uiX, m_uiY, (m_uiZ + len), ((m_uiLevel & ot::TreeNode::MAX_LEVEL) + 1), m_uiDim, m_uiMaxDepth);
+    children[childrenSz + 4] = tmpNode4;
+
+    TreeNode   tmpNode5(1, (m_uiX + len), m_uiY, (m_uiZ + len), ((m_uiLevel & ot::TreeNode::MAX_LEVEL) + 1), m_uiDim, m_uiMaxDepth);
+    children[childrenSz + 5] = tmpNode5;
+
+    TreeNode   tmpNode6(1, m_uiX, (m_uiY + len), (m_uiZ + len), ((m_uiLevel & ot::TreeNode::MAX_LEVEL) + 1), m_uiDim, m_uiMaxDepth);
+    children[childrenSz + 6] = tmpNode6;
+
+    TreeNode   tmpNode7(1, (m_uiX + len), (m_uiY + len), (m_uiZ + len), ((m_uiLevel & ot::TreeNode::MAX_LEVEL) + 1), m_uiDim, m_uiMaxDepth);
+    children[childrenSz + 7] = tmpNode7;
+  } //end if
+
+//#ifdef HILBERT_ORDERING
+//#pragma message("===FIX ME===")
+//  std::sort(children.begin(), children.end());
+//#endif
+  return 1;
+}
+
+
+
+
+
+
 int TreeNode  ::addBrothers(std::vector<TreeNode>& bros) const {
   unsigned int dim = m_uiDim;
   bros.resize(((1 << dim) - 1));
