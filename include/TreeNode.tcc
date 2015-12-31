@@ -63,8 +63,8 @@ namespace ot {
     {
         unsigned char childNum;
 
-        unsigned int len = (1u << (m_uiMaxDepth - getLevel()));
-        unsigned int len_par = (1u << (m_uiMaxDepth - getLevel() + 1u));
+        unsigned int len = (1u << (getMaxDepth() - getLevel()));
+        unsigned int len_par = (1u << (getMaxDepth() - getLevel() + 1u));
 
         unsigned int i = (m_uiX % len_par);
         unsigned int j = (m_uiY % len_par);
@@ -384,6 +384,25 @@ namespace ot {
 
     inline unsigned int TreeNode::getParentZ() const {
         return getParent().getZ();
+    }
+
+    inline TreeNode TreeNode::getDFDMorton() const
+    {
+//#ifdef HILBERT_ORDERING
+//
+//        TreeNode dfd=*this;
+//        while(dfd.getLevel()<m_uiMaxDepth)
+//            dfd=dfd.getFirstChild();
+//
+//        return dfd;
+//
+//#else
+
+
+        TreeNode dfd(1, m_uiX, m_uiY, m_uiZ, m_uiMaxDepth, m_uiDim, m_uiMaxDepth);
+        return dfd;
+
+//#endif
     }
 
     inline TreeNode TreeNode::getDFD() const {
