@@ -168,7 +168,7 @@ namespace ot {
 
     PROF_BAL_BPART2_END
 
-   // std::cout << GRN<<rank << ":Block Part END" << NRM<<std::endl;
+    // std::cout << GRN<<rank << ":Block Part END" << NRM<<std::endl;
 
 #ifdef __DEBUG_OCT__
     assert(par::test::isSorted(blocks, comm));
@@ -805,6 +805,9 @@ namespace ot {
       PROF_COMBO_RIPPLE_END
     }
 
+    // @hari
+    // assert(seq::test::isUniqueAndSorted(in));
+
     std::vector<ot::TreeNode> blocks;
     std::vector<ot::TreeNode> out;
     std::vector<ot::TreeNode> allBoundaryLeaves;
@@ -812,7 +815,7 @@ namespace ot {
     TreeNode nca = getNCA(in[0], in[in.size() - 1]);
     nca.addChildren(blocks);
 
-    std::cout << __func__ << " in[0] is: " << in[0] << std::endl;
+    // std::cout << __func__ << " in[0] is: " << in[0] << std::endl;
     std::cout << "NCA is: " << nca << std::endl;
 
     assert(maxNum > 0);
@@ -903,6 +906,9 @@ namespace ot {
 
     in.clear();
 
+    // @hari
+    std::cout << std::endl << GRN "Finished intra-block balance. Proceeding to ripple" NRM << std::endl;
+
     //Inter-Block Balance
     ripple(allBoundaryLeaves, incCorner);
 
@@ -944,6 +950,9 @@ namespace ot {
     in.resize(tmpLsz);
     out.clear();
 
+    // @hari
+    assert(test::isBalanced(3, in[0].getMaxDepth(), "comboRippleFailed", in, incCorner, 1));
+
     //There is no need to sort, the lists are already sorted.
     PROF_COMBO_RIPPLE_END
   }//end function
@@ -954,18 +963,20 @@ namespace ot {
                     std::vector<TreeNode> &allBoundaryLeaves, bool incCorner,
                     std::vector<unsigned int> *maxBlockBndVec) {
     PROF_CON_BAL_BEGIN
-      int rank=0;
-      MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-      //std::cout<<RED<<"Rank:"<<rank<<"\t inp size:"<<inp.size()<<NRM<<std::endl;
+    int rank = 0;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    //std::cout<<RED<<"Rank:"<<rank<<"\t inp size:"<<inp.size()<<NRM<<std::endl;
 
-      std::vector<ot::TreeNode> temp_inp;
-      std::vector<ot::TreeNode> temp_blocks;
+    std::vector<ot::TreeNode> temp_inp;
+    std::vector<ot::TreeNode> temp_blocks;
 
-      temp_inp=inp;
-      temp_blocks=blocks;
-      //treeNodesTovtk(temp_inp,rank,"inp");
-      //treeNodesTovtk(temp_blocks,rank,"blocks");
-      if (inp.empty()) {
+    temp_inp = inp;
+    temp_blocks = blocks;
+
+    // treeNodesTovtk(temp_inp,rank,"balblk_inp");
+    // treeNodesTovtk(temp_blocks,rank,"bal_blk_blocks");
+
+    if (inp.empty()) {
       nodes.clear();
       allBoundaryLeaves.clear();
       if (maxBlockBndVec != NULL) {
@@ -995,7 +1006,7 @@ namespace ot {
 #ifdef __DEBUG_OCT__
       assert(areComparable(blocks[nextNode], inp[nextPt]));
 #endif
-      if ( blocks[nextNode].isAncestor(inp[nextPt]) || blocks[nextNode] == inp[nextPt] ) {
+      if (blocks[nextNode].isAncestor(inp[nextPt]) || blocks[nextNode] == inp[nextPt]) {
         splitInp[nextNode].push_back(inp[nextPt]);
         nextPt++;
         // if (!rank) std::cout << GRN " pushed" NRM << std::endl;
@@ -1004,22 +1015,33 @@ namespace ot {
         // if (!rank) std::cout << RED " skipped" NRM << std::endl;
         if (nextNode == blocks.size()) {
 
-            std::cout<<"Rank:"<<rank<<std::endl;
-            std::cout << "pt: " << nextPt << "/" << inp.size() << " & block: " << nextNode << "/" << blocks.size() << std::endl;
-            std::cout << "point: " << inp[nextPt] << std::endl;
-            std::cout << "block: " << blocks[nextNode-1] << std::endl;
-            std::cout << "block: " << blocks[nextNode-2] << std::endl;
+          std::cout << "Rank:" << rank << std::endl;
+          std::cout << "pt: " << nextPt << "/" << inp.size() << " & block: " << nextNode << "/" << blocks.size() <<
+          std::endl;
+          std::cout << "point: " << inp[nextPt] << std::endl;
+          std::cout << "block: " << blocks[nextNode - 1] << std::endl;
+          std::cout << "block: " << blocks[nextNode - 2] << std::endl;
           assert(false);
         }
       }
 
     }//end while
 
+    /* @hari
+    for (int ff=0; ff<blocks.size(); ++ff) {
+      treeNodesTovtk(splitInp[ff], ff, "splitInp");
+    }
+    */
+
     //Create Local Trees
     for (unsigned int bi = 0; bi < blocks.size(); bi++) {
-      // if (!rank) std::cout << "block: " << bi << "/" << blocks.size(); //  << std::endl;
+      if (!rank) std::cout << "local block balance : " << bi << "/" << blocks.size() << std::endl;
       //This also sorts and makes the vector unique inside.
       blocks[bi].balanceSubtree(splitInp[bi], blockOut[bi], incCorner, true);
+
+      // @hari
+      assert(test::isBalanced(3, inp[0].getMaxDepth(), "blockOut", blockOut[bi], incCorner, 1));
+
 
       splitInp[bi].clear();
       //This tackles the case where blocks[bi] has no decendants.

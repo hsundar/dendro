@@ -130,7 +130,7 @@ void DA::buildNodeList(std::vector<ot::TreeNode> &in) {
       unsigned int y = in[i].getY();
       unsigned int z = in[i].getZ();
 
-      //Cryptic Implementation:
+      //Cryptic Implementation:  @milinda check if this is correct for Hilbert
       unsigned int parX = ( ( x >> ( m_uiMaxDepth - d + 1 ) ) << ( m_uiMaxDepth - d + 1 ) );
       unsigned int parY = ( ( y >> ( m_uiMaxDepth - d + 1 ) ) << ( m_uiMaxDepth - d + 1 ) );
       unsigned int parZ = ( ( z >> ( m_uiMaxDepth - d + 1 ) ) << ( m_uiMaxDepth - d + 1 ) );
@@ -146,6 +146,7 @@ void DA::buildNodeList(std::vector<ot::TreeNode> &in) {
       b /= sz;
       c /= sz;
 
+      // @milinda note that this is the Morton child number.
       unsigned int ch_num = (4*c + 2*b + a);
 
 #ifdef __DEBUG_DA_NLIST__
@@ -819,6 +820,8 @@ for ( unsigned int j=0; j<8; j++) {
     //A Dependent Element, is one which has atleast one writable node and atleast one ghosted node.
     in[i].orFlag(ot::DA_FLAGS::DEP_ELEM);        
   }
+
+  // @milinda we should have some checks to see if the bug is before this or after
 
   //Prepare for the Ugly portion...
   //Sometimes, we might find a primary key but it could turn out to be hanging
