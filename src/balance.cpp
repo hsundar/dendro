@@ -805,9 +805,6 @@ namespace ot {
       PROF_COMBO_RIPPLE_END
     }
 
-    // @hari
-    // assert(seq::test::isUniqueAndSorted(in));
-
     std::vector<ot::TreeNode> blocks;
     std::vector<ot::TreeNode> out;
     std::vector<ot::TreeNode> allBoundaryLeaves;
@@ -816,7 +813,7 @@ namespace ot {
     nca.addChildren(blocks);
 
     // std::cout << __func__ << " in[0] is: " << in[0] << std::endl;
-    std::cout << "NCA is: " << nca << std::endl;
+    // std::cout << "NCA is: " << nca << std::endl;
 
     assert(maxNum > 0);
 
@@ -906,8 +903,11 @@ namespace ot {
 
     in.clear();
 
+    // treeNodesTovtk(out, 0, "blkbal_out");
+    // treeNodesTovtk(allBoundaryLeaves, 0, "blkbal_bdy");
+
     // @hari
-    std::cout << std::endl << GRN "Finished intra-block balance. Proceeding to ripple" NRM << std::endl;
+    // std::cout << std::endl << GRN "Finished intra-block balance. Proceeding to ripple" NRM << std::endl;
 
     //Inter-Block Balance
     ripple(allBoundaryLeaves, incCorner);
@@ -951,7 +951,7 @@ namespace ot {
     out.clear();
 
     // @hari
-    assert(test::isBalanced(3, in[0].getMaxDepth(), "comboRippleFailed", in, incCorner, 1));
+    // assert(test::isBalanced(3, in[0].getMaxDepth(), "comboRippleFailed", in, incCorner, 1));
 
     //There is no need to sort, the lists are already sorted.
     PROF_COMBO_RIPPLE_END
@@ -1035,13 +1035,14 @@ namespace ot {
 
     //Create Local Trees
     for (unsigned int bi = 0; bi < blocks.size(); bi++) {
-      if (!rank) std::cout << "local block balance : " << bi << "/" << blocks.size() << std::endl;
+      // if (!rank) std::cout << "local block balance : " << bi << "/" << blocks.size() << std::endl;
       //This also sorts and makes the vector unique inside.
       blocks[bi].balanceSubtree(splitInp[bi], blockOut[bi], incCorner, true);
 
-      // @hari
-      assert(test::isBalanced(3, inp[0].getMaxDepth(), "blockOut", blockOut[bi], incCorner, 1));
-
+      /* @hari
+      assert(seq::test::isSorted(blockOut[bi]));
+      assert(test::isBalancedInternal(3, inp[0].getMaxDepth(), "blockOut", blockOut[bi], blocks[bi], incCorner, 1));
+      */
 
       splitInp[bi].clear();
       //This tackles the case where blocks[bi] has no decendants.

@@ -421,7 +421,9 @@ std::vector<TreeNode> TreeNode::getSearchKeys(bool incCorners) {
 
   // std::cout<<"Get Search Keys Called"<<std::endl;
   
-  unsigned int myK = this->getChildNumber();
+  // unsigned int myK = this->getChildNumber();
+  unsigned int myK = this->getMortonIndex();
+
   //Morton Order: X,Y,Z
   bool zdir = (myK >= 4);
   bool ydir = ((myK - ((zdir) ? 4 : 0)) >= 2);
