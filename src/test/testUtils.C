@@ -85,8 +85,9 @@ bool isBalanced(unsigned int dim, unsigned int maxDepth, char*failFileName,
 }//end function
 
 bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileName,
-    const  std::vector<ot::TreeNode > & nodes, ot::TreeNode holder,
-    bool incCorn, unsigned int maxLevDiff) {
+
+  const  std::vector<ot::TreeNode > & nodes, ot::TreeNode holder,
+  bool incCorn, unsigned int maxLevDiff) {
   bool yesBalanced = true;
   std::vector<TreeNode> failedCorners;
   std::vector<TreeNode> failedEdges;
@@ -107,13 +108,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
       if(holder.isAncestor(it)){
 
-        bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+        bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
         if(found) {
           unsigned int retLev = nodes[retIdx].getLevel();
           unsigned int myLev = nodes[i].getLevel();					
           if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
             found = false;
-          }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+          }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
             //Found a very big Neighbour
             found = false;
           }						
@@ -122,7 +123,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
           yesBalanced = false;
           std::cout<<nodes[i]<<": (R) ->"<<nodes[retIdx]<<std::endl;
           failedFaces.push_back(nodes[i]);					
-          break;
+          //break;
         }
       }
 
@@ -134,13 +135,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
       if(holder.isAncestor(it)){
 
-        bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+        bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
         if(found) {
           unsigned int retLev = nodes[retIdx].getLevel();
           unsigned int myLev = nodes[i].getLevel();					
           if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
             found = false;
-          }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+          }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
             //Found a very big Neighbour
             found = false;
           }						
@@ -149,7 +150,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
           yesBalanced = false;
           std::cout<<nodes[i]<<": (L) ->"<<nodes[retIdx]<<std::endl;
           failedFaces.push_back(nodes[i]);					
-          break;
+          //break;
         }
       }
 
@@ -162,13 +163,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
       if(holder.isAncestor(it)){
 
-        bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+        bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
         if(found) {
           unsigned int retLev = nodes[retIdx].getLevel();
           unsigned int myLev = nodes[i].getLevel();					
           if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
             found = false;
-          }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+          }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
             //Found a very big Neighbour
             found = false;
           }						
@@ -177,7 +178,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
           yesBalanced = false;
           std::cout<<nodes[i]<<": (T) ->"<<nodes[retIdx]<<std::endl;
           failedFaces.push_back(nodes[i]);					
-          break;
+          //break;
         }
       }
     }
@@ -189,13 +190,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
       if(holder.isAncestor(it)){
 
-        bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+        bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
         if(found) {
           unsigned int retLev = nodes[retIdx].getLevel();
           unsigned int myLev = nodes[i].getLevel();					
           if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
             found = false;
-          }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+          }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
             //Found a very big Neighbour
             found = false;
           }						
@@ -204,7 +205,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
           yesBalanced = false;
           std::cout<<nodes[i]<<": (Bo) ->"<<nodes[retIdx]<<std::endl;
           failedFaces.push_back(nodes[i]);					
-          break;
+         // break;
         }
       }
 
@@ -217,13 +218,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
       if(holder.isAncestor(it)){
 
-        bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+        bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
         if(found) {
           unsigned int retLev = nodes[retIdx].getLevel();
           unsigned int myLev = nodes[i].getLevel();					
           if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
             found = false;
-          }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+          }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
             //Found a very big Neighbour
             found = false;
           }						
@@ -232,7 +233,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
           yesBalanced = false;
           std::cout<<nodes[i]<<": (F) ->"<<nodes[retIdx]<<std::endl;
           failedFaces.push_back(nodes[i]);					
-          break;
+         // break;
         }
       }
 
@@ -245,13 +246,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
       if(holder.isAncestor(it)){
 
-        bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+        bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
         if(found) {
           unsigned int retLev = nodes[retIdx].getLevel();
           unsigned int myLev = nodes[i].getLevel();					
           if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
             found = false;
-          }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+          }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
             //Found a very big Neighbour
             found = false;
           }						
@@ -260,7 +261,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
           yesBalanced = false;
           std::cout<<nodes[i]<<": (Bk) ->"<<nodes[retIdx]<<std::endl;
           failedFaces.push_back(nodes[i]);					
-          break;
+          //break;
         }
       }
 
@@ -274,13 +275,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
         if(holder.isAncestor(it)){
 
-          bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+          bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
           if(found) {
             unsigned int retLev = nodes[retIdx].getLevel();
             unsigned int myLev = nodes[i].getLevel();					
             if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
               found = false;
-            }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+            }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
               //Found a very big Neighbour
               found = false;
             }						
@@ -289,7 +290,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
             yesBalanced = false;
             std::cout<<nodes[i]<<": (TR) ->"<<nodes[retIdx]<<std::endl;
             failedEdges.push_back(nodes[i]);					
-            break;
+            //break;
           }
         }
 
@@ -302,13 +303,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
         if(holder.isAncestor(it)){
 
-          bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+          bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
           if(found) {
             unsigned int retLev = nodes[retIdx].getLevel();
             unsigned int myLev = nodes[i].getLevel();					
             if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
               found = false;
-            }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+            }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
               //Found a very big Neighbour
               found = false;
             }						
@@ -317,7 +318,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
             yesBalanced = false;
             std::cout<<nodes[i]<<": (TL) ->"<<nodes[retIdx]<<std::endl;
             failedEdges.push_back(nodes[i]);					
-            break;
+           // break;
           }
         }
 
@@ -330,13 +331,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
         if(holder.isAncestor(it)){
 
-          bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+          bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
           if(found) {
             unsigned int retLev = nodes[retIdx].getLevel();
             unsigned int myLev = nodes[i].getLevel();					
             if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
               found = false;
-            }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+            }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
               //Found a very big Neighbour
               found = false;
             }						
@@ -345,7 +346,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
             yesBalanced = false;
             std::cout<<nodes[i]<<": (BoL) ->"<<nodes[retIdx]<<std::endl;
             failedEdges.push_back(nodes[i]);					
-            break;
+            //break;
           }
         }
 
@@ -358,13 +359,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
         if(holder.isAncestor(it)){
 
-          bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+          bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
           if(found) {
             unsigned int retLev = nodes[retIdx].getLevel();
             unsigned int myLev = nodes[i].getLevel();					
             if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
               found = false;
-            }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+            }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
               //Found a very big Neighbour
               found = false;
             }						
@@ -373,7 +374,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
             yesBalanced = false;
             std::cout<<nodes[i]<<": (BoR) ->"<<nodes[retIdx]<<std::endl;
             failedEdges.push_back(nodes[i]);					
-            break;
+           // break;
           }
         }
 
@@ -386,13 +387,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
         if(holder.isAncestor(it)){
 
-          bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+          bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
           if(found) {
             unsigned int retLev = nodes[retIdx].getLevel();
             unsigned int myLev = nodes[i].getLevel();					
             if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
               found = false;
-            }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+            }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
               //Found a very big Neighbour
               found = false;
             }						
@@ -401,7 +402,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
             yesBalanced = false;
             std::cout<<nodes[i]<<": (RBk) ->"<<nodes[retIdx]<<std::endl;
             failedEdges.push_back(nodes[i]);					
-            break;
+            //break;
           }
         }
 
@@ -414,13 +415,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
         if(holder.isAncestor(it)){
 
-          bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+          bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
           if(found) {
             unsigned int retLev = nodes[retIdx].getLevel();
             unsigned int myLev = nodes[i].getLevel();					
             if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
               found = false;
-            }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+            }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
               //Found a very big Neighbour
               found = false;
             }						
@@ -429,7 +430,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
             yesBalanced = false;
             std::cout<<nodes[i]<<": (TBk) ->"<<nodes[retIdx]<<std::endl;
             failedEdges.push_back(nodes[i]);					
-            break;
+           // break;
           }
         }
 
@@ -442,13 +443,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
         if(holder.isAncestor(it)){
 
-          bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+          bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
           if(found) {
             unsigned int retLev = nodes[retIdx].getLevel();
             unsigned int myLev = nodes[i].getLevel();					
             if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
               found = false;
-            }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+            }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
               //Found a very big Neighbour
               found = false;
             }						
@@ -457,7 +458,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
             yesBalanced = false;
             std::cout<<nodes[i]<<": (LF) ->"<<nodes[retIdx]<<std::endl;
             failedEdges.push_back(nodes[i]);					
-            break;
+            //break;
           }
         }
 
@@ -470,13 +471,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
         if(holder.isAncestor(it)){
 
-          bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+          bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
           if(found) {
             unsigned int retLev = nodes[retIdx].getLevel();
             unsigned int myLev = nodes[i].getLevel();					
             if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
               found = false;
-            }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+            }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
               //Found a very big Neighbour
               found = false;
             }						
@@ -485,7 +486,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
             yesBalanced = false;
             std::cout<<nodes[i]<<": (LBk) ->"<<nodes[retIdx]<<std::endl;
             failedEdges.push_back(nodes[i]);					
-            break;
+            //break;
           }
         }
 
@@ -498,13 +499,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
         if(holder.isAncestor(it)){
 
-          bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+          bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
           if(found) {
             unsigned int retLev = nodes[retIdx].getLevel();
             unsigned int myLev = nodes[i].getLevel();					
             if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
               found = false;
-            }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+            }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
               //Found a very big Neighbour
               found = false;
             }						
@@ -513,7 +514,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
             yesBalanced = false;
             std::cout<<nodes[i]<<": (RF) ->"<<nodes[retIdx]<<std::endl;
             failedEdges.push_back(nodes[i]);					
-            break;
+            //break;
           }
         }
 
@@ -526,13 +527,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
         if(holder.isAncestor(it)){
 
-          bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+          bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
           if(found) {
             unsigned int retLev = nodes[retIdx].getLevel();
             unsigned int myLev = nodes[i].getLevel();					
             if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
               found = false;
-            }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+            }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
               //Found a very big Neighbour
               found = false;
             }						
@@ -541,7 +542,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
             yesBalanced = false;
             std::cout<<nodes[i]<<": (TF) ->"<<nodes[retIdx]<<std::endl;
             failedEdges.push_back(nodes[i]);					
-            break;
+            //break;
           }
         }
 
@@ -554,13 +555,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
         if(holder.isAncestor(it)){
 
-          bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+          bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
           if(found) {
             unsigned int retLev = nodes[retIdx].getLevel();
             unsigned int myLev = nodes[i].getLevel();					
             if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
               found = false;
-            }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+            }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
               //Found a very big Neighbour
               found = false;
             }						
@@ -569,7 +570,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
             yesBalanced = false;
             std::cout<<nodes[i]<<": (BoBk) ->"<<nodes[retIdx]<<std::endl;
             failedEdges.push_back(nodes[i]);					
-            break;
+            //break;
           }
         }
 
@@ -582,13 +583,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
         if(holder.isAncestor(it)){
 
-          bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+          bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
           if(found) {
             unsigned int retLev = nodes[retIdx].getLevel();
             unsigned int myLev = nodes[i].getLevel();					
             if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
               found = false;
-            }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+            }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
               //Found a very big Neighbour
               found = false;
             }						
@@ -597,7 +598,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
             yesBalanced = false;
             std::cout<<nodes[i]<<": (BoF) ->"<<nodes[retIdx]<<std::endl;
             failedEdges.push_back(nodes[i]);					
-            break;
+            //break;
           }
         }
 
@@ -613,13 +614,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
         if(holder.isAncestor(it)){
 
-          bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+          bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
           if(found) {
             unsigned int retLev = nodes[retIdx].getLevel();
             unsigned int myLev = nodes[i].getLevel();					
             if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
               found = false;
-            }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+            }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
               //Found a very big Neighbour
               found = false;
             }						
@@ -628,7 +629,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
             yesBalanced = false;
             std::cout<<nodes[i]<<": (TRBk) ->"<<nodes[retIdx]<<std::endl;
             failedCorners.push_back(nodes[i]);					
-            break;
+            //break;
           }
         }
 
@@ -641,13 +642,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
         if(holder.isAncestor(it)){
 
-          bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+          bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
           if(found) {
             unsigned int retLev = nodes[retIdx].getLevel();
             unsigned int myLev = nodes[i].getLevel();					
             if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
               found = false;
-            }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+            }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
               //Found a very big Neighbour
               found = false;
             }						
@@ -656,7 +657,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
             yesBalanced = false;
             std::cout<<nodes[i]<<": (TLF) ->"<<nodes[retIdx]<<std::endl;
             failedCorners.push_back(nodes[i]);					
-            break;
+            //break;
           }
         }
 
@@ -669,13 +670,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
         if(holder.isAncestor(it)){
 
-          bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+          bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
           if(found) {
             unsigned int retLev = nodes[retIdx].getLevel();
             unsigned int myLev = nodes[i].getLevel();					
             if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
               found = false;
-            }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+            }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
               //Found a very big Neighbour
               found = false;
             }						
@@ -684,7 +685,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
             yesBalanced = false;
             std::cout<<nodes[i]<<": (BoRBk) ->"<<nodes[retIdx]<<std::endl;
             failedCorners.push_back(nodes[i]);					
-            break;
+            //break;
           }
         }
 
@@ -697,13 +698,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
         if(holder.isAncestor(it)){
 
-          bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+          bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
           if(found) {
             unsigned int retLev = nodes[retIdx].getLevel();
             unsigned int myLev = nodes[i].getLevel();					
             if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
               found = false;
-            }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+            }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
               //Found a very big Neighbour
               found = false;
             }						
@@ -712,7 +713,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
             yesBalanced = false;
             std::cout<<nodes[i]<<": (TLBk) ->"<<nodes[retIdx]<<std::endl;
             failedCorners.push_back(nodes[i]);					
-            break;
+           // break;
           }
         }
 
@@ -725,13 +726,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
         if(holder.isAncestor(it)){
 
-          bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+          bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
           if(found) {
             unsigned int retLev = nodes[retIdx].getLevel();
             unsigned int myLev = nodes[i].getLevel();					
             if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
               found = false;
-            }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+            }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
               //Found a very big Neighbour
               found = false;
             }						
@@ -740,7 +741,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
             yesBalanced = false;
             std::cout<<nodes[i]<<": (BoRF) ->"<<nodes[retIdx]<<std::endl;
             failedCorners.push_back(nodes[i]);					
-            break;
+            //break;
           }
         }
 
@@ -753,13 +754,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
         if(holder.isAncestor(it)){
 
-          bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+          bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
           if(found) {
             unsigned int retLev = nodes[retIdx].getLevel();
             unsigned int myLev = nodes[i].getLevel();					
             if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
               found = false;
-            }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+            }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
               //Found a very big Neighbour
               found = false;
             }						
@@ -768,7 +769,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
             yesBalanced = false;
             std::cout<<nodes[i]<<": (TRF) ->"<<nodes[retIdx]<<std::endl;
             failedCorners.push_back(nodes[i]);					
-            break;
+            //break;
           }
         }
 
@@ -782,13 +783,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
 
         if(holder.isAncestor(it)){
 
-          bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+          bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
           if(found) {
             unsigned int retLev = nodes[retIdx].getLevel();
             unsigned int myLev = nodes[i].getLevel();					
             if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
               found = false;
-            }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+            }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
               //Found a very big Neighbour
               found = false;
             }						
@@ -797,7 +798,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
             yesBalanced = false;
             std::cout<<nodes[i]<<": (BoLBk) ->"<<nodes[retIdx]<<std::endl;
             failedCorners.push_back(nodes[i]);					
-            break;
+            //break;
           }
         }
 
@@ -813,13 +814,13 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
         if(holder.isAncestor(it)){
 
 
-          bool found = seq::maxLowerBound(nodes,it.getDFD(), retIdx,NULL,NULL);
+          bool found = seq::maxLowerBound(nodes, it.getDFDMorton(), retIdx, NULL, NULL);
           if(found) {
             unsigned int retLev = nodes[retIdx].getLevel();
             unsigned int myLev = nodes[i].getLevel();					
             if( (it.getAnchor() != nodes[retIdx].getAnchor()) && (!(nodes[retIdx].isAncestor(it))) ) {
               found = false;
-            }else if( (retLev < myLev) && ( (myLev - retLev) > maxLevDiff ) ) {
+            }else if( (retLev < myLev) && (myLev - retLev) > maxLevDiff  ) {
               //Found a very big Neighbour
               found = false;
             }						
@@ -828,7 +829,7 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
             yesBalanced = false;
             std::cout<<nodes[i]<<": (BoLF) ->"<<nodes[retIdx]<<std::endl;
             failedCorners.push_back(nodes[i]);					
-            break;
+           // break;
           }
         }
 
@@ -841,6 +842,24 @@ bool isBalancedInternal(unsigned int dim, unsigned int maxDepth,char*failFileNam
   seq::makeVectorUnique(failedFaces,false);
   seq::makeVectorUnique(failedEdges,false);
   seq::makeVectorUnique(failedCorners,false);
+
+  treeNodesTovtk(failedFaces,0,"failedFaces");
+  treeNodesTovtk(failedEdges,0,"failedEdges");
+  treeNodesTovtk(failedCorners,0,"failedCorners");
+
+
+  if(!yesBalanced)
+  {
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+    std::cout << RED " Balance test failed. " NRM << std::endl;
+    std::cout << YLW << "Failed Face Cases:"<<failedFaces.size()<<NRM<<std::endl;
+    std::cout << YLW << "Failed Edges Cases:"<<failedEdges.size()<<NRM<<std::endl;
+    std::cout << YLW << "Failed Corners Cases:"<<failedCorners.size()<<NRM<<std::endl;
+    std::cout << BLU << "===============================================" << NRM << std::endl;
+
+  }
+
+
   char failCornerFileName[100];
   char failEdgeFileName[100];
   char failFaceFileName[100];
